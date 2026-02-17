@@ -1,0 +1,25 @@
+@import "tailwindcss";
+@font-face {
+    font-family: Inter;
+    src: url('./assets/fonts/Inter-VariableFont.ttf');
+}
+@theme {
+    --font-display: "Inter";
+    /* --color-primary: #39838C; */
+    /* --color-primary: #9218F0; */
+    --color-primary: #39838C;
+}
+
+@layer components {
+    body {
+        @apply font-display leading-relaxed text-gray-900
+    }
+
+    .input {
+        @apply w-full h-14 rounded-md text-sm outline-none px-4 bg-white border border-gray-200 text-gray-700
+    }
+}
+
+.no_scrool::-webkit-scrollbar {
+    display: none;
+}
