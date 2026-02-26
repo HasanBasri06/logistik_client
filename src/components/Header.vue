@@ -1,16 +1,13 @@
 <template>
-    <header class="w-full h-16 bg-white shadow-sm">
+    <header class="w-full h-16 bg-white shadow-sm relative z-10">
         <Content class="flex items-center justify-between h-full">
             <!-- Logo (Sol) -->
             <RouterLink to="/" class="flex items-center gap-2">
                 <img
                     src="@/assets/images/logo.png"
                     alt="TaşıBul Logo"
-                    class="h-9 w-auto object-contain"
+                    class="h-7 w-auto object-contain"
                 />
-                <span class="text-2xl font-bold tracking-tight">
-                    <span class="text-primary">Taşı</span>Bul
-                </span>
             </RouterLink>
 
             <!-- Sağ taraf: dil / yardım / user -->

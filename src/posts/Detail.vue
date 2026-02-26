@@ -1,10 +1,17 @@
 <template>
     <div class="h-screen overflow-hidden">
         <Header />
-        <Content class="mt-5 flex-1 overflow-y-auto flex gap-4">
-            <div class="w-[800px] flex flex-col gap-4 no_scrool pb-[300px]">
+        <Content class="mt-5 flex-1 overflow-y-auto flex gap-4 relative">
+            <!-- Sol kolon: aynı divler, loading'de gri + pulse -->
+            <div
+                class="w-[800px] flex flex-col gap-4 no_scrool pb-[300px] transition-all duration-200"
+                :class="shipmentLoading ? 'opacity-60 pointer-events-none' : ''"
+            >
                 <h2 class="text-2xl font-semibold text-gray-900 h-9">Taşıma Bilgileri</h2>
-                <div class="bg-white h-[350px] rounded-md relative">
+                <div
+                    class="bg-white h-[350px] rounded-md relative transition-colors duration-200"
+                    :class="shipmentLoading ? 'bg-gray-200 animate-pulse' : ''"
+                >
                     <div v-if="mapError" class="w-full h-[350px] flex items-center justify-center bg-red-50 border border-red-200 rounded-md">
                         <div class="text-center p-4">
                             <p class="text-red-600 font-semibold mb-2">Harita Yüklenemedi</p>
@@ -30,7 +37,11 @@
                         Rotayı Göster
                     </button>
                 </div>
-                <div v-if="distance" class="bg-white rounded-md p-4 border border-gray-200">
+                <div
+                    v-if="distance"
+                    class="rounded-md p-4 border border-gray-200 transition-colors duration-200"
+                    :class="shipmentLoading ? 'bg-gray-200 animate-pulse' : 'bg-white'"
+                >
                     <div class="flex items-center justify-between gap-4">
                         <div class="flex items-center gap-4">
                             <div>
@@ -42,13 +53,17 @@
                                 <span class="ml-2 text-lg font-semibold text-gray-900">{{ duration }}</span>
                             </div>
                         </div>
-                        <span class="text-sm text-primary font-semibold">Fiyat görüşülecektir</span>
+                        <span class="text-sm text-primary font-semibold">{{ shipment?.price }}</span>
                     </div>
                 </div>
 
                 <!-- Bu ilanı paylaş -->
-                <div class="bg-white rounded-md p-4 border border-gray-200">
+                <div
+                    class="rounded-md p-4 border border-gray-200 transition-colors duration-200"
+                    :class="shipmentLoading ? 'bg-gray-200 animate-pulse' : 'bg-white'"
+                >
                     <h3 class="text-sm font-semibold text-gray-900 mb-3">Bu ilanı paylaş</h3>
+                    <p v-if="shipmentLoadError" class="text-sm text-red-600">{{ shipmentLoadError }}</p>
                     <div class="flex items-center gap-3">
                         <a
                             :href="shareUrls.facebook"
@@ -76,22 +91,56 @@
                 </div>
 
                 <!-- Yol Üzerindeki İlanlar -->
-                <div class="bg-white rounded-md border border-gray-200 shadow-sm p-6">
+                <div
+                    class="rounded-md border border-gray-200 shadow-sm p-6 transition-colors duration-200"
+                    :class="shipmentLoading ? 'bg-gray-200 animate-pulse' : 'bg-white'"
+                >
                     <h3 class="text-lg font-semibold text-gray-900 mb-3">Yol Üzerindeki İlanlar</h3>
-                    <p v-if="routeCities.length" class="text-sm text-gray-600">
+                    <p v-if="routeCities.length" class="text-sm text-gray-500 mb-4">
                         <span class="font-medium text-gray-700">Yol üzerindeki şehirler:</span>
                         {{ routeCities.join(', ') }}
                     </p>
-                    <p v-else-if="distance" class="text-sm text-gray-500">
-                        Yol üzerindeki şehirler yükleniyor...
+                    <div class="grid gap-3">
+                        <RouterLink
+                            v-for="(listing, idx) in routeListings"
+                            :key="listing.slug || idx"
+                            :to="listing.slug ? { path: `/posts/${listing.slug}` } : {}"
+                            class="flex items-center gap-4 rounded-lg border border-gray-100 bg-gray-50/80 p-3 hover:border-primary/30 hover:bg-primary/5 transition-colors"
+                        >
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-semibold text-gray-900 truncate">
+                                    {{ listing.from }} → {{ listing.to }}
+                                </p>
+                                <div class="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 text-xs text-gray-600">
+                                    <span class="flex items-center gap-1">
+                                        <i class="pi pi-clock text-primary" style="font-size: 0.7rem"></i>
+                                        {{ listing.time }}
+                                    </span>
+                                    <span class="flex items-center gap-1">
+                                        <i class="pi pi-box text-primary" style="font-size: 0.7rem"></i>
+                                        {{ listing.loadAmount }}
+                                    </span>
+                                </div>
+                            </div>
+                            <span class="text-xs font-medium text-primary shrink-0">İlana git</span>
+                        </RouterLink>
+                    </div>
+                    <p v-if="routeListingsLoading" class="text-sm text-gray-500 py-2">
+                        Yol üzerindeki ilanlar yükleniyor...
                     </p>
-                    <p v-else class="text-sm text-gray-500">
-                        Rota gösterildiğinde yol üzerindeki şehirler burada listelenecek.
+                    <p v-else-if="!routeListings.length && !shipmentLoading" class="text-sm text-gray-500 py-2">
+                        Bu rota üzerinde şu an listelenen ilan yok.
+                    </p>
+                    <p v-else-if="!routeListings.length && distance" class="text-sm text-gray-500 py-2">
+                        Yol üzerindeki ilanlar yükleniyor...
                     </p>
                 </div>
 
                 <!-- İlan Açıklaması -->
-                <div class="bg-white rounded-md p-6 border border-gray-200 shadow-sm">
+                <div
+                    class="rounded-md p-6 border border-gray-200 shadow-sm transition-colors duration-200"
+                    :class="shipmentLoading ? 'bg-gray-200 animate-pulse' : 'bg-white'"
+                >
                     <h3 class="text-lg font-semibold text-gray-900 mb-4">İlan Açıklaması</h3>
                     
                     <!-- Açıklama Metni -->
@@ -113,78 +162,36 @@
                             <tbody>
                                 <tr class="border-b border-gray-100">
                                     <td class="px-4 py-3 text-sm text-gray-600">Araç Tipi</td>
-                                    <td class="px-4 py-3 text-sm text-gray-900 font-medium">{{ vehicleType || 'Kamyon' }}</td>
+                                    <td class="px-4 py-3 text-sm text-gray-900 font-medium">{{ ilanAracTipi }}</td>
                                 </tr>
                                 <tr class="border-b border-gray-100">
                                     <td class="px-4 py-3 text-sm text-gray-600">Kapasite</td>
-                                    <td class="px-4 py-3 text-sm text-gray-900 font-medium">{{ capacity || '20 Ton' }}</td>
+                                    <td class="px-4 py-3 text-sm text-gray-900 font-medium">{{ ilanKapasite }}</td>
                                 </tr>
                                 <tr class="border-b border-gray-100">
                                     <td class="px-4 py-3 text-sm text-gray-600">Yük Tipi</td>
-                                    <td class="px-4 py-3 text-sm text-gray-900 font-medium">{{ loadType || 'Genel Yük' }}</td>
+                                    <td class="px-4 py-3 text-sm text-gray-900 font-medium">{{ ilanYukTipi }}</td>
                                 </tr>
                                 <tr class="border-b border-gray-100">
-                                    <td class="px-4 py-3 text-sm text-gray-600">Özel İstekler</td>
-                                    <td class="px-4 py-3 text-sm text-gray-900 font-medium">{{ specialRequests || 'Yok' }}</td>
-                                </tr>
-                                <tr class="border-b border-gray-100">
-                                    <td class="px-4 py-3 text-sm text-gray-600">Araç Tipi</td>
-                                    <td class="px-4 py-3 text-sm text-gray-900 font-medium">{{ vehicleType || 'Kamyon' }}</td>
-                                </tr>
-                                <tr class="border-b border-gray-100">
-                                    <td class="px-4 py-3 text-sm text-gray-600">Kapasite</td>
-                                    <td class="px-4 py-3 text-sm text-gray-900 font-medium">{{ capacity || '20 Ton' }}</td>
-                                </tr>
-                                <tr class="border-b border-gray-100">
-                                    <td class="px-4 py-3 text-sm text-gray-600">Yük Tipi</td>
-                                    <td class="px-4 py-3 text-sm text-gray-900 font-medium">{{ loadType || 'Genel Yük' }}</td>
-                                </tr>
-                                <tr class="border-b border-gray-100">
-                                    <td class="px-4 py-3 text-sm text-gray-600">Özel İstekler</td>
-                                    <td class="px-4 py-3 text-sm text-gray-900 font-medium">{{ specialRequests || 'Yok' }}</td>
-                                </tr>
-                                <tr class="border-b border-gray-100">
-                                    <td class="px-4 py-3 text-sm text-gray-600">Araç Tipi</td>
-                                    <td class="px-4 py-3 text-sm text-gray-900 font-medium">{{ vehicleType || 'Kamyon' }}</td>
-                                </tr>
-                                <tr class="border-b border-gray-100">
-                                    <td class="px-4 py-3 text-sm text-gray-600">Kapasite</td>
-                                    <td class="px-4 py-3 text-sm text-gray-900 font-medium">{{ capacity || '20 Ton' }}</td>
-                                </tr>
-                                <tr class="border-b border-gray-100">
-                                    <td class="px-4 py-3 text-sm text-gray-600">Yük Tipi</td>
-                                    <td class="px-4 py-3 text-sm text-gray-900 font-medium">{{ loadType || 'Genel Yük' }}</td>
-                                </tr>
-                                <tr class="border-b border-gray-100">
-                                    <td class="px-4 py-3 text-sm text-gray-600">Özel İstekler</td>
-                                    <td class="px-4 py-3 text-sm text-gray-900 font-medium">{{ specialRequests || 'Yok' }}</td>
-                                </tr>
-                                <tr class="border-b border-gray-100">
-                                    <td class="px-4 py-3 text-sm text-gray-600">Araç Tipi</td>
-                                    <td class="px-4 py-3 text-sm text-gray-900 font-medium">{{ vehicleType || 'Kamyon' }}</td>
-                                </tr>
-                                <tr class="border-b border-gray-100">
-                                    <td class="px-4 py-3 text-sm text-gray-600">Kapasite</td>
-                                    <td class="px-4 py-3 text-sm text-gray-900 font-medium">{{ capacity || '20 Ton' }}</td>
-                                </tr>
-                                <tr class="border-b border-gray-100">
-                                    <td class="px-4 py-3 text-sm text-gray-600">Yük Tipi</td>
-                                    <td class="px-4 py-3 text-sm text-gray-900 font-medium">{{ loadType || 'Genel Yük' }}</td>
-                                </tr>
-                                <tr class="border-b border-gray-100">
-                                    <td class="px-4 py-3 text-sm text-gray-600">Özel İstekler</td>
-                                    <td class="px-4 py-3 text-sm text-gray-900 font-medium">{{ specialRequests || 'Yok' }}</td>
+                                    <td class="px-4 py-3 text-sm text-gray-600">Özel İstek</td>
+                                    <td class="px-4 py-3 text-sm text-gray-900 font-medium">{{ ilanOzelIstek }}</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
-            <div class="flex-1 flex flex-col gap-4">
+            <div
+                class="flex-1 flex flex-col gap-4 transition-all duration-200"
+                :class="shipmentLoading ? 'opacity-60 pointer-events-none' : ''"
+            >
                 <h2 class="text-2xl font-semibold text-gray-900 h-9">Rota Bilgileri</h2>
                 
                 <!-- Kalkış ve Varış Yeni Tasarım -->
-                <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+                <div
+                    class="rounded-lg border border-gray-200 shadow-sm overflow-hidden transition-colors duration-200"
+                    :class="shipmentLoading ? 'bg-gray-200 animate-pulse' : 'bg-white'"
+                >
                     <div class="p-5">
                         <div class="flex items-start gap-4">
                             <!-- Sol: Yuvarlaklar ve Çizgi -->
@@ -210,8 +217,8 @@
                                     <h3 class="text-base font-semibold text-gray-900 mb-1 leading-tight">
                                         {{ selectedOrigin?.name || 'Ankara' }}
                                     </h3>
-                                    <p class="text-xs text-gray-600 leading-relaxed line-clamp-2">
-                                        {{ originAddress || 'Adres bilgisi yükleniyor...' }}
+                                    <p class="text-sm text-gray-600"> 
+                                        {{ shipment?.departure_time }}
                                     </p>
                                 </div>
                                 
@@ -226,16 +233,15 @@
                                     <h3 class="text-base font-semibold text-gray-900 mb-1 leading-tight">
                                         {{ selectedDestination?.name || 'İzmir' }}
                                     </h3>
-                                    <p class="text-xs text-gray-600 leading-relaxed line-clamp-2">
-                                        {{ destinationAddress || 'Adres bilgisi yükleniyor...' }}
+                                    <p class="text-sm text-gray-600">
+                                        {{ shipment?.time_arrival }}
                                     </p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Teklif Ver Butonu -->
-                    <div class="bg-gray-50 border-t border-gray-100 w-full flex">
+                    <div v-if="!is_me" class="bg-gray-50 border-t border-gray-100 w-full flex">
                         <button
                             @click="handleOfferClick"
                             class="flex-1 h-12 bg-primary text-white font-semibold transition-all duration-200 text-base"
@@ -244,41 +250,45 @@
                         </button>
 
                         <button
-                            @click="handleOfferClick"
+                            @click="openMessageOfferPanel"
                             class="flex-1 h-12 border-primary text-primary font-semibold transition-all duration-200 text-base"
                         >
                             Mesaj İle Teklif Ver
                         </button>
                     </div>
+                    <div v-else class="bg-gray-50 border-t border-gray-100 w-full flex">
+                        <button
+                            class="flex-1 h-12 border-primary text-primary font-semibold transition-all duration-200 text-base"
+                        >
+                            İlanım
+                        </button>
+                    </div>
                 </div>
 
                 <!-- İlan Oluşturan Kişi Bilgileri -->
-                <div class="bg-white rounded-md p-6 border border-gray-200 shadow-sm h-auto">
+                <div
+                    class="rounded-md p-6 border border-gray-200 shadow-sm h-auto transition-colors duration-200"
+                    :class="shipmentLoading ? 'bg-gray-200 animate-pulse' : 'bg-white'"
+                >
                     <div class="flex items-center gap-4">
                         <!-- Profil Resmi -->
                         <div class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
-                            <img 
-                                v-if="userInfo?.avatar" 
-                                :src="userInfo.avatar" 
-                                :alt="userInfo.name"
-                                class="w-full h-full object-cover"
-                            />
-                            <div v-else class="w-full h-full bg-primary/20 flex items-center justify-center">
+                            <div class="w-full h-full bg-primary/20 flex items-center justify-center">
                                 <span class="text-xl text-primary font-semibold">
-                                    {{ userInfo?.name?.charAt(0)?.toUpperCase() || 'U' }}
+                                    {{ shipment?.creator?.full_name?.charAt(0)?.toUpperCase() || 'U' }}
                                 </span>
                             </div>
                         </div>
                         <!-- İsim ve Puan -->
                         <div class="flex flex-col gap-2">
                             <h4 class="text-md font-semibold text-gray-900">
-                                {{ userInfo?.name || 'Kullanıcı Adı' }}
+                                {{ shipment?.creator?.full_name }}
                             </h4>
                             <div class="flex items-center gap-2">
                                 <span class="text-sm text-gray-600">Puan:</span>
                                 <div class="flex items-center gap-1">
                                     <span class="text-md font-semibold text-gray-900">
-                                        {{ userInfo?.rating || '0.0' }}
+                                        {{ creatorScoreText }}
                                     </span>
                                     <span class="text-yellow-500">★</span>
                                 </div>
@@ -287,17 +297,175 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Loading overlay: PrimeVue ProgressSpinner -->
+            <div
+                v-if="shipmentLoading"
+                class="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg"
+            >
+                <ProgressSpinner
+                    style="width: 48px; height: 48px"
+                    strokeWidth="4"
+                    aria-label="Yükleniyor"
+                />
+            </div>
         </Content>
+
+        <!-- Ortak overlay + Mesaj paneli + Teklif modal (overlay tıklanınca ikisi de kapanır) -->
+        <Teleport to="body">
+            <div
+                v-if="showMessageOfferPanel || showTeklifModal"
+                class="fixed inset-0 z-50 flex"
+            >
+                <!-- Tek overlay – tıklanınca hem teklif modalı hem mesaj paneli kapanır -->
+                <div
+                    class="absolute inset-0 bg-black/30 transition-opacity"
+                    @click="closeAllPanels"
+                />
+                <!-- Teklif Ver modal (ortak component) -->
+                <TeklifVerModal
+                    v-if="showTeklifModal && shipment?.slug"
+                    :slug="shipment.slug"
+                    :shipment="shipment"
+                    @close="showTeklifModal = false"
+                    @success="onTeklifModalSuccess"
+                />
+                <!-- Mesaj ile Teklif Ver – sağdan kayan panel -->
+                <div
+                    v-if="showMessageOfferPanel"
+                    class="relative h-screen w-96 bg-white border-l border-gray-200 shadow-xl flex flex-col transition-transform duration-300 ease-out z-10 ml-auto"
+                    :class="messageOfferPanelVisible ? 'translate-x-0' : 'translate-x-full'"
+                    aria-hidden="true"
+                >
+                    <div class="flex items-center justify-between p-3 border-b border-gray-200">
+                        <span class="text-sm font-semibold text-gray-900">Mesaj ile Teklif</span>
+                        <button
+                            type="button"
+                            class="p-1 rounded hover:bg-gray-100 text-gray-500 hover:text-gray-700"
+                            aria-label="Kapat"
+                            @click="closeAllPanels"
+                        >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="flex-1 flex flex-col min-h-0">
+                        <!-- Mesajlar listesi -->
+                        <div
+                            ref="offerMessagesContainer"
+                            class="flex-1 overflow-y-auto px-3 py-2 flex flex-col gap-3 bg-gray-50 scroll-container"
+                        >
+                            <!-- İlan önizlemesi kartı (ilk mesaj) -->
+                            <div
+                                v-for="(msg, index) in offerPanelMessages"
+                                :key="msg.type === 'preview' ? 'preview' : `${msg.type}-${msg.id ?? index}`"
+                                :class="msg.type !== 'preview' && msg.isMe ? 'flex justify-end' : msg.type !== 'preview' ? 'flex justify-start' : ''"
+                            >
+                                <div
+                                    v-if="msg.type === 'preview'"
+                                    class="w-full rounded-lg border border-gray-200 bg-white p-3 shadow-sm"
+                                >
+                                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">İlan önizlemesi</p>
+                                    <p class="text-sm font-medium text-gray-900 mb-1">
+                                        {{ selectedOrigin?.name || '—' }} → {{ selectedDestination?.name || '—' }}
+                                    </p>
+                                    <p class="text-sm text-gray-600">{{ vehicleType }} · {{ capacity }}</p>
+                                    <p class="text-sm font-semibold text-primary mt-2">{{ displayPrice }}</p>
+                                </div>
+                                <div
+                                    v-else-if="msg.type === 'teklif'"
+                                    class="max-w-[85%] w-full"
+                                >
+                                    <div class="rounded-lg border-2 border-primary/30 bg-white p-3 shadow-sm min-w-[200px] max-w-full">
+                                        <p class="text-xs font-semibold text-primary uppercase tracking-wide mb-2">Verilen Teklif</p>
+                                        <p v-if="msg.carName" class="text-sm font-medium text-gray-900 mb-1">{{ msg.carName }}</p>
+                                        <p class="text-sm font-semibold text-primary mb-1">{{ msg.price }}</p>
+                                        <p v-if="msg.message" class="text-sm text-gray-600 mt-2 border-t border-gray-100 pt-2">{{ msg.message }}</p>
+                                        <span class="text-xs text-gray-500 mt-2 block">{{ msg.time }}</span>
+                                        <button
+                                            v-if="isShipmentOwner && msg.status !== 'accepted'"
+                                            type="button"
+                                            class="mt-3 w-full py-2 rounded-lg bg-primary text-white font-semibold text-sm hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                                            :disabled="teklifAcceptLoading === msg.id"
+                                            @click="acceptTeklif(msg.id)"
+                                        >
+                                            {{ teklifAcceptLoading === msg.id ? 'İşleniyor...' : 'Teklifi Kabul Et' }}
+                                        </button>
+                                        <p v-else-if="isShipmentOwner && msg.status === 'accepted'" class="mt-2 text-sm font-medium text-green-600">Kabul edildi</p>
+                                    </div>
+                                </div>
+                                <div
+                                    v-else
+                                    :class="[
+                                        'max-w-[85%] px-3 py-2 rounded-lg flex flex-col gap-0.5',
+                                        msg.isMe
+                                            ? 'bg-primary text-white rounded-br-none'
+                                            : 'bg-white text-gray-800 border border-gray-200 rounded-bl-none'
+                                    ]"
+                                >
+                                    <p class="text-sm leading-snug">{{ msg.text }}</p>
+                                    <span class="text-xs opacity-80">{{ msg.time }}</span>
+                                </div>
+                            </div>
+                            <p
+                                v-if="!offerPanelMessages.length"
+                                class="text-sm text-gray-500 text-center py-4"
+                            >
+                                Henüz mesaj yok. Aşağıdan mesaj göndererek başlayın.
+                            </p>
+                        </div>
+                        <!-- Özel teklif gönder (mesaj inputunun üstünde) -->
+                        <div class="w-full shrink-0 border-t border-gray-200 p-3 bg-white">
+                            <button
+                                type="button"
+                                class="w-full py-2.5 px-3 rounded-lg border-2 border-primary text-primary font-semibold text-sm hover:bg-primary/5 transition-colors"
+                                @click="showTeklifModal = true"
+                            >
+                                Özel teklif gönder
+                            </button>
+                        </div>
+                        <!-- Alt alan: mesaj yazma -->
+                        <div class="w-full flex-shrink-0 border-t border-gray-200 p-2 bg-white">
+                            <form @submit.prevent="sendOfferMessage" class="flex items-center gap-2">
+                                <input
+                                    v-model="newOfferMessageText"
+                                    type="text"
+                                    placeholder="Mesajınızı yazın..."
+                                    class="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+                                />
+                                <button
+                                    type="submit"
+                                    class="flex items-center justify-center w-10 h-10 shrink-0 rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors"
+                                    aria-label="Gönder"
+                                >
+                                    <i class="pi pi-send text-sm"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Teleport>
     </div>
+
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
+import ProgressSpinner from 'primevue/progressspinner';
 import Header from '@/components/Header.vue';
 import Content from '@/components/Content.vue';
+import api from '@/api';
+import { router } from '@/router';
+import { useMessageStore, formatMessageTime } from '@/stores/message';
+import { useAuthStore } from '@/stores/auth';
+import TeklifVerModal from '@/components/TeklifVerModal.vue';
 
 const route = useRoute();
+const authStore = useAuthStore()
+const messageStore = useMessageStore();
 const mapContainer = ref(null);
 const map = ref(null);
 const directionsService = ref(null);
@@ -305,18 +473,53 @@ const directionsRenderer = ref(null);
 const distance = ref(null);
 const duration = ref(null);
 const routeCities = ref([]);
+// Yol üzerindeki ilanlar: API'den doldurulur (routeCities ile istek atılır)
+const routeListings = ref([]);
+const routeListingsLoading = ref(false);
 const mapError = ref(null);
-const originAddress = ref(null);
-const destinationAddress = ref(null);
 const originDateTime = ref(null);
 const destinationDateTime = ref(null);
 const geocoder = ref(null);
 const selectedOrigin = ref(null);
 const selectedDestination = ref(null);
-const userInfo = ref({
-    name: 'Ahmet Yılmaz',
-    avatar: null,
-    rating: 4.8
+
+const is_me = ref(false);
+
+const post = ref(null);
+const shipment = ref(null);
+const shipmentLoadError = ref(null);
+const shipmentLoading = ref(true);
+
+const checkIsMe = () => {  
+    if (shipment.value.creator.id == authStore.user?.id) {
+        is_me.value = true;
+    }
+};
+
+async function geocodePlace(cityName, districtName) {
+    const q = [cityName, districtName, 'Türkiye'].filter(Boolean).join(', ');
+    if (!q) return null;
+    try {
+        const res = await fetch(
+            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&countrycodes=tr`,
+            { headers: { 'Accept-Language': 'tr' } }
+        );
+        const data = await res.json();
+        const item = data?.[0];
+        if (item?.lat != null && item?.lon != null) {
+            return { lat: parseFloat(item.lat), lng: parseFloat(item.lon) };
+        }
+    } catch (_) {}
+    return null;
+}
+
+// Backend getPrice: 0 ise "Fiyat görüşülecektir", değilse Türkçe formatlı fiyat
+const displayPrice = computed(() => {
+    const p = shipment.value?.price;
+    if (p == null) return 'Fiyat görüşülecektir';
+    if (typeof p === 'string') return p;
+    if (Number(p) === 0) return 'Fiyat görüşülecektir';
+    return Number(p).toLocaleString('tr-TR') + " ₺";
 });
 
 // Paylaşım linkleri (Bu ilanı paylaş)
@@ -329,66 +532,144 @@ const shareUrls = computed(() => {
     };
 });
 
-// İlan bilgileri
-const postDescription = ref('Ankara\'dan İstanbul\'a güvenli ve hızlı taşımacılık hizmeti. Deneyimli sürücü ve modern araç filosu ile yükünüzü güvenle taşıyoruz. Özel yükler için özel çözümler sunuyoruz.');
-const vehicleType = ref('Kamyon');
-const capacity = ref('20 Ton');
-const loadType = ref('Genel Yük');
-const specialRequests = ref('Soğuk zincir gerektiren yükler için uygun değildir.');
+const creatorScoreText = computed(() => {
+  const score = shipment.value?.creator?.comments_avg_score;
+  if (score == null || score === '') return '0';
+  const num = Number(score);
+  if (Number.isNaN(num)) return '—';
+  return num.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+});
 
-// Şehir listesi
-const cities = ref([
-    { name: 'Ankara', code: 'ANK', lat: 39.9334, lng: 32.8597 },
-    { name: 'İstanbul', code: 'IST', lat: 41.0082, lng: 28.9784 },
-    { name: 'İzmir', code: 'IZM', lat: 38.4237, lng: 27.1428 },
-    { name: 'Bursa', code: 'BUR', lat: 40.1826, lng: 29.0665 },
-    { name: 'Antalya', code: 'ANT', lat: 36.8969, lng: 30.7133 },
-    { name: 'Pendik', code: 'PEN', lat: 40.8764, lng: 29.2353 },
-]);
+// İlan bilgileri (tablo: shipment'tan)
+const ilanAracTipi = computed(() => {
+    const s = shipment.value;
+    if (!s) return '—';
+    const name = s.car?.name ?? '';
+    const detail = s.get_car_detail?.value ?? s.car?.details?.[0]?.value ?? '';
+    const d = String(detail).trim();
+    if (!name && !d) return '—';
+    return d ? `${name} / ${d.charAt(0).toUpperCase() + d.slice(1)}` : name;
+});
+const ilanKapasite = computed(() => {
+    const cap = shipment.value?.capacity_ton ?? shipment.value?.capacity ?? 20;
+    const n = typeof cap === 'number' ? cap : parseInt(cap, 10);
+    return (Number.isNaN(n) ? 20 : n) + ' Ton';
+});
 
-// Örnek koordinatlar (Ankara - İzmir)
-const origin = { lat: 39.9334, lng: 32.8597 }; // Ankara
-const destination = { lat: 38.4237, lng: 27.1428 }; // İzmir
+const ilanYukTipi = computed(() => {
+    const pt = shipment.value?.post_type ?? shipment.value?.postType;
+    const val = pt?.value ?? pt?.name ?? '';
+    return String(val).trim() || 'Genel Yük';
+});
+const ilanOzelIstek = computed(() => {
+    const o = shipment.value?.special_requests ?? shipment.value?.ozel_istek ?? shipment.value?.notes ?? '';
+    return String(o).trim() || 'Yok';
+});
+const postDescription = ref('');
 
-// İlk değerleri ayarla
-selectedOrigin.value = cities.value.find(c => c.code === 'ANK');
-selectedDestination.value = cities.value.find(c => c.code === 'IZM');
+
+
+const origin = { lat: 39.9334, lng: 32.8597 };
+const destination = { lat: 38.4237, lng: 27.1428 };
+
+async function loadShipmentAndSetLocations() {
+    shipmentLoadError.value = null;
+    shipmentLoading.value = true;
+    const slug = route.params?.slug;
+    if (!slug) {
+        if (!selectedOrigin.value) selectedOrigin.value = { name: 'Ankara' };
+        if (!selectedDestination.value) selectedDestination.value = { name: 'İzmir' };
+        shipmentLoading.value = false;
+        return;
+    }
+    try {
+        const response = await api.get(`/shipments/${slug}`);
+        const data = response.data;
+        if (!data) {
+            if (!selectedOrigin.value) selectedOrigin.value = { name: 'Ankara' };
+            if (!selectedDestination.value) selectedDestination.value = { name: 'İzmir' };
+            shipmentLoading.value = false;
+            return;
+        }
+        const content = data.content ?? data.data ?? data;
+        const s =
+            content?.shipment
+            ?? (content && (content.slug != null || content.f_where_city != null) ? content : null);
+        if (s && typeof s === 'object') {
+            shipment.value = s;
+            const fCity = s.f_where_city;
+            const fDistrict = s.f_where_district;
+            const tCity = s.t_where_city;
+            const tDistrict = s.t_where_district;
+            selectedOrigin.value = { name: [fCity, fDistrict].filter(Boolean).join(' / ') || 'Kalkış' };
+            selectedDestination.value = { name: [tCity, tDistrict].filter(Boolean).join(' / ') || 'Varış' };
+            if (fCity || tCity) {
+                const fromCoords = await geocodePlace(fCity, fDistrict);
+                const toCoords = await geocodePlace(tCity, tDistrict);
+                if (fromCoords) {
+                    origin.lat = fromCoords.lat;
+                    origin.lng = fromCoords.lng;
+                }
+                if (toCoords) {
+                    destination.lat = toCoords.lat;
+                    destination.lng = toCoords.lng;
+                }
+            }
+            checkIsMe();
+        }
+    } catch (err) {
+        console.log(err);
+        
+        const status = err?.response?.status;
+        const msg = err?.response?.data?.message || err?.message || 'İlan yüklenemedi';
+        shipmentLoadError.value = status === 404 ? 'İlan bulunamadı.' : msg;
+        console.error('Shipment yüklenemedi:', status, err?.response?.data ?? err?.message);
+    }
+    if (!selectedOrigin.value) selectedOrigin.value = { name: 'Ankara' };
+    if (!selectedDestination.value) selectedDestination.value = { name: 'İzmir' };
+    shipmentLoading.value = false;
+}
+
+// Slug değişince (farklı ilana tıklanınca) ilanı ve haritayı güncelle (ilk mount'ta onMounted halleder)
+watch(
+    () => route.params?.slug,
+    async (newSlug, oldSlug) => {
+        if (!newSlug || oldSlug === undefined || newSlug === oldSlug) return;
+        distance.value = null;
+        duration.value = null;
+        routeCities.value = [];
+        routeListings.value = [];
+        await loadShipmentAndSetLocations();
+        if (directionsService.value && directionsRenderer.value && map.value) {
+            nextTick(() => calculateRoute());
+        }
+    }
+);
 
 onMounted(async () => {
-    // DOM'un tamamen render edilmesini bekle
     await nextTick();
-    
-    // Map container'ın var olduğundan emin ol
+    await loadShipmentAndSetLocations();
+
     if (!mapContainer.value) {
-        console.error('Map container not found after nextTick');
         mapError.value = 'Harita container bulunamadı. Sayfayı yenileyin.';
         return;
     }
-    
-    // Global error handler (önce tanımla)
+
     window.gm_authFailure = () => {
         mapError.value = 'Google Maps API key geçersiz veya API\'ler etkinleştirilmemiş. Lütfen Google Cloud Console\'u kontrol edin.';
         console.error('Google Maps authentication failed');
     };
-    
-    // Google Maps API yüklenene kadar bekle (max 15 saniye)
+
     let attempts = 0;
-    const maxAttempts = 150; // 15 saniye
-    
+    const maxAttempts = 150;
+
     const checkGoogle = () => {
         attempts++;
-        
-        // Her seferinde container'ı kontrol et
         if (!mapContainer.value) {
-            console.error('Map container lost during initialization');
             mapError.value = 'Harita container kayboldu. Sayfayı yenileyin.';
             return;
         }
-        
-        // Hem window.google hem de callback kontrolü
         if ((window.google && window.google.maps) || window.googleMapsLoaded) {
-            console.log('Google Maps API loaded');
-            // Biraz daha bekle ki tamamen yüklensin
             setTimeout(() => {
                 if (window.google && window.google.maps) {
                     initializeMap();
@@ -400,11 +681,9 @@ onMounted(async () => {
             setTimeout(checkGoogle, 100);
         } else {
             mapError.value = 'Google Maps API yüklenemedi. Lütfen API key\'inizi ve API\'lerin etkin olduğunu kontrol edin.';
-            console.error('Google Maps API failed to load after', attempts, 'attempts');
         }
     };
-    
-    // İlk kontrol
+
     if ((window.google && window.google.maps) || window.googleMapsLoaded) {
         setTimeout(() => initializeMap(), 200);
     } else {
@@ -452,9 +731,6 @@ const initializeMap = () => {
 
         // Geocoder oluştur
         geocoder.value = new window.google.maps.Geocoder();
-
-        // Adres bilgilerini al
-        getAddresses();
 
         // Rota hesapla
         calculateRoute();
@@ -537,7 +813,8 @@ const extractCitiesFromRoute = (directionsResult) => {
         return;
     }
     
-    // Rota boyunca örnek noktalar al (kalkış ve varış hariç, max 8 nokta)
+    // Rota boyunca örnek noktalar al (kalkış ve varış hariç, max 30 nokta – tüm şehirler için)
+    const maxSamples = 30;
     const sampleIndices = [];
     const n = steps.length;
     const midCount = n <= 2 ? 0 : n - 2;
@@ -545,11 +822,11 @@ const extractCitiesFromRoute = (directionsResult) => {
         routeCities.value = [];
         return;
     }
-    if (midCount <= 8) {
+    if (midCount <= maxSamples) {
         for (let i = 1; i < n - 1; i++) sampleIndices.push(i);
     } else {
-        for (let i = 0; i < 8; i++) {
-            sampleIndices.push(1 + Math.floor((i * (midCount - 1)) / 7));
+        for (let i = 0; i < maxSamples; i++) {
+            sampleIndices.push(1 + Math.floor((i * (midCount - 1)) / (maxSamples - 1)));
         }
     }
     
@@ -581,33 +858,37 @@ const extractCitiesFromRoute = (directionsResult) => {
             if (cityLower !== originName && cityLower !== destName) citySet.add(c);
         });
         routeCities.value = [...citySet];
+        fetchRouteListings();
     });
 };
 
-const getAddresses = () => {
-    if (!geocoder.value) return;
-
-    // Kalkış noktası adresini al
-    geocoder.value.geocode({ location: origin }, (results, status) => {
-        if (status === 'OK' && results && results[0]) {
-            originAddress.value = results[0].formatted_address;
-        }
-    });
-
-    // Dönüş noktası adresini al
-    geocoder.value.geocode({ location: destination }, (results, status) => {
-        if (status === 'OK' && results && results[0]) {
-            destinationAddress.value = results[0].formatted_address;
-        }
-    });
-};
+async function fetchRouteListings() {
+    const s = shipment.value;
+    const originCity = s?.f_where_city || selectedOrigin.value?.name?.split(' / ')[0]?.trim();
+    const destCity = s?.t_where_city || selectedDestination.value?.name?.split(' / ')[0]?.trim();
+    const cities = [originCity, ...routeCities.value, destCity].filter(Boolean);
+    if (!cities.length) {
+        routeListings.value = [];
+        return;
+    }
+    routeListingsLoading.value = true;
+    try {
+        const { data } = await api.post('/shipments/intercity', { cities });
+        const raw = data?.content?.shipments ?? data?.shipments ?? data?.data?.shipments ?? [];
+        const list = Array.isArray(raw) ? raw : [];
+        const currentSlug = s?.slug;
+        routeListings.value = currentSlug ? list.filter((item) => item.slug !== currentSlug) : list;
+    } catch (err) {
+        console.warn('Yol üzerindeki ilanlar yüklenemedi:', err?.response?.data ?? err?.message);
+        routeListings.value = [];
+    }
+    routeListingsLoading.value = false;
+}
 
 const onOriginChange = (city) => {
     if (city && city.lat && city.lng) {
         origin.lat = city.lat;
         origin.lng = city.lng;
-        originAddress.value = null; // Yeni adres almak için temizle
-        getAddresses();
         if (map.value) {
             map.value.setCenter({
                 lat: (origin.lat + destination.lat) / 2,
@@ -622,8 +903,6 @@ const onDestinationChange = (city) => {
     if (city && city.lat && city.lng) {
         destination.lat = city.lat;
         destination.lng = city.lng;
-        destinationAddress.value = null; // Yeni adres almak için temizle
-        getAddresses();
         if (map.value) {
             map.value.setCenter({
                 lat: (origin.lat + destination.lat) / 2,
@@ -648,11 +927,6 @@ const swapLocations = () => {
     destination.lat = tempLat;
     destination.lng = tempLng;
 
-    // Adresleri de değiştir
-    const tempAddress = originAddress.value;
-    originAddress.value = destinationAddress.value;
-    destinationAddress.value = tempAddress;
-
     // Tarih/saat bilgilerini de değiştir
     const tempDateTime = originDateTime.value;
     originDateTime.value = destinationDateTime.value;
@@ -672,7 +946,6 @@ const swapLocations = () => {
 
 const recalculateRoute = () => {
     calculateRoute();
-    getAddresses();
 };
 
 const formatDateTime = (dateTime) => {
@@ -686,12 +959,155 @@ const formatDateTime = (dateTime) => {
     return `${day}.${month}.${year} ${hours}:${minutes}`;
 };
 
+const showMessageOfferPanel = ref(false);
+const messageOfferPanelVisible = ref(false);
+const offerMessagesContainer = ref(null);
+
+const offerPanelMessages = ref([]);
+const newOfferMessageText = ref('');
+
+function buildOfferPanelMessages(messages, requests, currentUserId) {
+    const preview = { type: 'preview' };
+    const teklifItems = (requests || [])
+        .filter((r) => Number(r.user_id) === Number(currentUserId))
+        .map((r) => ({
+            type: 'teklif',
+            id: r.id,
+            isMe: true,
+            carName: r.car?.name ?? '',
+            price: r.price ?? '—',
+            message: r.message ?? '',
+            time: formatMessageTime(r.created_at_raw ?? r.created_at),
+            created_at: r.created_at_raw ?? r.created_at,
+            status: r.status ?? 'pending',
+        }));
+    const withDate = [...(messages || []), ...teklifItems].filter((m) => m.created_at);
+    withDate.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    return [preview, ...withDate];
+}
+
+async function openMessageOfferPanel() {
+    const receiverId = shipment.value?.creater_id ?? shipment.value?.creator?.id;
+    const slug = route.params?.slug;
+    const currentUserId = authStore.user?.id;
+
+    const [msgResult, requestsRes] = await Promise.all([
+        messageStore.getBySenderAndReceiver(receiverId),
+        slug ? api.get(`/shipments/${slug}/requests`).catch(() => ({ data: {} })) : Promise.resolve({ data: {} }),
+    ]);
+
+    const messages = msgResult.success && Array.isArray(msgResult.data) ? msgResult.data : [];
+    const content = requestsRes.data?.content ?? requestsRes.data?.data ?? requestsRes.data ?? {};
+    const requests = content?.shipment?.requests ?? [];
+
+    offerPanelMessages.value = buildOfferPanelMessages(messages, requests, currentUserId);
+
+    showMessageOfferPanel.value = true;
+    nextTick(() => {
+        messageOfferPanelVisible.value = true;
+        nextTick(() => {
+            setTimeout(() => {
+                const el = offerMessagesContainer.value;
+                if (el) el.scrollTop = el.scrollHeight;
+            }, 50);
+        });
+    });
+}
+
+function closeMessageOfferPanel() {
+    messageOfferPanelVisible.value = false;
+    setTimeout(() => {
+        showMessageOfferPanel.value = false;
+    }, 300);
+}
+
+function closeAllPanels() {
+    showTeklifModal.value = false;
+    closeMessageOfferPanel();
+}
+
+async function onTeklifModalSuccess() {
+    if (showMessageOfferPanel.value) await refreshOfferPanelMessages();
+}
+
+const isShipmentOwner = computed(() => {
+    const createrId = shipment.value?.creater_id ?? shipment.value?.creator?.id;
+    return createrId != null && Number(createrId) === Number(authStore.user?.id);
+});
+
+const teklifAcceptLoading = ref(null);
+
+async function acceptTeklif(requestId) {
+    const slug = route.params?.slug;
+    if (!slug) return;
+    teklifAcceptLoading.value = requestId;
+    try {
+        await api.post(`/shipments/${slug}/requests/${requestId}/accept`);
+        await refreshOfferPanelMessages();
+        nextTick(() => {
+            setTimeout(() => {
+                const el = offerMessagesContainer.value;
+                if (el) el.scrollTop = el.scrollHeight;
+            }, 50);
+        });
+    } catch (err) {
+        console.warn('Teklif kabul edilemedi:', err?.response?.data?.message ?? err?.message);
+    } finally {
+        teklifAcceptLoading.value = null;
+    }
+}
+
+async function sendOfferMessage() {
+    const text = newOfferMessageText.value?.trim();
+    if (!text) return;
+
+    const shipmentId = shipment.value?.id;
+    const receiverId = shipment.value?.creater_id ?? shipment.value?.creator?.id;
+
+    const result = await messageStore.createMessage({
+        shipment_id: shipmentId,
+        receiver_id: receiverId,
+        message: text,
+    });
+
+    if (!result.success) {
+        console.warn('Mesaj gönderilemedi:', result.error);
+        return;
+    }
+
+    newOfferMessageText.value = '';
+    await refreshOfferPanelMessages();
+    nextTick(() => {
+        setTimeout(() => {
+            const el = offerMessagesContainer.value;
+            if (el) el.scrollTop = el.scrollHeight;
+        }, 50);
+    });
+}
+
+async function refreshOfferPanelMessages() {
+    const receiverId = shipment.value?.creater_id ?? shipment.value?.creator?.id;
+    const slug = route.params?.slug;
+    const currentUserId = authStore.user?.id;
+    if (!receiverId) return;
+
+    const [msgResult, requestsRes] = await Promise.all([
+        messageStore.getBySenderAndReceiver(receiverId),
+        slug ? api.get(`/shipments/${slug}/requests`).catch(() => ({ data: {} })) : Promise.resolve({ data: {} }),
+    ]);
+    const messages = msgResult.success && Array.isArray(msgResult.data) ? msgResult.data : [];
+    const content = requestsRes.data?.content ?? requestsRes.data?.data ?? requestsRes.data ?? {};
+    const requests = content?.shipment?.requests ?? [];
+    offerPanelMessages.value = buildOfferPanelMessages(messages, requests, currentUserId);
+}
+
+const showTeklifModal = ref(false);
 const handleOfferClick = () => {
-    // TODO: Teklif verme işlemi burada yapılacak
-    console.log('Teklif ver butonuna tıklandı');
-    // Örnek: Modal açılabilir veya sayfaya yönlendirme yapılabilir
+    showTeklifModal.value = true;
 };
 
+
+// Carousel’daki seçili araç: "Araç ismi" + varsa " detay ismi"
 const showRoute = () => {
     if (!map.value || !directionsRenderer.value) {
         return;

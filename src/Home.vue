@@ -4,7 +4,7 @@ import { RouterLink } from 'vue-router';
 import Navbar from './partials/Navbar.vue';
 import Content from '@/components/Content.vue';
 import Footer from '@/components/Footer.vue';
-import { Search, FileCheck, PackageCheck } from 'lucide-vue-next';
+import { Search, FileCheck, PackageCheck, Truck, ArrowRight, Shield } from 'lucide-vue-next';
 import whyUsImage from '@/assets/images/lojistik_wallpaper.jpg';
 
 function openLoginModal() {
@@ -31,6 +31,70 @@ const faqItems = [
 <template>
     <Navbar />
     <main class="main-home min-h-screen bg-[#f8f9fa]">
+        <!-- Hero -->
+        <section class="hero relative min-h-[85vh] flex flex-col justify-center overflow-hidden" aria-label="TaşıBul ile yük taşımacılığı">
+            <div class="hero-bg absolute inset-0" />
+            <div class="hero-gradient absolute inset-0" />
+            <div class="hero-grid absolute inset-0 opacity-[0.03]" aria-hidden="true" />
+            <Content class="relative z-10 py-16 md:py-24">
+                <div class="px-4 md:px-0 flex flex-col md:flex-row md:items-center md:justify-between gap-12 md:gap-16">
+                    <div class="max-w-2xl">
+                        <p class="hero-badge inline-flex items-center gap-2 text-primary font-semibold text-sm tracking-wide uppercase mb-6">
+                            <Shield class="w-4 h-4" />
+                            Güvenilir lojistik platformu
+                        </p>
+                        <h1 class="hero-title text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-gray-900 leading-[1.1]">
+                            Yükünüzü taşıtın,<br />
+                            <span class="text-primary">araçla kazanın.</span>
+                        </h1>
+                        <p class="hero-desc mt-6 text-lg md:text-xl text-gray-600 leading-relaxed max-w-xl">
+                            Yük sahipleri ile taşıyıcıları bir araya getiriyoruz. İlan verin, teklif alın veya aracınızla yük taşıyın — hepsi tek platformda.
+                        </p>
+                        <div class="hero-actions mt-10 flex flex-wrap gap-4">
+                            <button
+                                type="button"
+                                class="hero-cta-primary"
+                                @click="openLoginModal"
+                            >
+                                Giriş yap
+                                <ArrowRight class="w-5 h-5 ml-2 shrink-0" />
+                            </button>
+                            <RouterLink
+                                to="/help"
+                                class="hero-cta-secondary"
+                            >
+                                Nasıl çalışır?
+                            </RouterLink>
+                        </div>
+                        <div class="mt-12 flex flex-wrap gap-8 text-sm text-gray-500">
+                            <span class="flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-primary" />
+                                Ücretsiz ilan
+                            </span>
+                            <span class="flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-primary" />
+                                Anlık eşleşme
+                            </span>
+                            <span class="flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-primary" />
+                                Güvenli mesajlaşma
+                            </span>
+                        </div>
+                    </div>
+                    <div class="hero-visual hidden lg:flex flex-1 justify-end items-center max-w-md xl:max-w-lg">
+                        <div class="hero-card relative w-full aspect-[4/3] rounded-3xl bg-white/95 backdrop-blur shadow-2xl border border-white/50 overflow-hidden flex items-center justify-center">
+                            <div class="absolute inset-0 bg-gradient-to-br from-primary/5 to-primary/10" />
+                            <Truck class="w-32 h-32 md:w-40 md:h-40 text-primary/30 absolute" stroke-width="1" />
+                            <div class="relative text-center px-8 py-6">
+                                <p class="text-sm font-semibold text-primary uppercase tracking-wider">TaşıBul</p>
+                                <p class="text-gray-600 text-sm mt-1">Yük & Araç ilanları</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </Content>
+        </section>
+
         <!-- Nasıl çalışır (Tailwind) -->
         <section id="how-it-works" class="bg-[#f8f9fa] py-20 md:py-28 mt-10" aria-labelledby="how-it-works-title">
             <Content>
@@ -213,6 +277,80 @@ const faqItems = [
 </template>
 
 <style scoped>
+/* Hero */
+.hero {
+    --hero-primary: var(--p-primary-500, #39838c);
+}
+.hero-bg {
+    background: linear-gradient(135deg, #f0f9fa 0%, #e8f4f5 40%, #f8f9fa 100%);
+}
+.hero-gradient {
+    background: radial-gradient(ellipse 80% 60% at 70% 30%, rgba(57, 131, 140, 0.12) 0%, transparent 50%),
+                radial-gradient(ellipse 60% 40% at 20% 80%, rgba(57, 131, 140, 0.08) 0%, transparent 45%);
+}
+.hero-grid {
+    background-image:
+        linear-gradient(rgba(57, 131, 140, 0.15) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(57, 131, 140, 0.15) 1px, transparent 1px);
+    background-size: 48px 48px;
+}
+.hero-badge {
+    color: var(--hero-primary);
+}
+.hero-title {
+    color: #111827;
+    letter-spacing: -0.03em;
+}
+.hero-desc {
+    color: #4b5563;
+}
+.hero-cta-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.875rem 1.75rem;
+    border-radius: 0.75rem;
+    background: var(--hero-primary);
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    box-shadow: 0 4px 14px rgba(57, 131, 140, 0.4);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    border: none;
+    cursor: pointer;
+}
+.hero-cta-primary:hover {
+    background: #2d6a72;
+    box-shadow: 0 6px 20px rgba(57, 131, 140, 0.45);
+    transform: translateY(-1px);
+}
+.hero-cta-primary:active {
+    transform: translateY(0);
+}
+.hero-cta-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.875rem 1.75rem;
+    border-radius: 0.75rem;
+    background: #fff;
+    color: var(--hero-primary);
+    font-size: 1rem;
+    font-weight: 600;
+    border: 2px solid rgba(57, 131, 140, 0.3);
+    transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+    text-decoration: none;
+}
+.hero-cta-secondary:hover {
+    border-color: var(--hero-primary);
+    background: rgba(57, 131, 140, 0.06);
+    transform: translateY(-1px);
+}
+.hero-card {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.12);
+}
+
 /* Ana sayfa bölümleri */
 .main-home {
     color: #1f2937;

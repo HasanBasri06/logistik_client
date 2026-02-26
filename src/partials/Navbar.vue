@@ -1,10 +1,10 @@
 <template>
     <Header />
     <nav 
-        class="w-full h-64 relative" 
-        :style="{ backgroundImage: `linear-gradient(to bottom, rgba(57, 131, 140, 0.8), rgba(57, 131, 140, 0.6)), url(${lojistikWallpaper})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }"
+        class="w-full h-screen -mt-16 relative" 
+        :style="{ backgroundImage: `url(${lojistikWallpaper})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }"
     >
-        <Content class="relative">
+        <Content class="relative pt-16 flex flex-col justify-center">
             <!-- Slogan -->
             <div class="pt-12 pb-8 h-28 overflow-hidden">
                 <Transition name="fade" mode="out-in">
@@ -16,7 +16,7 @@
                     </h2>
                 </Transition>
             </div>
-            <div class="nav-form w-full flex flex-col bg-white rounded-3xl border border-gray-200 absolute -bottom-[75px] p-7">
+            <div class="nav-form w-full flex flex-col bg-white rounded-3xl border border-gray-200 absolute p-7">
                 <!-- Arama Satırı -->
                 <div class="flex gap-4 h-16">
                   <div 

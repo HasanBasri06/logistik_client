@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden overflow-y-scroll no_scrool">
+  <div class="w-full bg-white border border-gray-200 rounded-xl shadow-sm ">
     <div class="px-6 py-4 border-b border-gray-100">
       <h3 class="text-lg font-semibold text-gray-800">Araçlar</h3>
       <p class="text-sm text-gray-500 mt-0.5">Yükünüzü taşıyacak araç seçiniz</p>
@@ -18,7 +18,6 @@
         <p class="text-base font-medium">Araç bulunamadı</p>
       </div>
       <template v-else>
-        <!-- Araç isimli butonlar -->
         <div class="flex flex-wrap gap-2 mb-4">
           <button
             v-for="(car, index) in cars"
@@ -28,8 +27,8 @@
             class="shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
             :class="
               selectedCar?.id === car.id
-                ? 'bg-primary text-white shadow-md shadow-primary/25 ring-2 ring-primary/30'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800'
+                ? 'bg-primary text-white shadow-md shadow-primary/25 ring-2 ring-primary/40'
+                : 'bg-gray-100 border border-primary text-primary  hover:bg-primary/20 hover:text-gray-800 cursor-pointer'
             "
           >
             {{ car.name }}
@@ -82,12 +81,12 @@
           </Slide>
         </Carousel>
 
-        <!-- Seçili araç önizlemesi (detail image ile güncellenir) -->
+        <!-- Seçili araç önizlemesi -->
         <div v-if="selectedCar" class="mt-6 pt-6 border-t border-gray-100">
           <div class="flex flex-col items-center justify-center p-10 rounded-xl bg-gray-50 border border-gray-200 relative">
-            <div class="absolute top-5 left-5 text-primary font-medium">5000 TL 'den başlar</div>
+            <div class="absolute top-5 left-5 text-primary font-medium">{{ selectedCar.price }} TL 'den başlar</div>
             <div class="w-auto h-auto px-5 py-2 relative">
-              <div class="absolute -top-6 flex items-center border-dotted justify-center border-b border-primary/40 left-2/4 -translate-x-2/4 w-[90%]  h-6 text-sm text-primary pb-2">
+              <div class="absolute -top-6 flex items-center border-dotted justify-center border-b border-primary/40 left-2/4 -translate-x-2/4 w-[90%] h-6 text-sm text-primary pb-2">
                 1 metre
               </div>
               <div class="w-full h-full border-r border-dotted text-primary border-primary/40 absolute">
@@ -98,21 +97,26 @@
                 :alt="selectedCar.name"
                 class="h-32 w-full max-w-xs object-contain"
               />
-
             </div>
             <span class="mt-2 text-sm font-semibold text-gray-700">{{ selectedCar.name }}</span>
           </div>
         </div>
 
-        <!-- Seçili aracın details (varyant) seçimi -->
-        <div
+        <!-- Varyant seçimi -->
+        
+      </template>
+    </div>
+  </div>
+
+  <div class="w-full bg-white border border-gray-200 rounded-xl shadow-sm p-6" v-if="selectedCar && selectedCar.details?.length">
+    <div
           v-if="selectedCar && selectedCar.details?.length"
-          class="mt-6 pt-6 border-t border-gray-100"
+          
         >
           <div
             v-for="(group, groupName) in detailsByType"
             :key="groupName"
-            class="mb-4"
+            class=""
           >
             <div class="flex flex-wrap gap-2">
               <label
@@ -122,13 +126,14 @@
               >
                 <input
                   type="radio"
-                  :name="`car-${selectedCar.id}-${groupName}`"
-                  :value="item.value"
-                  v-model="selectedDetailValues[`${selectedCar.id}-${groupName}`]"
+                  :name="`car-${selectedCar.id}-${groupKey(group, groupName)}`"
+                  :value="item.id"
+                  :checked="getDetailSelection(group)?.id === item.id"
                   class="peer sr-only"
+                  @change="setDetailValue(group, groupName, item)"
                 />
                 <div
-                  class="px-4 py-2.5 rounded-lg border-2 text-sm font-medium transition-all duration-200 peer-checked:border-primary peer-checked:bg-primary peer-checked:text-white border-gray-200 text-gray-600 hover:border-primary/50 hover:text-primary"
+                  class="px-4 py-2.5 rounded-lg border-2 text-sm font-medium transition-all duration-200 peer-checked:border-primary peer-checked:bg-primary peer-checked:text-white border-primary/70 text-primary/70 hover:border-primary/50 hover:text-primary"
                 >
                   {{ item.value }}
                 </div>
@@ -136,8 +141,6 @@
             </div>
           </div>
         </div>
-      </template>
-    </div>
   </div>
 </template>
 
@@ -154,13 +157,10 @@ const carsError = ref(null);
 const activeCarIndex = ref(0);
 const carsCarouselRef = ref(null);
 const selectedCar = ref(null);
-const selectedDetailValues = ref({});
+/** Sadece { id, name } dizisi, iç içe obje yok */
+const selectedDetailValues = ref([]);
 
-defineExpose({
-  selectedCar,
-  selectedDetailValues,
-  carsCarouselRef,
-});
+const postStore = usePostStore();
 
 const detailsByType = computed(() => {
   const details = selectedCar.value?.details ?? [];
@@ -174,19 +174,54 @@ const detailsByType = computed(() => {
   return groups;
 });
 
-const postStore = usePostStore();
+function groupKey(group, groupName) {
+  return group?.[0]?.name ?? groupName;
+}
+
+/** Bu gruptaki seçili öğe: dizide bu gruba ait id varsa { id, name } döner */
+function getDetailSelection(group) {
+  const arr = selectedDetailValues.value;
+  const groupIds = group.map((g) => g.id);
+  return arr.find((s) => groupIds.includes(s.id));
+}
+
+function setDetailValue(group, groupName, item) {
+  const groupIds = group.map((g) => g.id);
+  const rest = selectedDetailValues.value.filter((s) => !groupIds.includes(s.id));
+  selectedDetailValues.value = [...rest, { id: item.id, name: item.value }];
+}
 
 watch(
   selectedDetailValues,
   (val) => {
-    if (selectedCar.value) postStore.selectedDetailValues = { ...val };
+    if (selectedCar.value && Array.isArray(val)) {
+      if (!val.length) {
+        postStore.selectedDetailValues = {};
+      } else {
+        postStore.selectedDetailValues = {
+          id: val.map((s) => s.id).join(","),
+          name: val.map((s) => s.name).join(",")
+        };
+      }
+    }
   },
   { deep: true }
 );
 
+function parseStoreDetailValues(storeVal) {
+  if (!storeVal || typeof storeVal !== "object" || Array.isArray(storeVal)) return [];
+  const idStr = storeVal.id;
+  const nameStr = storeVal.name;
+  if (idStr == null || nameStr == null) return [];
+  const ids = typeof idStr === "string" ? idStr.split(",").filter(Boolean) : [];
+  const names = typeof nameStr === "string" ? nameStr.split(",").filter(Boolean) : [];
+  return ids.map((id, i) => ({ id: Number(id) || id, name: names[i] ?? "" }));
+}
+
 const selectCar = async (car, index) => {
   selectedCar.value = car;
   postStore.selectedCar = car;
+  selectedDetailValues.value = parseStoreDetailValues(postStore.selectedDetailValues);
   if (typeof index === "number") {
     activeCarIndex.value = index;
     await nextTick();
@@ -194,7 +229,6 @@ const selectCar = async (car, index) => {
   }
 };
 
-/** Sayfa 2'den geri dönüldüğünde store'dan seçili araç ve detayları geri yükle */
 const restoreFromStore = async () => {
   const stored = postStore.selectedCar;
   if (!stored || !cars.value?.length) return;
@@ -202,9 +236,7 @@ const restoreFromStore = async () => {
   if (idx === -1) return;
   selectedCar.value = cars.value[idx];
   activeCarIndex.value = idx;
-  if (postStore.selectedDetailValues && Object.keys(postStore.selectedDetailValues).length) {
-    selectedDetailValues.value = { ...postStore.selectedDetailValues };
-  }
+  selectedDetailValues.value = parseStoreDetailValues(postStore.selectedDetailValues);
   await nextTick();
   carsCarouselRef.value?.slideTo(idx);
 };
@@ -242,9 +274,7 @@ const getDisplayImage = (car) => {
   const details = selectedCar.value?.details ?? [];
   const sel = selectedDetailValues.value;
   for (const item of details) {
-    const groupName = item.type ?? item.name ?? "Varyant";
-    const key = `${selectedCar.value.id}-${groupName}`;
-    if (sel[key] === item.value && item.image) {
+    if (sel.some((s) => s.id === item.id) && item.image) {
       return getCarImageUrl(item.image);
     }
   }

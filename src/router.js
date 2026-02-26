@@ -22,6 +22,7 @@ import CargoOwnerChangePasswordPage from "./pages/CargoOwnerChangePasswordPage.v
 import CargoOwnerVerifyPage from "./pages/CargoOwnerVerifyPage.vue";
 import CargoOwnerCardsPage from "./pages/CargoOwnerCardsPage.vue";
 import PostDetail from "./posts/Detail.vue";
+import ProductDetailPage from "./pages/ProductDetailPage.vue";
 import NotFound from "./pages/NotFound.vue";
 import CreatePostPage from "./pages/CreatePostPage.vue";
 
@@ -259,8 +260,18 @@ const routes = [
         }
     },
     {
+        path: '/product/:slug',
+        component: ProductDetailPage,
+        meta: {
+            layout: Layout,
+            title: 'İlan Detayı | TaşıBul',
+            requiresAuth: true
+        }
+    },
+    {
         path: '/:pathMatch(.*)*',
         component: NotFound,
+        name: 'not-found',
         meta: {
             layout: Layout,
             title: '404 - Sayfa Bulunamadı | TaşıBul',

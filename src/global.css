@@ -5,8 +5,6 @@
 }
 @theme {
     --font-display: "Inter";
-    /* --color-primary: #39838C; */
-    /* --color-primary: #9218F0; */
     --color-primary: #39838C;
 }
 
@@ -22,4 +20,18 @@
 
 .no_scrool::-webkit-scrollbar {
     display: none;
+}
+
+.scroll-container::-webkit-scrollbar {
+   width: 5px;
+}
+
+.scroll-container::-webkit-scrollbar-thumb {
+    background: var(--color-primary);
+    border-radius: 5px;
+}
+
+.scroll-container::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 5px;
 }

@@ -32,7 +32,7 @@
                             v-for="shipment in shipments"
                             :key="shipment.id"
                             :shipment="shipment"
-                            :slug="String(shipment.id)"
+                            :slug="String(shipment.slug)"
                         />
                     </div>
                 </div>

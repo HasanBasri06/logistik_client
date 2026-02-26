@@ -33,7 +33,10 @@
                     
                     <!-- Gidiş ve Dönüş Saati -->
                     <div class="flex gap-3">
-                        <div class="w-[130px] bg-white px-3 rounded-lg border border-gray-200">
+                        <div
+                            class="w-[130px] bg-white px-3 rounded-lg border border-gray-200"
+                            @click="fromDropdownOpen = false; toDropdownOpen = false"
+                        >
                             <DatePicker
                                 v-model="departureTime"
                                 :pt="{
@@ -48,7 +51,10 @@
                                 fluid
                             />
                         </div>
-                        <div class="w-[130px] bg-white px-3 rounded-lg border border-gray-200">
+                        <div
+                            class="w-[130px] bg-white px-3 rounded-lg border border-gray-200"
+                            @click="fromDropdownOpen = false; toDropdownOpen = false"
+                        >
                             <DatePicker
                                 v-model="returnTime"
                                 :pt="{
@@ -89,6 +95,14 @@
                             <div class="grid grid-cols-3 w-full h-full divide-x divide-gray-200">
                                 <div class="flex flex-col overflow-hidden">
                                     <h3 class="px-3 py-2 text-xs font-semibold text-gray-500 border-b border-gray-100">Şehirler</h3>
+                                    <div class="p-2 border-b border-gray-100 shrink-0">
+                                        <input
+                                            v-model="fromCitySearch"
+                                            type="text"
+                                            placeholder="Şehir ara..."
+                                            class="w-full h-8 px-2.5 rounded border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                                        />
+                                    </div>
                                     <div class="flex-1 overflow-y-auto p-2">
                                         <p v-if="citiesLoading" class="text-xs text-gray-400">Yükleniyor...</p>
                                         <button
@@ -105,6 +119,15 @@
                                 </div>
                                 <div class="flex flex-col overflow-hidden">
                                     <h3 class="px-3 py-2 text-xs font-semibold text-gray-500 border-b border-gray-100">İlçeler</h3>
+                                    <div class="p-2 border-b border-gray-100 shrink-0">
+                                        <input
+                                            v-model="fromDistrictSearch"
+                                            type="text"
+                                            placeholder="İlçe ara..."
+                                            class="w-full h-8 px-2.5 rounded border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                                            :disabled="!fromTempCity"
+                                        />
+                                    </div>
                                     <div class="flex-1 overflow-y-auto p-2">
                                         <p v-if="!fromTempCity" class="text-xs text-gray-400">Önce şehir seçin</p>
                                         <p v-else-if="fromDistrictsLoading" class="text-xs text-gray-400">Yükleniyor...</p>
@@ -157,6 +180,14 @@
                             <div class="grid grid-cols-3 w-full h-full divide-x divide-gray-200">
                                 <div class="flex flex-col overflow-hidden">
                                     <h3 class="px-3 py-2 text-xs font-semibold text-gray-500 border-b border-gray-100">Şehirler</h3>
+                                    <div class="p-2 border-b border-gray-100 shrink-0">
+                                        <input
+                                            v-model="toCitySearch"
+                                            type="text"
+                                            placeholder="Şehir ara..."
+                                            class="w-full h-8 px-2.5 rounded border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                                        />
+                                    </div>
                                     <div class="flex-1 overflow-y-auto p-2">
                                         <p v-if="citiesLoading" class="text-xs text-gray-400">Yükleniyor...</p>
                                         <button
@@ -173,6 +204,15 @@
                                 </div>
                                 <div class="flex flex-col overflow-hidden">
                                     <h3 class="px-3 py-2 text-xs font-semibold text-gray-500 border-b border-gray-100">İlçeler</h3>
+                                    <div class="p-2 border-b border-gray-100 shrink-0">
+                                        <input
+                                            v-model="toDistrictSearch"
+                                            type="text"
+                                            placeholder="İlçe ara..."
+                                            class="w-full h-8 px-2.5 rounded border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                                            :disabled="!toTempCity"
+                                        />
+                                    </div>
                                     <div class="flex-1 overflow-y-auto p-2">
                                         <p v-if="!toTempCity" class="text-xs text-gray-400">Önce şehir seçin</p>
                                         <p v-else-if="toDistrictsLoading" class="text-xs text-gray-400">Yükleniyor...</p>
@@ -261,7 +301,7 @@
                     </button>
                 </div>
 
-                <!-- Sağ: İlanlar -->
+                <!-- Sağ: İlanlar (Benim İlanlarım + Diğer İlanlar) -->
                 <div class="flex-1 flex flex-col gap-5 py-4 overflow-y-auto pb-[500px] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                     <p v-if="shipmentsError" class="text-sm text-red-600">{{ shipmentsError }}</p>
                     <template v-else-if="shipmentsLoading">
@@ -275,12 +315,29 @@
                             Henüz ilan verilmemiş
                         </div>
                         <template v-else>
-                            <Product
-                                v-for="item in shipmentsList"
-                                :key="item.id"
-                                :slug="item.slug ?? String(item.id)"
-                                :shipment="item"
-                            />
+                            <div class="text-sm text-gray-500">{{ shipmentsStore.total }} sevkiyat</div>
+
+                            <section v-if="myPostList.length" class="flex flex-col gap-3">
+                                <Product
+                                    v-for="item in myPostList"
+                                    :key="'my-' + item.id"
+                                    :slug="item.slug"
+                                    :shipment="item"
+                                />
+
+                                <div class="bg-gray-200 w-full h-px mt-1"></div>
+                            </section>
+
+                            <!-- Diğer İlanlar -->
+                            <section v-if="otherPostList.length" class="flex flex-col gap-3">
+                                <Product
+                                    v-for="item in otherPostList"
+                                    :key="'other-' + item.id"
+                                    :slug="item.slug"
+                                    :shipment="item"
+                                />
+                            </section>
+
                             <button
                                 @click="loadMore"
                                 class="flex items-center justify-center gap-2 w-full px-4 py-3.5 mt-2 rounded-lg border border-gray-200 bg-white text-gray-700 text-sm font-semibold cursor-pointer transition-all duration-200 hover:border-primary hover:bg-primary/5 hover:text-primary active:scale-[0.98]"
@@ -399,6 +456,9 @@ const fromCity = ref(null);
 const fromDistrict = ref(null);
 const toCity = ref(null);
 const toDistrict = ref(null);
+// Konum ile seçilen yerin input'ta gösterilen tam adı (Nominatim display_name)
+const fromLocationDisplayName = ref(null);
+const toLocationDisplayName = ref(null);
 const fromTempCity = ref(null);
 const toTempCity = ref(null);
 const fromDistricts = ref([]);
@@ -410,34 +470,68 @@ const toDistrictsLoading = ref(false);
 // İlçe kısmında "Her yer" seçeneği (tüm ilçeler = arama kriteri yok)
 const herYerOption = { id: null, name: 'Her yer' };
 
+// Arama çubukları (Nereden/Nereye dropdown)
+const fromCitySearch = ref('');
+const fromDistrictSearch = ref('');
+const toCitySearch = ref('');
+const toDistrictSearch = ref('');
+
 const isFromHerYer = computed(() => fromDistrict.value?.name === 'Her yer' && fromDistrict.value?.id == null);
 const isToHerYer = computed(() => toDistrict.value?.name === 'Her yer' && toDistrict.value?.id == null);
 
-// Seçili şehir en üstte
+// İlk üç: İstanbul, Ankara, İzmir (bu sıra); geri kalanı alfabetik
+const cityPriorityLower = ['istanbul', 'ankara', 'izmir'];
+function norm(s) {
+    return (s || '').toLowerCase().replace(/ı/g, 'i').replace(/i̇/g, 'i').trim();
+}
+function sortCitiesWithPriority(list) {
+    const priority = cityPriorityLower
+        .map(pl => list.find(c => norm(c.name) === pl))
+        .filter(Boolean);
+    const rest = list.filter(c => !cityPriorityLower.includes(norm(c.name)));
+    rest.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'tr'));
+    return [...priority, ...rest];
+}
+
+// Şehirler: arama + sıra (İstanbul, Ankara, İzmir önce; geri kalan alfabetik) + seçili en üstte
 const fromCitiesForList = computed(() => {
-    const list = [...apiCities.value];
+    let list = apiCities.value;
+    const q = (fromCitySearch.value || '').trim().toLowerCase();
+    if (q) list = list.filter(c => (c.name || '').toLowerCase().includes(q));
+    list = sortCitiesWithPriority([...list]);
     const sel = fromTempCity.value;
-    if (!sel?.id) return list;
-    const i = list.findIndex(c => c.id === sel.id);
-    if (i <= 0) return list;
-    list.splice(i, 1);
-    list.unshift(sel);
+    if (sel?.id) {
+        const i = list.findIndex(c => c.id === sel.id);
+        if (i > 0) {
+            list = [...list];
+            list.splice(i, 1);
+            list.unshift(sel);
+        }
+    }
     return list;
 });
 const toCitiesForList = computed(() => {
-    const list = [...apiCities.value];
+    let list = apiCities.value;
+    const q = (toCitySearch.value || '').trim().toLowerCase();
+    if (q) list = list.filter(c => (c.name || '').toLowerCase().includes(q));
+    list = sortCitiesWithPriority([...list]);
     const sel = toTempCity.value;
-    if (!sel?.id) return list;
-    const i = list.findIndex(c => c.id === sel.id);
-    if (i <= 0) return list;
-    list.splice(i, 1);
-    list.unshift(sel);
+    if (sel?.id) {
+        const i = list.findIndex(c => c.id === sel.id);
+        if (i > 0) {
+            list = [...list];
+            list.splice(i, 1);
+            list.unshift(sel);
+        }
+    }
     return list;
 });
 
-// Seçili ilçe en üstte (Her yer her zaman ilk sırada, sonra seçili ilçe)
+// İlçeler: arama + Her yer ve seçili en üstte
 const fromDistrictsForList = computed(() => {
-    const list = fromDistricts.value;
+    let list = fromDistricts.value;
+    const q = (fromDistrictSearch.value || '').trim().toLowerCase();
+    if (q) list = list.filter(d => (d.name || '').toLowerCase().includes(q));
     const sel = fromDistrict.value;
     if (!sel) return [herYerOption, ...list];
     if (sel.id == null && sel.name === 'Her yer') return [herYerOption, ...list];
@@ -445,7 +539,9 @@ const fromDistrictsForList = computed(() => {
     return [sel, herYerOption, ...rest];
 });
 const toDistrictsForList = computed(() => {
-    const list = toDistricts.value;
+    let list = toDistricts.value;
+    const q = (toDistrictSearch.value || '').trim().toLowerCase();
+    if (q) list = list.filter(d => (d.name || '').toLowerCase().includes(q));
     const sel = toDistrict.value;
     if (!sel) return [herYerOption, ...list];
     if (sel.id == null && sel.name === 'Her yer') return [herYerOption, ...list];
@@ -462,12 +558,15 @@ function isToDistrictSelected(d) {
     return toDistrict.value?.id === d.id;
 }
 
+// Input'ta gösterilen: Konum ile seçilense tam adı, listeden seçilense Şehir / İlçe
 const fromLocationLabel = computed(() => {
+    if (fromLocationDisplayName.value) return fromLocationDisplayName.value;
     if (fromCity.value && fromDistrict.value) return `${fromCity.value.name} / ${fromDistrict.value.name}`;
     if (fromCity.value) return fromCity.value.name;
     return 'Nereden';
 });
 const toLocationLabel = computed(() => {
+    if (toLocationDisplayName.value) return toLocationDisplayName.value;
     if (toCity.value && toDistrict.value) return `${toCity.value.name} / ${toDistrict.value.name}`;
     if (toCity.value) return toCity.value.name;
     return 'Nereye';
@@ -528,14 +627,17 @@ const clearFilters = () => {
     filters.order = null;
     filters.departureTime = null;
     filters.verified = null;
+    shipmentsStore.fetchShipments();
 };
 
 const swapCities = () => {
-    const fc = fromCity.value, fd = fromDistrict.value;
+    const fc = fromCity.value, fd = fromDistrict.value, fdName = fromLocationDisplayName.value;
     fromCity.value = toCity.value;
     fromDistrict.value = toDistrict.value;
+    fromLocationDisplayName.value = toLocationDisplayName.value;
     toCity.value = fc;
     toDistrict.value = fd;
+    toLocationDisplayName.value = fdName;
 };
 
 // Şehirler API
@@ -567,6 +669,8 @@ const setDefaultLocations = () => {
 // Nereden dropdown açılınca
 const openFromDropdown = async () => {
     locationError.value = null;
+    fromCitySearch.value = '';
+    fromDistrictSearch.value = '';
     await fetchCities();
     setDefaultLocations();
     fromTempCity.value = fromCity.value ?? null;
@@ -603,6 +707,7 @@ const selectFromCityTemp = async (city) => {
 const applyFromLocation = (district) => {
     fromCity.value = fromTempCity.value;
     fromDistrict.value = district;
+    fromLocationDisplayName.value = null; // Liste seçiminde tam ad yerine Şehir/İlçe kullan
     fromDropdownOpen.value = false;
 };
 
@@ -644,7 +749,7 @@ function initMap() {
         const { lat, lng } = e.latlng;
         if (mapMarker && leafletMap) leafletMap.removeLayer(mapMarker);
         mapMarker = L.marker([lat, lng]).addTo(leafletMap);
-        selectedMapLocation.value = { lat, lng, name: `${lat.toFixed(4)}, ${lng.toFixed(4)}` };
+        selectedMapLocation.value = { lat, lng, name: `${lat.toFixed(4)}, ${lng.toFixed(4)}`, address: null };
         try {
             const res = await fetch(
                 `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
@@ -652,10 +757,8 @@ function initMap() {
             );
             const data = await res.json();
             const name = data.display_name || data.address?.city || data.address?.town || data.address?.village || selectedMapLocation.value.name;
-            selectedMapLocation.value = { lat, lng, name };
-        } catch (_) {
-            // name zaten koordinat olarak set edildi
-        }
+            selectedMapLocation.value = { lat, lng, name, address: data.address };
+        } catch (_) {}
     });
     nextTick(() => leafletMap?.invalidateSize());
 }
@@ -670,7 +773,7 @@ async function searchMapLocations() {
     mapSearchResults.value = [];
     try {
         const res = await fetch(
-            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=5&countrycodes=tr`,
+            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=5&countrycodes=tr&addressdetails=1`,
             { headers: { 'Accept-Language': 'tr' } }
         );
         const data = await res.json();
@@ -695,7 +798,7 @@ function goToSearchResult(item) {
     const lat = parseFloat(item.lat);
     const lng = parseFloat(item.lon);
     const name = item.display_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-    selectedMapLocation.value = { lat, lng, name };
+    selectedMapLocation.value = { lat, lng, name, address: item.address || null };
     mapSearchResults.value = [];
     mapSearchQuery.value = name;
     if (mapMarker && leafletMap) leafletMap.removeLayer(mapMarker);
@@ -730,15 +833,26 @@ watch(mapModalOpen, (open) => {
     }
 });
 
+function parseNominatimCityDistrict(addr) {
+    if (!addr) return { city: null, district: null };
+    const city = addr.state || addr.city || addr.town || addr.village || addr.municipality || null;
+    const district = addr.county || addr.suburb || addr.neighbourhood || addr.city_district || null;
+    return { city, district };
+}
+
 function confirmMapLocation() {
     if (!selectedMapLocation.value) return;
-    const name = selectedMapLocation.value.name;
+    const { name, address } = selectedMapLocation.value;
+    const { city: cityName, district: districtName } = parseNominatimCityDistrict(address);
+    const stateValue = cityName && districtName ? `${cityName} / ${districtName}` : cityName || districtName || name;
     if (mapModalFor.value === 'from') {
-        fromCity.value = { id: null, name };
-        fromDistrict.value = null;
+        fromLocationDisplayName.value = name;
+        fromCity.value = cityName ? { id: null, name: cityName } : null;
+        fromDistrict.value = districtName ? { id: null, name: districtName } : null;
     } else {
-        toCity.value = { id: null, name };
-        toDistrict.value = null;
+        toLocationDisplayName.value = name;
+        toCity.value = cityName ? { id: null, name: cityName } : null;
+        toDistrict.value = districtName ? { id: null, name: districtName } : null;
     }
     mapModalOpen.value = false;
 }
@@ -772,6 +886,8 @@ const selectFromLocationByMap = () => {
 // Nereye dropdown açılınca
 const openToDropdown = async () => {
     locationError.value = null;
+    toCitySearch.value = '';
+    toDistrictSearch.value = '';
     await fetchCities();
     setDefaultLocations();
     toTempCity.value = toCity.value ?? null;
@@ -808,6 +924,7 @@ const selectToCityTemp = async (city) => {
 const applyToLocation = (district) => {
     toCity.value = toTempCity.value;
     toDistrict.value = district;
+    toLocationDisplayName.value = null;
     toDropdownOpen.value = false;
 };
 
@@ -833,7 +950,7 @@ const handleClickOutside = (event) => {
 
 // İlan listesi tek store'dan (shipments)
 const shipmentsStore = useShipmentsStore();
-const { list: shipmentsList, loading: shipmentsLoading, error: shipmentsError } = storeToRefs(shipmentsStore);
+const { list: shipmentsList, myPostList, otherPostList, loading: shipmentsLoading, error: shipmentsError } = storeToRefs(shipmentsStore);
 
 const handleFilterChange = (modelKey) => {
     shipmentsStore.fetchShipments({ filters: { [modelKey]: filters[modelKey] } });    
@@ -849,8 +966,36 @@ onBeforeUnmount(() => {
     document.removeEventListener('click', handleClickOutside);
 });
 
+function getSearchFormData() {
+    const f_where = fromCity.value && fromDistrict.value
+        ? `${fromCity.value.name} / ${fromDistrict.value.name}`
+        : fromCity.value?.name ?? null;
+    const t_where = toCity.value && toDistrict.value
+        ? `${toCity.value.name} / ${toDistrict.value.name}`
+        : toCity.value?.name ?? null;
+    return {
+        f_where,
+        t_where,
+        f_where_city: fromCity.value?.name ?? null,
+        f_where_district: fromDistrict.value?.name ?? null,
+        t_where_city: toCity.value?.name ?? null,
+        t_where_district: toDistrict.value?.name ?? null,
+        departureTime: departureTime.value,
+        returnTime: returnTime.value,
+        filters: { ...filters },
+    };
+}
+
 const handleSearch = () => {
-    shipmentsStore.fetchShipments();
+    const searchData = getSearchFormData();
+    console.log('=== Panel Arama Verisi (API: Şehir / İlçe) ===', searchData);
+    shipmentsStore.fetchShipments({
+        f_where_city: searchData.f_where_city,
+        f_where_district: searchData.f_where_district,
+        t_where_city: searchData.t_where_city,
+        t_where_district: searchData.t_where_district,
+        filters: searchData.filters,
+    });
 };
 
 const loadMore = () => {
