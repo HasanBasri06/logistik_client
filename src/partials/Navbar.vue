@@ -1,12 +1,12 @@
 <template>
     <Header />
     <nav 
-        class="w-full h-screen -mt-16 relative" 
+        class="w-full h-[350px]  relative" 
         :style="{ backgroundImage: `url(${lojistikWallpaper})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }"
     >
-        <Content class="relative pt-16 flex flex-col justify-center">
+        <Content class="relative flex flex-col justify-center ">
             <!-- Slogan -->
-            <div class="pt-12 pb-8 h-28 overflow-hidden">
+            <div class="pb-8 h-28 overflow-hidden -mt-16">
                 <Transition name="fade" mode="out-in">
                     <h2 
                         :key="currentSloganIndex"
@@ -16,7 +16,7 @@
                     </h2>
                 </Transition>
             </div>
-            <div class="nav-form w-full flex flex-col bg-white rounded-3xl border border-gray-200 absolute p-7">
+            <div class="nav-form w-full flex flex-col bg-white rounded-3xl border border-gray-200 absolute p-7 mt-48 shadow-lg z-10">
                 <!-- Arama Satırı -->
                 <div class="flex gap-4 h-16">
                   <div 

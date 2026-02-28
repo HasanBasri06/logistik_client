@@ -3,7 +3,7 @@ import Pusher from 'pusher-js'
 
 window.Pusher = Pusher
 
-const apiBase = import.meta.env.VITE_BACKEND_ROOT || 'http://localhost:8000/api'
+const apiBase = import.meta.env.VITE_APP_SERVER_URL || 'http://localhost:8000/api'
 
 export function createEcho() {
     const key = import.meta.env.VITE_PUSHER_APP_KEY

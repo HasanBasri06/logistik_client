@@ -26,6 +26,7 @@ const faqItems = [
     { question: 'Hangi araç türleri destekleniyor?', answer: 'Kamyon, TIR, panelvan, minivan ve frigofirik gibi yaygın yük taşıma araç türleri desteklenmektedir. İlan verirken araç türünü seçebilirsiniz.' },
     { question: 'Destek nasıl alabilirim?', answer: 'Yardım sayfamızdan ve iletişim formundan bize ulaşabilirsiniz. Müşteri hizmetleri ekibimiz en kısa sürede size dönüş yapacaktır.' }
 ];
+
 </script>
 
 <template>
