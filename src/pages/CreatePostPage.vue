@@ -18,30 +18,63 @@
             <h3 class="text-md font-medium text-gray-500 mb-4">Taşıtmak istediğiniz yükün tipini belirtiniz.</h3>
             <p v-if="postTypesLoading" class="text-sm text-gray-500">Yükleniyor...</p>
             <p v-else-if="postTypesError" class="text-sm text-red-600">{{ postTypesError }}</p>
-            <div v-else class="flex-wrap gap-3 grid grid-cols-3 grid-flow-row">
-              <button
-                v-for="pt in postTypes"
-                :key="pt.id"
-                type="button"
-                @click="postStore.setSelectedPostType(pt)"
-                class="h-32 text-left border-2 rounded-lg p-4 transition-all reltive duration-200 hover:border-primary/60 hover:bg-primary/5 overflow-hidden"
-                :class="postStore.selectedPostType?.id === pt.id
-                  ? 'border-primary bg-primary/10 ring-2 ring-primary/30 relative overflow-hidden'
-                  : 'border-gray-200 bg-white relative overflow-hidden'"
-              >
-                <span class="text-base font-semibold text-gray-800">{{ pt.value }}</span>
-                <div v-if="postStore.selectedPostType?.id === pt.id" class="mt-2 flex items-center gap-1.5 text-primary text-sm font-medium">
-                  <i class="pi pi-check-circle text-base"></i>
-                  Seçildi
-                </div>
-                <img
-                  v-if="pt.image"
-                  :src="getPostTypeImageUrl(pt.image)"
-                  :alt="pt.value"
-                  :class="{'opacity-100': postStore.selectedPostType?.id === pt.id}"
-                  class="w-full h-full object-contain max-h-20 absolute -right-24 opacity-60 -bottom-3"
+            <div v-else class="flex flex-col gap-4">
+              <div class="flex-wrap gap-3 grid grid-cols-3 grid-flow-row">
+                <button
+                  v-for="pt in postTypes"
+                  :key="pt.id"
+                  type="button"
+                  @click="postStore.setSelectedPostType(pt)"
+                  class="h-32 text-left border-2 rounded-lg p-4 transition-all reltive duration-200 hover:border-primary/60 hover:bg-primary/5 overflow-hidden"
+                  :class="postStore.selectedPostType?.id === pt.id
+                    ? 'border-primary bg-primary/10 ring-2 ring-primary/30 relative overflow-hidden'
+                    : 'border-gray-200 bg-white relative overflow-hidden'"
+                >
+                  <span class="text-base font-semibold text-gray-800">{{ pt.value }}</span>
+                  <div v-if="postStore.selectedPostType?.id === pt.id" class="mt-2 flex items-center gap-1.5 text-primary text-sm font-medium">
+                    <i class="pi pi-check-circle text-base"></i>
+                    Seçildi
+                  </div>
+                  <img
+                    v-if="pt.image"
+                    :src="getPostTypeImageUrl(pt.image)"
+                    :alt="pt.value"
+                    :class="{'opacity-100': postStore.selectedPostType?.id === pt.id}"
+                    class="w-full h-full object-contain max-h-20 absolute -right-24 opacity-60 -bottom-3"
+                  />
+                </button>
+              </div>
+              <!-- Ağırlık input + kg/ton toggle -->
+              <div class="flex items-center gap-2 w-full">
+                <input
+                  v-model="weightValue"
+                  type="text"
+                  :placeholder="weightUnit === 'kg' ? '0 - 200.00 kg aralığında girin' : '0 - 20 ton aralığında girin'"
+                  class="flex-1 h-12 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
                 />
-              </button>
+                <div class="flex rounded-lg border border-gray-200 overflow-hidden shrink-0">
+                  <button
+                    type="button"
+                    @click="onWeightUnitChange('kg')"
+                    class="px-4 py-2.5 text-sm font-medium transition-colors"
+                    :class="weightUnit === 'kg'
+                      ? 'bg-primary text-white'
+                      : 'bg-white text-gray-600 hover:bg-gray-50'"
+                  >
+                    kg
+                  </button>
+                  <button
+                    type="button"
+                    @click="onWeightUnitChange('ton')"
+                    class="px-4 py-2.5 text-sm font-medium border-l border-gray-200 transition-colors"
+                    :class="weightUnit === 'ton'
+                      ? 'bg-primary text-white'
+                      : 'bg-white text-gray-600 hover:bg-gray-50'"
+                  >
+                    ton
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -104,22 +137,56 @@
                 </div>
               </div>
 
-              <!-- Kalkış / Varış saati -->
+              <!-- Kalkış / Varış saati + Tarih (3 grid, PrimeVue) -->
               <div class="flex items-center gap-2 w-full">
                 <div class="w-full">
-                  <label class="block text-sm font-medium text-gray-700 mb-2 pl-6">Kalkış ve Varış Saati</label>
+                  <label class="block text-sm font-medium text-gray-700 mb-2 pl-6">Kalkış, Varış Saati ve Tarihi</label>
                   <div class="flex items-center gap-2 w-full">
                     <div class="w-4 h-4 rounded-full bg-blue-200 inline-block shrink-0"></div>
                     <div class="flex-1 flex gap-2">
-                      <input
+                      <DatePicker
+                        class="w-full flex-1 h-12 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                         v-model="departure_time"
-                        type="time"
-                        class="flex-1 h-12 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
+                        time-only
+                        hour-format="24"
+                        placeholder="Kalkış saati"
+                        :pt="{
+                          root: { class: 'flex-1 !text-sm' },
+                          input: { class: 'h-12 px-4 !rounded-lg !border !border-gray-200 !focus:outline-none !focus:ring-2 !focus:ring-primary/20 focus:border-primary !text-sm placeholder:text-sm w-full' },
+                          panel: { class: '!bg-white !mt-2 !border !text-sm !border-gray-200 shadow-lg !rounded-lg' },
+                          calendarContainer: { class: '!bg-white' },
+                          timePicker: { class: '!bg-white' }
+                        }"
+                        fluid
                       />
-                      <input
+                      <DatePicker
+                        class="w-full flex-1 h-12 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
                         v-model="time_arrival"
-                        type="time"
-                        class="flex-1 h-12 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
+                        time-only
+                        hour-format="24"
+                        placeholder="Varış saati"
+                        :pt="{
+                          root: { class: 'flex-1 !text-sm' },
+                          input: { class: 'h-12 px-4 !rounded-lg !border !border-gray-200 !focus:outline-none !focus:ring-2 !focus:ring-primary/20 focus:border-primary !text-sm placeholder:text-sm w-full' },
+                          panel: { class: '!bg-white !mt-2 !border !text-sm !border-gray-200 shadow-lg !rounded-lg' },
+                          calendarContainer: { class: '!bg-white' },
+                          timePicker: { class: '!bg-white' }
+                        }"
+                        fluid
+                      />
+                      <DatePicker
+                        class="w-full flex-1 h-12 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
+                        v-model="shipment_date"
+                        date-format="dd.mm.yy"
+                        placeholder="Tarih seçin"
+                        :pt="{
+                          root: { class: 'flex-1 !text-sm' },
+                          input: { class: 'h-12 !p-4 !rounded-lg !border !border-gray-200 !focus:outline-none !focus:ring-2 !focus:ring-primary/20 focus:border-primary !text-sm placeholder:text-sm w-full' },
+                          panel: { class: '!bg-white !mt-2 !border !text-sm !border-gray-200 shadow-lg !rounded-lg !p-4' },
+                          calendarContainer: { class: '!bg-white' },
+                          timePicker: { class: '!bg-white' }
+                        }"
+                        fluid
                       />
                     </div>
                   </div>
@@ -234,6 +301,7 @@ import Header from "@/components/Header.vue";
 import Content from "@/components/Content.vue";
 import CargoOwner from "@/components/CargoOwner.vue";
 import VehicleSelection from "@/components/VehicleSelection.vue";
+import { DatePicker } from "primevue";
 import api from "@/api";
 import { usePostStore } from "@/stores/post";
 import { useShipmentsStore } from "@/stores/shipments";
@@ -248,8 +316,12 @@ const { user: authUser } = storeToRefs(authStore);
 const vehicleSelectionRef = ref(null);
 /** Yüklenecek yer: sadece şehir ve ilçe isimleri */
 const yuklenecekYer = ref({ city: '', district: '' });
-const departure_time = ref('');
-const time_arrival = ref('');
+/** PrimeVue timeOnly: Date (saat/dakika), formda HH:mm olarak gönderilir */
+const departure_time = ref(null);
+/** PrimeVue timeOnly: Date (saat/dakika), formda HH:mm olarak gönderilir */
+const time_arrival = ref(null);
+/** PrimeVue dateOnly: Date, formda yyyy-MM-dd olarak gönderilir */
+const shipment_date = ref(null);
 /** Boşaltılacak yer: sadece şehir ve ilçe isimleri */
 const bosaltilanYer = ref({ city: '', district: '' });
 const cities = ref([]);
@@ -264,6 +336,14 @@ const selectedPriceType = ref('sabit');
 const postTypes = ref([]);
 const postTypesLoading = ref(false);
 const postTypesError = ref(null);
+/** Ağırlık (Yük Tipi sayfası): değer + birim (kg default) */
+const weightValue = ref('');
+const weightUnit = ref('kg');
+
+function onWeightUnitChange(unit) {
+  weightUnit.value = unit;
+  weightValue.value = '';
+}
 
 async function fetchCities() {
   if (cities.value.length) return;
@@ -417,6 +497,23 @@ function getPostTypeImageUrl(image) {
   return key ? postTypeImages[key] : '';
 }
 
+/** PrimeVue timeOnly Date → "HH:mm" */
+function formatTimeToHHMM(date) {
+  if (!date || !(date instanceof Date)) return undefined;
+  const h = date.getHours();
+  const m = date.getMinutes();
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
+/** PrimeVue date Date → "yyyy-MM-dd" */
+function formatDateToYYYYMMDD(date) {
+  if (!date || !(date instanceof Date)) return undefined;
+  const y = date.getFullYear();
+  const m = date.getMonth() + 1;
+  const d = date.getDate();
+  return `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+}
+
 async function fetchPostTypes() {
   if (postTypes.value.length) return;
   postTypesLoading.value = true;
@@ -447,14 +544,17 @@ const canGoNext = computed(() => {
     return !!postStore.selectedCar;
   }
   if (page.value === 2) {
-    return !!postStore.selectedPostType;
+    const w = String(weightValue.value ?? '').trim();
+    return !!postStore.selectedPostType && w !== '';
   }
   if (page.value === 3) {
     return !!(
       yuklenecekYer.value?.city?.trim() &&
       yuklenecekYer.value?.district?.trim() &&
       bosaltilanYer.value?.city?.trim() &&
-      bosaltilanYer.value?.district?.trim()
+      bosaltilanYer.value?.district?.trim() &&
+      !routeLoading.value &&
+      !!routeInfo.value
     );
   }
   return true;
@@ -469,12 +569,16 @@ function getShipmentFormData() {
     selectedCar: car,
     selectedDetailValues: { ...postStore.selectedDetailValues },
     selectedPostType: postStore.selectedPostType,
+    /** Ağırlık: değer + birim (kg/ton) */
+    weight: String(weightValue.value ?? '').trim() || undefined,
+    weight_unit: weightUnit.value,
     /** Yüklenecek yer: sadece şehir ve ilçe isimleri */
     yuklenecekYer: { city: yuklenecekYer.value?.city ?? '', district: yuklenecekYer.value?.district ?? '' },
     /** Boşaltılacak yer: sadece şehir ve ilçe isimleri */
     bosaltilanYer: { city: bosaltilanYer.value?.city ?? '', district: bosaltilanYer.value?.district ?? '' },
-    departure_time: departure_time.value || undefined,
-    time_arrival: time_arrival.value || undefined,
+    departure_time: formatTimeToHHMM(departure_time.value) ?? undefined,
+    time_arrival: formatTimeToHHMM(time_arrival.value) ?? undefined,
+    shipment_date: formatDateToYYYYMMDD(shipment_date.value) ?? undefined,
     routeInfo: routeInfo.value,
     selectedPriceType: selectedPriceType.value,
     calculatedPrice: price,

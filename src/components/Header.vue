@@ -12,9 +12,7 @@
 
             <!-- Sağ taraf: dil / yardım / user -->
             <ul class="flex items-center gap-6 text-sm font-medium">
-                <li class="hidden md:block">
-                    TRY
-                </li>
+
                 <li class="hidden md:block">
                     <router-link to="/help" class="hover:text-primary transition-colors">
                         Yardım
@@ -67,9 +65,11 @@
                         v-if="accountDropdownOpen"
                         class="absolute top-full right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden"
                     >
+                     
+                        <div class="px-4 py-3 text-sm font-medium bg-primary text-white">{{ userType }}</div>
                         <button
                             @click="handleGotoAccountClick"
-                            class="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 w-full transition-colors"
+                            class="block px-4 py-3 cursor-pointer text-sm font-medium text-gray-700 hover:bg-gray-100 w-full transition-colors"
                         >
                             <div class="flex items-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -82,7 +82,7 @@
                         <button
                             type="button"
                             @click="handleLogout"
-                            class="w-full text-left px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+                            class="w-full text-left px-4 py-3 text-sm font-medium text-red-600 cursor-pointer hover:bg-red-50 transition-colors"
                         >
                             <div class="flex items-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -125,7 +125,7 @@
                                 TaşıBul Hesabın
                             </p>
                             <h3 class="text-2xl md:text-3xl font-bold text-gray-900">
-                                {{ isRegister ? 'Kayıt Ol' : 'Giriş Yap' }}
+                                {{ registerOtpSent ? 'E-posta Doğrulama' : (isRegister ? 'Kayıt Ol' : 'Giriş Yap') }}
                             </h3>
                             <p class="text-sm text-gray-500 mt-2">
                                 {{ isRegister ? 'Hesabını oluştur ve hemen başla' : 'Hesabına giriş yap' }}
@@ -281,6 +281,50 @@
                                         Kayıt ol
                                     </button>
                                 </p>
+                            </div>
+                        </template>
+
+                        <template v-else-if="registerOtpSent">
+                            <div class="flex flex-col gap-4">
+                                <p class="text-sm text-gray-600 text-center">
+                                    <strong>{{ pendingRegisterEmail }}</strong> adresine gönderilen 6 haneli kodu girin.
+                                </p>
+                                <div class="flex flex-col gap-1">
+                                    <label class="text-sm font-medium text-gray-700">Doğrulama Kodu</label>
+                                    <input
+                                        v-model="otpCode"
+                                        type="text"
+                                        inputmode="numeric"
+                                        maxlength="6"
+                                        placeholder="000000"
+                                        class="input text-center text-lg tracking-[0.4em]"
+                                        @input="otpCode = otpCode.replace(/\D/g, '').slice(0, 6)"
+                                    />
+                                    <span v-if="otpError" class="text-xs text-red-500">{{ otpError }}</span>
+                                </div>
+                                <button
+                                    type="button"
+                                    @click="handleVerifyOtp"
+                                    :disabled="!otpCode || otpCode.length !== 6"
+                                    class="w-full h-11 bg-primary text-white font-semibold rounded-md hover:opacity-90 transition-opacity text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    Doğrula
+                                </button>
+                                <button
+                                    type="button"
+                                    @click="handleResendOtp"
+                                    :disabled="resendOtpLoading"
+                                    class="text-sm text-primary font-medium hover:underline disabled:opacity-50"
+                                >
+                                    {{ resendOtpLoading ? 'Gönderiliyor...' : 'Kodu tekrar gönder' }}
+                                </button>
+                                <button
+                                    type="button"
+                                    @click="handleOtpBack"
+                                    class="text-sm text-gray-500 hover:text-gray-700"
+                                >
+                                    ← Geri
+                                </button>
                             </div>
                         </template>
 
@@ -440,7 +484,7 @@
 </template>
 
 <script setup>
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import * as yup from 'yup';
 import { useAuthStore } from '@/stores/auth';
 import { toast } from 'vue-sonner';
@@ -448,13 +492,23 @@ import { useRouter } from 'vue-router';
 import Content from './Content.vue';
 import loginWallpaper from '@/assets/images/login_wallpaper.gif';
 import { InputMask } from 'primevue';
+import { storeToRefs } from 'pinia';
 
 const authStore = useAuthStore();
 const router = useRouter();
+const {user} = storeToRefs(authStore);
 
 const showLogin = ref(false);
 const isRegister = ref(false);
 const accountDropdownOpen = ref(false);
+
+const userType = computed(() => {
+    if (user.value.type === 'cargo_owner') {
+        return 'Yük Sahibi';
+    } 
+
+    return 'Araç Sahibi';
+});
 
 const loginForm = ref({
     phone: "",
@@ -491,6 +545,12 @@ const registerErrors = ref({
 
 const showRegisterPassword = ref(false);
 const showRegisterConfirmPassword = ref(false);
+const registerOtpSent = ref(false);
+const pendingRegisterEmail = ref("");
+const otpCode = ref("");
+const otpError = ref("");
+const otpOpenedFromLogin = ref(false);
+const resendOtpLoading = ref(false);
 
 const loginSchema = yup.object({
     phone: yup
@@ -605,6 +665,17 @@ const handleLoginSubmit = async () => {
             showLogin.value = false;
             loginForm.value = { phone: "", password: "" };
             router.push('/panel');
+        } else if (result.needOtp && result.email) {
+            otpOpenedFromLogin.value = true;
+            isRegister.value = true;
+            registerOtpSent.value = true;
+            pendingRegisterEmail.value = result.email;
+            otpCode.value = "";
+            otpError.value = "";
+            toast.info('E-posta doğrulaması gerekli. Lütfen e-postanıza gelen kodu girin.', {
+                description: 'Doğrulama kodu',
+                duration: 4000
+            });
         } else {
             // Server'dan dönen hata mesajını toast ile göster
             let errorMessage = result.error || 'Giriş başarısız!';
@@ -708,10 +779,20 @@ const handleRegisterSubmit = async () => {
             type: registerForm.value.userType
         });
         
-        if (result.success) {
-            toast.success('Başarılı bir şekilde kayıt oldunuz', { 
-                description: 'Başarılı', 
-                duration: 3000 
+        if (result.success && result.needOtp) {
+            otpOpenedFromLogin.value = false;
+            registerOtpSent.value = true;
+            pendingRegisterEmail.value = result.email ?? registerForm.value.email;
+            otpCode.value = "";
+            otpError.value = "";
+            toast.success('Doğrulama kodu e-posta adresinize gönderildi.', {
+                description: 'Kodu girin',
+                duration: 4000
+            });
+        } else if (result.success) {
+            toast.success('Başarılı bir şekilde kayıt oldunuz', {
+                description: 'Başarılı',
+                duration: 3000
             });
             showLogin.value = false;
             registerForm.value = {
@@ -805,11 +886,57 @@ const handleRegisterSubmit = async () => {
                 });
             }
         } else {
-            toast.error(err?.message || 'Kayıt işlemi sırasında bir hata oluştu. Lütfen tekrar deneyin.', { 
-                description: 'Hata', 
-                duration: 3000 
+            toast.error(err?.message || 'Kayıt işlemi sırasında bir hata oluştu. Lütfen tekrar deneyin.', {
+                description: 'Hata',
+                duration: 3000
             });
         }
+    }
+};
+
+const handleOtpBack = () => {
+    registerOtpSent.value = false;
+    otpCode.value = '';
+    otpError.value = '';
+    if (otpOpenedFromLogin.value) {
+        isRegister.value = false;
+        otpOpenedFromLogin.value = false;
+    }
+};
+
+const handleResendOtp = async () => {
+    if (!pendingRegisterEmail.value) return;
+    resendOtpLoading.value = true;
+    otpError.value = '';
+    const result = await authStore.resendOtp(pendingRegisterEmail.value);
+    resendOtpLoading.value = false;
+    if (result.success) {
+        toast.success('Yeni doğrulama kodu e-posta adresinize gönderildi.', { duration: 4000 });
+        otpCode.value = '';
+    } else {
+        toast.error(result.error || 'Kod gönderilemedi.', { duration: 3000 });
+    }
+};
+
+const handleVerifyOtp = async () => {
+    otpError.value = '';
+    const code = String(otpCode.value ?? '').trim();
+    if (code.length !== 6) {
+        otpError.value = 'Lütfen 6 haneli kodu girin.';
+        return;
+    }
+    const result = await authStore.verifyOtp(pendingRegisterEmail.value, code);
+    if (result.success) {
+        toast.success('Kayıt tamamlandı.', { description: 'Başarılı', duration: 3000 });
+        showLogin.value = false;
+        registerOtpSent.value = false;
+        otpOpenedFromLogin.value = false;
+        pendingRegisterEmail.value = '';
+        otpCode.value = '';
+        router.push('/panel');
+    } else {
+        otpError.value = result.error || 'Kod hatalı.';
+        toast.error(result.error || 'Doğrulama başarısız.', { description: 'Hata', duration: 3000 });
     }
 };
 </script>

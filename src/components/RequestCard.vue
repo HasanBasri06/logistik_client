@@ -12,7 +12,7 @@
                 <div class="w-10 h-10 bg-gray-200 rounded-full"></div>
                 <div class="flex flex-col gap-1">
                     <span class="text-sm font-medium text-gray-900">{{ request.user.full_name }}</span>
-                    <span class="text-xs text-gray-500">Puan: {{ request.user.comments_avg_score }} <i class="pi pi-star text-yellow-500"></i></span>
+                    <span class="text-xs text-gray-500">Puan: {{ request.user.comments_avg_score ?? 0 }} <i class="pi pi-star text-yellow-500"></i></span>
                 </div>
             </div>
             <div class="flex items-center gap-2">

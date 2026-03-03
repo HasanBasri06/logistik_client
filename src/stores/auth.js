@@ -44,12 +44,20 @@ export const useAuthStore = defineStore('auth', () => {
             }
             throw new Error('Token bulunamadı')
         } catch (error) {
+            const content = error.response?.data?.content
+            if (error.response?.status === 403 && content?.need_otp && content?.email) {
+                return {
+                    success: false,
+                    needOtp: true,
+                    email: content.email,
+                    error: error.response?.data?.message || error.message,
+                    response: error.response
+                }
+            }
             const errorMessage = error.response?.data?.message || error.message
             const errorDetails = error.response?.data?.error || null
-            
-            
-            return { 
-                success: false, 
+            return {
+                success: false,
                 error: errorMessage,
                 errorDetails: errorDetails,
                 response: error.response
@@ -60,28 +68,59 @@ export const useAuthStore = defineStore('auth', () => {
     const register = async (userData) => {
         try {
             const response = await api.post('/auth/register', userData)
-            if (response.data.content && response.data.content.token) {
-                const authToken = response.data.content.token
-                
+            const content = response.data?.content ?? response.data
+            if (content?.need_otp && content?.email) {
+                return { success: true, needOtp: true, email: content.email, data: response.data }
+            }
+            if (content?.token) {
+                const authToken = content.token
                 setToken(authToken)
                 setUser({ type: userData.type })
-                
-                // Token'ı axios header'ına ekle
                 api.defaults.headers.common['Authorization'] = `Bearer ${authToken}`
-                
                 return { success: true, data: response.data }
             }
-            throw new Error('Token bulunamadı')
+            throw new Error('Beklenmeyen yanıt')
         } catch (error) {
             const errorMessage = error.response?.data?.message || error.message
             const errorDetails = error.response?.data?.error || null
-            
-            return { 
-                success: false, 
+            return {
+                success: false,
                 error: errorMessage,
                 errorDetails: errorDetails,
                 response: error.response
             }
+        }
+    }
+
+    const verifyOtp = async (email, code) => {
+        try {
+            const response = await api.post('/auth/verify-otp', { email, code })
+            const content = response.data?.content ?? response.data
+            if (content?.token) {
+                const authToken = content.token
+                setToken(authToken)
+                setUser({ type: content.type ?? 'cargo_owner' })
+                api.defaults.headers.common['Authorization'] = `Bearer ${authToken}`
+                return { success: true, data: response.data }
+            }
+            throw new Error('Token alınamadı')
+        } catch (error) {
+            const errorMessage = error.response?.data?.message || error.message
+            return {
+                success: false,
+                error: errorMessage,
+                response: error.response
+            }
+        }
+    }
+
+    const resendOtp = async (email) => {
+        try {
+            const response = await api.post('/auth/resend-otp', { email })
+            return { success: true, message: response.data?.message || 'Kod gönderildi.' }
+        } catch (error) {
+            const errorMessage = error.response?.data?.message || error.message
+            return { success: false, error: errorMessage }
         }
     }
 
@@ -126,6 +165,8 @@ export const useAuthStore = defineStore('auth', () => {
         setUser,
         login,
         register,
+        verifyOtp,
+        resendOtp,
         logout,
         checkToken
     }

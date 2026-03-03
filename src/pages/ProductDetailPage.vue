@@ -35,19 +35,18 @@
                     </div>
                     <div class="p-5 flex flex-col gap-5">
                         <div class="flex items-center gap-3">
-                            <span class="text-lg font-semibold text-gray-900">İstanbul / Kadıköy</span>
+                            <span class="text-lg font-semibold text-gray-900">{{ routeFrom }}</span>
                             <i class="pi pi-arrow-right text-primary text-sm shrink-0"></i>
-                            <span class="text-lg font-semibold text-gray-900">Ankara / Bahçeli</span>
+                            <span class="text-lg font-semibold text-gray-900">{{ routeTo }}</span>
                         </div>
                         <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-600">
-                            <span class="font-medium text-gray-700">Tır / Tenteli</span>
-                            <span>10 Ton</span>
-                            <span>1000 km</span>
-                            <span class="text-primary font-semibold">(14:00 - 18:00)</span>
+                            <span v-if="vehicleLabel" class="font-medium text-gray-700">{{ vehicleLabel }}</span>
+                            <span v-if="weightDisplay">{{ weightDisplay }}</span>
+                            <span v-if="timeDisplay" class="text-primary font-semibold">({{ timeDisplay }})</span>
                         </div>
                         <div class="pt-3 border-t border-gray-100 flex justify-between items-center">
                             <span class="text-sm text-gray-500">Ücret</span>
-                            <span class="text-lg font-semibold text-primary">15.000 ₺</span>
+                            <span class="text-lg font-semibold text-primary">{{ priceDisplay }}</span>
                         </div>
                     </div>
                 </div>
@@ -56,9 +55,15 @@
                     <div class="px-5 py-4 border-b border-gray-100 bg-primary/5">
                         <span class="text-sm font-semibold text-primary">Araç</span>
                     </div>
-                    <div class="flex flex-col gap-5 px-20 py-5">
-                        <!-- <img src="/src/assets/images/vehicles/tenteli.png" alt="Araç" class="w-full h-full object-cover"> -->
-                        <span class="text-xs font-semibold text-primary max-w-fit mx-auto px-2 py-1 rounded-full text-center">Tır / Tenteli</span>
+                    <div class="flex flex-col gap-4 p-5 items-center">
+                        <img
+                            v-if="vehicleImageUrl"
+                            :src="vehicleImageUrl"
+                            :alt="vehicleLabel || 'Araç'"
+                            class="w-full max-w-40 h-28 object-contain rounded-lg"
+                        />
+                        <span v-if="vehicleLabel" class="text-xs font-semibold text-primary max-w-fit px-2 py-1 rounded-full text-center">{{ vehicleLabel }}</span>
+                        <span v-else-if="!vehicleImageUrl" class="text-xs text-gray-400">—</span>
                     </div>
                 </div>
                 
@@ -68,7 +73,7 @@
                     </div>
                     <div class="p-5 flex flex-col gap-5">
                         <div class="flex items-center gap-3">
-                            <span class="text-lg font-semibold text-gray-900">Paletli</span>
+                            <span class="text-lg font-semibold text-gray-900">{{ postTypeLabel }}</span>
                         </div>
                     </div>
                 </div>
@@ -178,6 +183,63 @@ const loading = ref(false);
 const error = ref(null);
 
 const requestCount = computed(() => shipment.value?.requests?.length ?? 0);
+
+const routeFrom = computed(() => {
+  const s = shipment.value;
+  if (!s) return '—';
+  const parts = [s.f_where_city, s.f_where_district].filter(Boolean);
+  return parts.length ? parts.join(' / ') : '—';
+});
+const routeTo = computed(() => {
+  const s = shipment.value;
+  if (!s) return '—';
+  const parts = [s.t_where_city, s.t_where_district].filter(Boolean);
+  return parts.length ? parts.join(' / ') : '—';
+});
+const vehicleLabel = computed(() => {
+  const s = shipment.value;
+  const car = s?.car;
+  const detail = s?.get_car_detail ?? s?.getCarDetail;
+  if (!car?.name) return detail?.value ?? null;
+  return detail?.value ? `${car.name} / ${detail.value}` : car.name;
+});
+const weightDisplay = computed(() => {
+  const w = shipment.value?.weight;
+  return w ? String(w).trim() : null;
+});
+const timeDisplay = computed(() => {
+  const s = shipment.value;
+  const dep = s?.departure_time ?? s?.departureTime;
+  const arr = s?.time_arrival ?? s?.timeArrival;
+  if (!dep && !arr) return null;
+  return [dep, arr].filter(Boolean).join(' - ');
+});
+const priceDisplay = computed(() => {
+  const p = shipment.value?.price;
+  if (p == null) return '—';
+  if (typeof p === 'string') return p;
+  return Number(p) === 0 ? 'Fiyat görüşülecektir' : `${Number(p).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺`;
+});
+const postTypeLabel = computed(() => {
+  const pt = shipment.value?.post_type ?? shipment.value?.postType;
+  return pt?.value ?? '—';
+});
+
+function getCarImageUrl(image) {
+  if (!image) return '';
+  if (typeof image === 'string' && image.startsWith('http')) return image;
+  try {
+    return new URL(`../assets/images/vehicles/${image}`, import.meta.url).href;
+  } catch {
+    return '';
+  }
+}
+const vehicleImageUrl = computed(() => {
+  const car = shipment.value?.car;
+  const detail = shipment.value?.get_car_detail ?? shipment.value?.getCarDetail;
+  const image = detail?.image ?? car?.image;
+  return getCarImageUrl(image) || '';
+});
 
 const loadShipment = async () => {
     const slugVal = slug.value;

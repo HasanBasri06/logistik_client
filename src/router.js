@@ -19,7 +19,6 @@ import CargoOwnerMessagesPage from "./pages/CargoOwnerMessagesPage.vue";
 import CargoOwnerPostsPage from "./pages/CargoOwnerPostsPage.vue";
 import CargoOwnerAddressesPage from "./pages/CargoOwnerAddressesPage.vue";
 import CargoOwnerChangePasswordPage from "./pages/CargoOwnerChangePasswordPage.vue";
-import CargoOwnerVerifyPage from "./pages/CargoOwnerVerifyPage.vue";
 import CargoOwnerCardsPage from "./pages/CargoOwnerCardsPage.vue";
 import PostDetail from "./posts/Detail.vue";
 import ProductDetailPage from "./pages/ProductDetailPage.vue";
@@ -217,16 +216,6 @@ const routes = [
         meta: {
             layout: Layout,
             title: 'Şifre Değiştir | TaşıBul',
-            requiresAuth: true,
-            authorization: 'cargo_owner'
-        }
-    },
-    {
-        path: '/cargo-owner/verify',
-        component: CargoOwnerVerifyPage,
-        meta: {
-            layout: Layout,
-            title: 'Hesap Doğrula | TaşıBul',
             requiresAuth: true,
             authorization: 'cargo_owner'
         }
