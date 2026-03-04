@@ -425,6 +425,8 @@
                                         v-model="registerForm.password"
                                         :class="['input pr-12', registerErrors.password ? 'border-red-400' : '']"
                                         placeholder="Şifrenizi oluşturun"
+                                        @focus="showPasswordSuggestion = true"
+                                        @blur="hidePasswordSuggestion"
                                     />
                                     <button
                                         type="button"
@@ -432,6 +434,16 @@
                                         class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                                     >
                                         <i :class="showRegisterPassword ? 'pi pi-eye-slash' : 'pi pi-eye'" style="font-size: 18px;"></i>
+                                    </button>
+                                </div>
+                                <div v-if="showPasswordSuggestion" class="flex items-center gap-2 mt-1">
+                                    <button
+                                        type="button"
+                                        @click="applyStrongPassword"
+                                        class="text-xs text-primary font-medium hover:underline flex items-center gap-1"
+                                    >
+                                        <i class="pi pi-key"></i>
+                                        Güçlü şifre öner
                                     </button>
                                 </div>
                                 <span v-if="registerErrors.password" class="text-xs text-red-500 mt-0.5">
@@ -493,6 +505,7 @@ import Content from './Content.vue';
 import loginWallpaper from '@/assets/images/login_wallpaper.gif';
 import { InputMask } from 'primevue';
 import { storeToRefs } from 'pinia';
+import api from '@/api';
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -551,6 +564,7 @@ const otpCode = ref("");
 const otpError = ref("");
 const otpOpenedFromLogin = ref(false);
 const resendOtpLoading = ref(false);
+const showPasswordSuggestion = ref(false);
 
 const loginSchema = yup.object({
     phone: yup
@@ -613,6 +627,7 @@ const handleGoogleLogin = () => {
     // Google ile giriş yapma işlemi buraya eklenecek
     console.log('Google ile giriş yapılıyor...');
     toast.info('Google ile giriş özelliği yakında eklenecek.', { description: 'Google Girişi', duration: 3000 });
+    api.get('/auth/google/redirect')
 };
 
 const handleFacebookLogin = () => {
@@ -892,6 +907,35 @@ const handleRegisterSubmit = async () => {
             });
         }
     }
+};
+
+function generateStrongPassword() {
+    const lower = 'abcdefghjkmnpqrstuvwxyz';
+    const upper = 'ABCDEFGHJKMNPQRSTUVWXYZ';
+    const numbers = '23456789';
+    const symbols = '!@#$%&*';
+    const all = lower + upper + numbers + symbols;
+    let pwd = '';
+    pwd += lower[Math.floor(Math.random() * lower.length)];
+    pwd += upper[Math.floor(Math.random() * upper.length)];
+    pwd += numbers[Math.floor(Math.random() * numbers.length)];
+    pwd += symbols[Math.floor(Math.random() * symbols.length)];
+    for (let i = 0; i < 8; i++) {
+        pwd += all[Math.floor(Math.random() * all.length)];
+    }
+    return pwd.split('').sort(() => Math.random() - 0.5).join('');
+}
+
+const applyStrongPassword = () => {
+    const pwd = generateStrongPassword();
+    registerForm.value.password = pwd;
+    registerForm.value.confirmPassword = pwd;
+    showRegisterPassword.value = true;
+    toast.success('Güçlü şifre uygulandı. Şifreyi kopyalayıp saklayın.', { duration: 4000 });
+};
+
+const hidePasswordSuggestion = () => {
+    setTimeout(() => { showPasswordSuggestion.value = false; }, 200);
 };
 
 const handleOtpBack = () => {
