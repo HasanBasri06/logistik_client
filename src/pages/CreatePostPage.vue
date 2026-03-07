@@ -47,10 +47,13 @@
               <!-- Ağırlık input + kg/ton toggle -->
               <div class="flex items-center gap-2 w-full">
                 <input
-                  v-model="weightValue"
+                  :value="weightValue"
                   type="text"
-                  :placeholder="weightUnit === 'kg' ? '0 - 200.00 kg aralığında girin' : '0 - 20 ton aralığında girin'"
+                  inputmode="decimal"
+                  :placeholder="weightUnit === 'kg' ? '0 - 25.000 kg aralığında girin' : '0 - 25 ton aralığında girin'"
                   class="flex-1 h-12 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
+                  @keydown="onWeightKeydown($event)"
+                  @input="onWeightInput($event)"
                 />
                 <div class="flex rounded-lg border border-gray-200 overflow-hidden shrink-0">
                   <button
@@ -181,11 +184,51 @@
                         placeholder="Tarih seçin"
                         :pt="{
                           root: { class: 'flex-1 !text-sm' },
-                          input: { class: 'h-12 !p-4 !rounded-lg !border !border-gray-200 !focus:outline-none !focus:ring-2 !focus:ring-primary/20 focus:border-primary !text-sm placeholder:text-sm w-full' },
-                          panel: { class: '!bg-white !mt-2 !border !text-sm !border-gray-200 shadow-lg !rounded-lg !p-4' },
-                          calendarContainer: { class: '!bg-white' },
-                          timePicker: { class: '!bg-white' }
+                          input: {
+                            class: [
+                              'h-12 !p-4 !rounded-lg !border !border-gray-200 !focus:outline-none !focus:ring-2 !focus:ring-primary/20 focus:border-primary !text-sm placeholder:text-sm w-full',
+                              shipment_date ? '!bg-primary/10 cursor-not-allowed' : '!bg-gray-100'
+                            ]
+                          },
+                          panel: { class: '!bg-white !mt-2 !border !text-sm !border-gray-200 !text-gray-800 shadow-lg !rounded-lg !p-4' },
+                          calendarContainer: { class: '!bg-white !text-gray-800' },
+                          calendar: { class: '!text-gray-800' },
+                          header: { class: '!text-gray-800' },
+                          title: { class: '!text-gray-800' },
+                          selectYear: { class: '!text-gray-800' },
+                          selectMonth: { class: '!text-gray-800' },
+                          weekDay: { class: '!text-gray-800' },
+                          tableHeader: { class: '!text-gray-800' },
+                          tableHeaderCell: { class: '!text-gray-800' },
+                          timePicker: { class: '!bg-white' },
+                          day: (arg) => {
+                            const ctx = arg?.context ?? arg ?? {};
+                            const dateMeta = ctx.date;
+                            const selected = ctx.selected;
+                            const selectable = dateMeta ? (ctx.disabled === false || dateMeta.selectable) : false;
+                            if (!dateMeta) {
+                              return { class: '!bg-white !text-gray-800' };
+                            }
+                            const d = new Date(dateMeta.year, dateMeta.month, dateMeta.day);
+                            const todayStart = new Date();
+                            todayStart.setHours(0, 0, 0, 0);
+                            d.setHours(0, 0, 0, 0);
+                            const isPast = d < todayStart;
+                            if (selected) {
+                              return { class: '!bg-primary !text-white !font-bold !rounded-md' };
+                            }
+                            if (isPast) {
+                              return { class: '!bg-gray-100 !text-gray-400 !opacity-60 cursor-not-allowed' };
+                            }
+                            if (selectable) {
+                              return { class: '!bg-white !text-gray-800 hover:!bg-primary/10 hover:!text-primary' };
+                            }
+                            return { class: '!bg-gray-100 !text-gray-400 !opacity-50 cursor-not-allowed' };
+                          }
                         }"
+                        :min-date="new Date()"
+                        :max-date="new Date(new Date().setDate(new Date().getDate() + 14))"
+                        :manualInput="false"
                         fluid
                       />
                     </div>
@@ -258,9 +301,14 @@
 
                 </div>
               </div>
-              <p v-else-if="routeLoading" class="mt-4 pt-4 border-t border-gray-100 text-sm text-gray-500">
-                Rota hesaplanıyor...
-              </p>
+              <div v-else-if="routeLoading" class="mt-4 pt-4 border-t border-gray-100 flex flex-col items-center justify-center gap-3 py-6">
+                <img
+                  :src="loadingGifUrl"
+                  alt=""
+                  class="w-16 h-16 object-contain"
+                />
+                <p class="text-sm text-gray-600 text-center">Rota Hesaplanıyor</p>
+              </div>
             </div>
           </div>
 
@@ -308,6 +356,8 @@ import { useShipmentsStore } from "@/stores/shipments";
 import { useAuthStore } from "@/stores/auth";
 import { storeToRefs } from "pinia";
 
+const loadingGifUrl = new URL("../assets/gifs/loading_gif.gif", import.meta.url).href;
+
 const postStore = usePostStore();
 const shipmentsStore = useShipmentsStore();
 const authStore = useAuthStore();
@@ -321,7 +371,12 @@ const departure_time = ref(null);
 /** PrimeVue timeOnly: Date (saat/dakika), formda HH:mm olarak gönderilir */
 const time_arrival = ref(null);
 /** PrimeVue dateOnly: Date, formda yyyy-MM-dd olarak gönderilir */
-const shipment_date = ref(null);
+const todayStart = (() => {
+  const t = new Date();
+  t.setHours(0, 0, 0, 0);
+  return t;
+})();
+const shipment_date = ref(todayStart);
 /** Boşaltılacak yer: sadece şehir ve ilçe isimleri */
 const bosaltilanYer = ref({ city: '', district: '' });
 const cities = ref([]);
@@ -343,6 +398,56 @@ const weightUnit = ref('kg');
 function onWeightUnitChange(unit) {
   weightUnit.value = unit;
   weightValue.value = '';
+}
+
+/** Kullanıcı girdisini sayıya çevirir (sadece rakam + virgül/nokta ondalık) */
+function parseWeightInput(str) {
+  const s = String(str ?? '').replace(/\s/g, '');
+  if (s === '') return null;
+  const normalized = s.replace(/\./g, '').replace(',', '.');
+  const num = parseFloat(normalized);
+  return Number.isNaN(num) ? null : num;
+}
+
+/** Sayıyı Türkçe ondalık formatında gösterir (1.234,50) */
+function formatWeightDisplay(num) {
+  if (num === null || num === undefined || Number.isNaN(num)) return '';
+  const n = Number(num);
+  return n.toLocaleString('tr-TR', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
+}
+
+/** API için: formatlı string → ham sayı string */
+function parseWeightToRaw(formattedStr) {
+  const num = parseWeightInput(formattedStr);
+  if (num === null) return '';
+  return num % 1 === 0 ? String(num) : String(num);
+}
+
+/** Sadece rakam, virgül ve noktaya izin ver; harf ve diğer karakterleri engelle */
+function onWeightKeydown(event) {
+  const key = event.key;
+  if (key.length === 1 && !/[\d,.]/.test(key) && !event.ctrlKey && !event.metaKey && !event.altKey) {
+    event.preventDefault();
+  }
+}
+
+const WEIGHT_MAX_KG = 25000;
+const WEIGHT_MAX_TON = 25;
+
+function onWeightInput(event) {
+  const raw = String(event.target?.value ?? '').replace(/\s/g, '').replace(/[^\d,.]/g, '');
+  const endsWithSep = /[,.]$/.test(raw);
+  let num = parseWeightInput(raw);
+  if (num === null) {
+    weightValue.value = raw;
+    return;
+  }
+  const max = weightUnit.value === 'ton' ? WEIGHT_MAX_TON : WEIGHT_MAX_KG;
+  num = Math.min(Math.max(0, num), max);
+  weightValue.value = formatWeightDisplay(num) + (endsWithSep ? ',' : '');
 }
 
 async function fetchCities() {
@@ -545,7 +650,11 @@ const canGoNext = computed(() => {
   }
   if (page.value === 2) {
     const w = String(weightValue.value ?? '').trim();
-    return !!postStore.selectedPostType && w !== '';
+    if (!postStore.selectedPostType || w === '') return false;
+    const num = parseWeightInput(w);
+    if (num === null || num < 0) return false;
+    const max = weightUnit.value === 'ton' ? 25 : 25000;
+    return num <= max;
   }
   if (page.value === 3) {
     return !!(
@@ -570,7 +679,7 @@ function getShipmentFormData() {
     selectedDetailValues: { ...postStore.selectedDetailValues },
     selectedPostType: postStore.selectedPostType,
     /** Ağırlık: değer + birim (kg/ton) */
-    weight: String(weightValue.value ?? '').trim() || undefined,
+    weight: parseWeightToRaw(weightValue.value) || undefined,
     weight_unit: weightUnit.value,
     /** Yüklenecek yer: sadece şehir ve ilçe isimleri */
     yuklenecekYer: { city: yuklenecekYer.value?.city ?? '', district: yuklenecekYer.value?.district ?? '' },
