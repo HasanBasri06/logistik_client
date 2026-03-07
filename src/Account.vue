@@ -14,8 +14,15 @@
                                 <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
                                     <i class="pi pi-money-bill text-white" style="font-size: 24px;"></i>
                                 </div>
+                                <i
+                                    class="pi pi-question-circle text-gray-500 text-sm cursor-help shrink-0"
+                                    title="Buradaki ücret TaşıBul üzerinden gösterilen ücret karşılığıdır."
+                                    aria-hidden="true"
+                                />
                             </div>
-                            <h3 class="text-sm font-medium text-gray-600 mb-1">Toplam Ücret</h3>
+                            <div class="flex items-center justify-between gap-1 mb-1">
+                                <h3 class="text-sm font-medium text-gray-600">Toplam Ücret</h3>
+                            </div>
                             <p class="text-2xl font-bold text-gray-900">{{ totalEarnings.toLocaleString('tr-TR') }} ₺</p>
                         </div>
                         
@@ -65,6 +72,7 @@ import Content from './components/Content.vue';
 import Header from './components/Header.vue';
 import AccountSidebar from './components/AccountSidebar.vue';
 import { useRoute } from 'vue-router';
+import api from './api';
 
 const route = useRoute();
 
@@ -76,11 +84,27 @@ Chart.register(...registerables);
 // Kısayol Kartları Verileri
 const totalEarnings = ref(125000);
 const pendingJobs = ref(8);
-const vehicleCount = ref(3);
-
+const vehicleCount = ref(0);
 // Chart
 const chartCanvas = ref(null);
 let chartInstance = null;
+
+const getVehicleOwnerData = async () => {
+    try {
+        const response = await api.get('/vehicle');
+        const {content} = await response.data;
+
+        console.log(content);
+
+        vehicleCount.value = content.vehicles.length;
+
+    } catch (err) {
+        console.log(err);
+        
+    }
+}
+
+getVehicleOwnerData();
 
 onMounted(() => {
     if (chartCanvas.value) {

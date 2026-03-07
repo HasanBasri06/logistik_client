@@ -14,7 +14,14 @@
                                     <i class="pi pi-money-bill text-white" style="font-size: 24px;"></i>
                                 </div>
                             </div>
-                            <h3 class="text-sm font-medium text-gray-600 mb-1">Toplam Ücret</h3>
+                            <div class="flex items-center justify-between gap-1 mb-1">
+                                <h3 class="text-sm font-medium text-gray-600">Toplam Ücret</h3>
+                                <i
+                                    class="pi pi-question-circle text-gray-500 text-sm cursor-help shrink-0"
+                                    title="Buradaki ücret TaşıBul üzerinden gösterilen ücret karşılığıdır."
+                                    aria-hidden="true"
+                                />
+                            </div>
                             <p class="text-2xl font-bold text-gray-900">{{ totalEarnings.toLocaleString('tr-TR') }} ₺</p>
                         </div>
                         <!-- Bekleyen İşler Kartı -->

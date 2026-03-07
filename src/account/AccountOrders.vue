@@ -46,12 +46,12 @@
                 <p class="text-sm text-gray-500 pt-4">Yükleniyor...</p>
             </template>
             <div v-else class="flex flex-col gap-5 pt-4">
-                <template v-if="!shipmentsList.length">
+                <template v-if="!orders?.length">
                     <p class="text-gray-500">Henüz sipariş bulunmuyor.</p>
                 </template>
                 <template v-else>
                     <Product
-                        v-for="item in shipmentsList"
+                        v-for="item in orders"
                         :key="item.id"
                         :shipment="item"
                         :slug="item.slug ?? String(item.id)"
@@ -67,13 +67,24 @@ import { ref, onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import Product from '@/components/Product.vue';
 import { useShipmentsStore } from '@/stores/shipments';
+import api from '@/api';
 
 const selectedOrderStatus = ref('active');
+const orders = ref([]);
 
-const shipmentsStore = useShipmentsStore();
-const { list: shipmentsList, loading: shipmentsLoading, error: shipmentsError } = storeToRefs(shipmentsStore);
+const getOrders = async () => {
+    try {
+        const response = await api.get('/vehicle/orders');
+        const {content} = await response.data;
+        console.log(content);
+
+        orders.value = content.shipmentOrders;
+    } catch (err) {
+        console.log(err);
+    }
+}
 
 onMounted(() => {
-    shipmentsStore.fetchShipments();
+    getOrders();
 });
 </script>
