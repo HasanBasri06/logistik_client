@@ -1,10 +1,10 @@
 <template>
     <Header />
     <nav 
-        class="w-full h-[350px]  relative" 
-        :style="{ backgroundImage: `url(${lojistikWallpaper})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }"
+        class="w-full h-auto relative" 
     >
-        <Content class="relative flex flex-col justify-center ">
+        <img :src="lojistikWallpaper" alt="TaşıBul Logo" class="w-[90%] h-[450px] mx-auto rounded-2xl object-cover relative z-0">
+        <Content class="relative flex flex-col justify-center z-20 -top-2/4">
             <!-- Slogan -->
             <div class="pb-8 h-28 overflow-hidden -mt-16">
                 <Transition name="fade" mode="out-in">

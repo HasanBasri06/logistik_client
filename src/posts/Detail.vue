@@ -1,5 +1,5 @@
 <template>
-    <div class="h-screen overflow-hidden">
+    <div class="h-screen">
         <Header />
         <Content class="mt-5 flex-1 overflow-y-auto flex gap-4 relative">
             <!-- Sol kolon: aynı divler, loading'de gri + pulse -->
@@ -431,6 +431,7 @@
                                 <input
                                     v-model="newOfferMessageText"
                                     type="text"
+                                    ref="message_input"
                                     placeholder="Mesajınızı yazın..."
                                     class="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
                                 />
@@ -452,7 +453,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick, useTemplateRef } from 'vue';
 import { useRoute } from 'vue-router';
 import ProgressSpinner from 'primevue/progressspinner';
 import Header from '@/components/Header.vue';
@@ -461,6 +462,7 @@ import api from '@/api';
 import { router } from '@/router';
 import { useMessageStore, formatMessageTime } from '@/stores/message';
 import { useAuthStore } from '@/stores/auth';
+import { usePusherMessages } from '@/composables/usePusherMessages';
 import TeklifVerModal from '@/components/TeklifVerModal.vue';
 
 const route = useRoute();
@@ -482,6 +484,7 @@ const destinationDateTime = ref(null);
 const geocoder = ref(null);
 const selectedOrigin = ref(null);
 const selectedDestination = ref(null);
+const message_input = useTemplateRef('message_input');
 
 const is_me = ref(false);
 
@@ -966,6 +969,38 @@ const offerMessagesContainer = ref(null);
 const offerPanelMessages = ref([]);
 const newOfferMessageText = ref('');
 
+usePusherMessages(computed(() => authStore.user?.id), {
+    onMessageSent(e) {
+        const userId = authStore.user?.id;
+        if (!userId || Number(e.receiver_id) !== Number(userId)) return;
+        const sid = shipment.value?.id;
+        if (sid != null && e.shipment_id != null && Number(e.shipment_id) !== Number(sid)) return;
+        if (!showMessageOfferPanel.value) return;
+        const time = formatMessageTime(e.created_at);
+        const newMsg = { type: 'message', id: e.id, text: e.message, time, isMe: false, created_at: e.created_at };
+        const preview = offerPanelMessages.value[0];
+        const rest = offerPanelMessages.value.slice(1).filter((m) => m.type !== 'preview');
+        rest.push(newMsg);
+        rest.sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+        offerPanelMessages.value = preview ? [preview, ...rest] : rest;
+        nextTick(() => {
+            const el = offerMessagesContainer.value;
+            if (el) el.scrollTop = el.scrollHeight;
+        });
+    },
+    onOfferSent(e) {
+        if (!showMessageOfferPanel.value || !shipment.value?.slug) return;
+        if (e.shipment_slug !== shipment.value.slug) return;
+        refreshOfferPanelMessages();
+        nextTick(() => {
+            setTimeout(() => {
+                const el = offerMessagesContainer.value;
+                if (el) el.scrollTop = el.scrollHeight;
+            }, 50);
+        });
+    },
+});
+
 function buildOfferPanelMessages(messages, requests, currentUserId) {
     const preview = { type: 'preview' };
     const teklifItems = (requests || [])
@@ -1009,6 +1044,7 @@ async function openMessageOfferPanel() {
             setTimeout(() => {
                 const el = offerMessagesContainer.value;
                 if (el) el.scrollTop = el.scrollHeight;
+                message_input.value?.focus();
             }, 50);
         });
     });
@@ -1061,21 +1097,35 @@ async function sendOfferMessage() {
     const text = newOfferMessageText.value?.trim();
     if (!text) return;
 
-    const shipmentId = shipment.value?.id;
     const receiverId = shipment.value?.creater_id ?? shipment.value?.creator?.id;
+    const currentUserId = authStore.user?.id;
+    if (!receiverId || !currentUserId) return;
+
+    const tempId = `temp-${Date.now()}`;
+    const optimisticMsg = { type: 'message', id: tempId, text, time: 'Şimdi', isMe: true, created_at: new Date().toISOString() };
+    const preview = offerPanelMessages.value[0];
+    const rest = offerPanelMessages.value.slice(1).filter((m) => m.type !== 'preview');
+    rest.push(optimisticMsg);
+    rest.sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+    offerPanelMessages.value = preview ? [preview, ...rest] : rest;
+    newOfferMessageText.value = '';
+    nextTick(() => {
+        const el = offerMessagesContainer.value;
+        if (el) el.scrollTop = el.scrollHeight;
+    });
 
     const result = await messageStore.createMessage({
-        shipment_id: shipmentId,
+        shipment_id: shipment.value?.id,
         receiver_id: receiverId,
         message: text,
     });
 
     if (!result.success) {
+        offerPanelMessages.value = offerPanelMessages.value.filter((m) => m.id !== tempId);
         console.warn('Mesaj gönderilemedi:', result.error);
         return;
     }
 
-    newOfferMessageText.value = '';
     await refreshOfferPanelMessages();
     nextTick(() => {
         setTimeout(() => {

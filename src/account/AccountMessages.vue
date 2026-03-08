@@ -75,20 +75,45 @@
                 </div>
             </div>
 
-            <!-- İlan (Shipment) kartı – en üstte -->
+            <!-- Üst: İlan özeti + Talep yan yana (flex-1) -->
             <div
-                v-if="conversationShipment && !threadLoading"
-                class="mx-4 mt-2 mb-2 rounded-xl border border-gray-200 bg-white p-4 shadow-sm shrink-0"
+                v-if="(conversationShipment || conversationTeklif) && !threadLoading"
+                class="mx-4 mt-2 mb-2 flex gap-3 shrink-0"
             >
-                <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">İlan özeti</p>
-                <div class="flex items-center gap-2 flex-wrap text-sm">
-                    <span class="font-semibold text-gray-900">{{ conversationShipment.f_where_city }} / {{ conversationShipment.f_where_district }}</span>
-                    <i class="pi pi-arrow-right text-primary text-xs"></i>
-                    <span class="font-semibold text-gray-900">{{ conversationShipment.t_where_city }} / {{ conversationShipment.t_where_district }}</span>
+                <div
+                    v-if="conversationShipment"
+                    class="flex-1 rounded-xl border border-gray-200 bg-white p-4 shadow-sm min-w-0"
+                >
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">İlan özeti</p>
+                    <div class="flex items-center gap-2 flex-wrap text-sm">
+                        <span class="font-semibold text-gray-900">{{ conversationShipment.f_where_city }} / {{ conversationShipment.f_where_district }}</span>
+                        <i class="pi pi-arrow-right text-primary text-xs"></i>
+                        <span class="font-semibold text-gray-900">{{ conversationShipment.t_where_city }} / {{ conversationShipment.t_where_district }}</span>
+                    </div>
+                    <div class="flex items-center gap-3 mt-2 text-sm text-gray-600">
+                        <span v-if="conversationShipment.hours">{{ conversationShipment.hours }}</span>
+                        <span v-if="conversationShipment.price" class="font-semibold text-primary">{{ conversationShipment.price }}</span>
+                    </div>
                 </div>
-                <div class="flex items-center gap-3 mt-2 text-sm text-gray-600">
-                    <span v-if="conversationShipment.hours">{{ conversationShipment.hours }}</span>
-                    <span v-if="conversationShipment.price" class="font-semibold text-primary">{{ conversationShipment.price }}</span>
+                <div
+                    v-if="conversationTeklif"
+                    class="flex-1 rounded-xl border-2 border-primary/30 bg-white p-4 shadow-sm min-w-0"
+                >
+                    <p class="text-xs font-semibold text-primary uppercase tracking-wide mb-2">Talep / Teklif</p>
+                    <p v-if="conversationTeklif.carName" class="text-sm font-medium text-gray-900 mb-1">{{ conversationTeklif.carName }}</p>
+                    <p class="text-sm font-semibold text-primary mb-1">{{ conversationTeklif.price }}</p>
+                    <p v-if="conversationTeklif.message" class="text-sm text-gray-600 mt-2 border-t border-gray-100 pt-2 line-clamp-2">{{ conversationTeklif.message }}</p>
+                    <span class="text-xs text-gray-500 mt-2 block">{{ conversationTeklif.time }}</span>
+                    <button
+                        v-if="isShipmentOwner && conversationTeklif.status !== 'accepted'"
+                        type="button"
+                        class="mt-3 w-full py-2 rounded-lg bg-primary text-white font-semibold text-sm hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                        :disabled="teklifAcceptLoading === conversationTeklif.id"
+                        @click="acceptTeklif(conversationTeklif.id)"
+                    >
+                        {{ teklifAcceptLoading === conversationTeklif.id ? 'İşleniyor...' : 'Teklifi Kabul Et' }}
+                    </button>
+                    <p v-else-if="isShipmentOwner && conversationTeklif.status === 'accepted'" class="mt-2 text-sm font-medium text-green-600">Kabul edildi</p>
                 </div>
             </div>
 
@@ -107,27 +132,11 @@
                                 : 'bg-white text-gray-700 self-start rounded-bl-md border border-gray-200')
                         ]"
                     >
-                        <div v-if="msg.type === 'teklif'" class="rounded-lg border-2 border-primary/30 bg-white p-3 shadow-sm min-w-[200px] max-w-full">
-                            <p class="text-xs font-semibold text-primary uppercase tracking-wide mb-2">Verilen Teklif</p>
-                            <p v-if="msg.carName" class="text-sm font-medium text-gray-900 mb-1">{{ msg.carName }}</p>
-                            <p class="text-sm font-semibold text-primary mb-1">{{ msg.price }}</p>
-                            <p v-if="msg.message" class="text-sm text-gray-600 mt-2 border-t border-gray-100 pt-2">{{ msg.message }}</p>
-                            <span class="text-xs text-gray-500 mt-2 block">{{ msg.time }}</span>
-                            <button
-                                v-if="isShipmentOwner && msg.status !== 'accepted'"
-                                type="button"
-                                class="mt-3 w-full py-2 rounded-lg bg-primary text-white font-semibold text-sm hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-                                :disabled="teklifAcceptLoading === msg.id"
-                                @click="acceptTeklif(msg.id)"
-                            >
-                                {{ teklifAcceptLoading === msg.id ? 'İşleniyor...' : 'Teklifi Kabul Et' }}
-                            </button>
-                            <p v-else-if="isShipmentOwner && msg.status === 'accepted'" class="mt-2 text-sm font-medium text-green-600">Kabul edildi</p>
-                        </div>
-                        <template v-else>
+                        
+                        <div>
                             <p class="text-sm leading-relaxed m-0">{{ msg.text }}</p>
                             <span class="text-xs opacity-70 self-end">{{ msg.time }}</span>
-                        </template>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -179,7 +188,7 @@ import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router';
 import { useMessageStore, formatMessageTime } from '@/stores/message';
 import { useAuthStore } from '@/stores/auth';
-import { getEcho } from '@/echo';
+import { usePusherMessages } from '@/composables/usePusherMessages';
 import api from '@/api';
 import TeklifVerModal from '@/components/TeklifVerModal.vue';
 
@@ -192,6 +201,8 @@ const route = useRoute();
 const router = useRouter();
 const messageStore = useMessageStore();
 const authStore = useAuthStore();
+
+const emit = defineEmits(['refresh']);
 
 const displayMessages = computed(() => props.messagesList ?? messages.value);
 
@@ -239,7 +250,6 @@ const conversationShipmentId = ref(null);
 const conversationShipment = ref(null);
 const teklifAcceptLoading = ref(null);
 const showTeklifModal = ref(false);
-let echoChannel = null;
 
 async function onTeklifModalSuccess() {
     showTeklifModal.value = false;
@@ -266,6 +276,14 @@ const isShipmentOwner = computed(() => {
 });
 
 const isVehicleOwnerMessages = computed(() => String(props.basePath || '').includes('vehicle-owner'));
+
+/** Sohbette gönderilmiş talep/teklif – en üstte ilan özetinin yanında (en son teklif) */
+const conversationTeklif = computed(() => {
+    const list = messageThread.value || [];
+    const teklifs = list.filter((m) => m.type === 'teklif');
+    if (!teklifs.length) return null;
+    return teklifs[teklifs.length - 1];
+});
 
 async function acceptTeklif(requestId) {
     const slug = conversationShipment.value?.slug;
@@ -378,13 +396,21 @@ const sendMessage = async () => {
     if (props.messagesList) {
         const otherUserId = route.params.id ? parseInt(route.params.id, 10) : null;
         if (!otherUserId) return;
+        const tempId = `temp-${Date.now()}`;
+        const optimisticMsg = { id: tempId, text, time: 'Şimdi', isMe: true, type: 'message', created_at: new Date().toISOString() };
+        messageThread.value = [...messageThread.value, optimisticMsg];
         newMessageText.value = '';
+        scrollMessagesToBottom();
+
         const result = await messageStore.createMessage({
             receiver_id: otherUserId,
             message: text,
             shipment_id: conversationShipmentId.value ?? undefined,
         });
-        if (!result.success) return;
+        if (!result.success) {
+            messageThread.value = messageThread.value.filter((m) => m.id !== tempId);
+            return;
+        }
         const res = await messageStore.getBySenderAndReceiver(otherUserId);
         const data = res?.data ?? [];
         conversationShipmentId.value = res?.conversationShipmentId ?? conversationShipmentId.value;
@@ -402,11 +428,12 @@ const sendMessage = async () => {
         } else if (Array.isArray(data)) {
             messageThread.value = data;
         }
+        scrollMessagesToBottom();
     } else {
         messageThread.value.push({ text, time: 'Şimdi', isMe: true });
         newMessageText.value = '';
+        scrollMessagesToBottom();
     }
-    scrollMessagesToBottom();
 };
 
 watch(
@@ -428,7 +455,7 @@ watch(
 function handleOfferSent(e) {
     const currentOtherId = route.params.id ? parseInt(route.params.id, 10) : null;
     if (currentOtherId == null || Number(e.sender_id) !== Number(currentOtherId)) return;
-    if (conversationShipment.value?.slug != null && e.shipment_slug !== conversationShipment.value.slug) return;
+    if (conversationShipment.value?.slug != null && e.shipment_slug != null && e.shipment_slug !== conversationShipment.value.slug) return;
     const createdAt = e.created_at_raw || e.created_at;
     const teklifItem = {
         type: 'teklif',
@@ -447,39 +474,28 @@ function handleOfferSent(e) {
     scrollMessagesToBottom();
 }
 
-function setupPusherListener() {
-    const echo = getEcho();
-    const userId = authStore.user?.id;
-    if (!echo || !userId) return;
-    if (echoChannel) return;
-    echoChannel = echo.private(`user.${userId}`)
-        .listen('.message.sent', (e) => {
-            const currentOtherId = route.params.id ? parseInt(route.params.id, 10) : null;
-            if (e.receiver_id !== userId) return;
-            if (currentOtherId !== null && Number(e.sender_id) !== Number(currentOtherId)) return;
-            const time = formatMessageTime(e.created_at);
-            messageThread.value = [...messageThread.value, { id: e.id, text: e.message, time, isMe: false, type: 'message', created_at: e.created_at }];
-            scrollMessagesToBottom();
-        })
-        .listen('.offer.sent', handleOfferSent);
-}
-
-function removePusherListener() {
-    if (echoChannel) {
-        echoChannel.stopListening('.message.sent');
-        echoChannel.stopListening('.offer.sent');
-        echoChannel = null;
-    }
-}
+const userIdRef = computed(() => authStore.user?.id);
+const { connect: connectPusher } = usePusherMessages(userIdRef, {
+    onMessageSent(e) {
+        const userId = authStore.user?.id;
+        if (userId == null || Number(e.receiver_id) !== Number(userId)) return;
+        const currentOtherId = route.params.id ? parseInt(route.params.id, 10) : null;
+        if (currentOtherId !== null && Number(e.sender_id) !== Number(currentOtherId)) return;
+        const time = formatMessageTime(e.created_at);
+        messageThread.value = [...messageThread.value, { id: e.id, text: e.message, time, isMe: false, type: 'message', created_at: e.created_at }];
+        scrollMessagesToBottom();
+        emit('refresh');
+    },
+    onOfferSent(e) {
+        handleOfferSent(e);
+        emit('refresh');
+    },
+});
 
 onMounted(() => {
     if (route.path.includes('/messages') && route.params.id) {
         loadMessageDetail(parseInt(route.params.id));
     }
-    setupPusherListener();
-});
-
-onBeforeUnmount(() => {
-    removePusherListener();
+    connectPusher();
 });
 </script>

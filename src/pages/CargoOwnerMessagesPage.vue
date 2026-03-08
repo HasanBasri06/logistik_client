@@ -10,6 +10,7 @@
                         v-else
                         :messages-list="messagesList"
                         base-path="/cargo-owner/messages"
+                        @refresh="refetchMessages"
                     />
                 </div>
             </div>
@@ -68,6 +69,15 @@ const messagesList = computed(() => {
         };
     });
 });
+
+async function refetchMessages() {
+    const userId = authStore.user?.id;
+    if (!userId) return;
+    const { success, data } = await messageStore.getByUserId(userId);
+    if (success && Array.isArray(data)) {
+        rawMessages.value = data;
+    }
+}
 
 onMounted(async () => {
     const userId = authStore.user?.id;

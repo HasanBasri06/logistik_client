@@ -18,6 +18,11 @@
                         Yardım
                     </router-link>
                 </li>
+                <li class="hidden md:block">
+                    <router-link to="/help" class="hover:text-primary transition-colors">
+                        Fiyatlandırma
+                    </router-link>
+                </li>
                 <li v-if="!authStore.isAuthenticated">
                     <button
                         type="button"
@@ -47,9 +52,14 @@
                     <button
                         type="button"
                         @click.stop="accountDropdownOpen = !accountDropdownOpen"
-                        class="flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold hover:border-primary hover:text-primary transition-colors"
+                        class="flex items-center gap-2 rounded-full border cursor-pointer border-gray-200 px-4 py-2 text-sm font-semibold hover:border-primary hover:text-primary transition-colors"
                     >
-                        <span>Hesabım</span>
+                        <span>{{ user.full_name }}</span>
+                        <span
+                            v-if="hasUnreadMessages"
+                            class="w-2 h-2 rounded-full bg-red-400 shrink-0"
+                            aria-hidden="true"
+                        />
                         <svg 
                             :class="{ 'rotate-180': accountDropdownOpen }"
                             class="transition-transform duration-300 w-4 h-4 text-gray-600"
@@ -66,23 +76,95 @@
                         class="absolute top-full right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden"
                     >
                      
-                        <div class="px-4 py-3 text-sm font-medium bg-primary text-white">{{ userType }}</div>
+                        <!-- --><div class="px-4 py-3 text-sm font-medium bg-primary text-white">{{ userType }}</div>
                         <button
                             @click="handleGotoAccountClick"
                             class="block px-4 py-3 cursor-pointer text-sm font-medium text-gray-700 hover:bg-gray-100 w-full transition-colors"
                         >
                             <div class="flex items-center gap-2">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                </svg>
+                                <i class="pi pi-user" style="font-size: 14px;"></i>
                                 <span>Hesaba Git</span>
                             </div>
                         </button>
+                        <div class="flex flex-col gap-2" v-if="user.type == 'cargo_owner'">
+                            <RouterLink
+                                to="/cargo-owner/posts"
+                                type="button"
+                                class="block px-4 py-1 cursor-pointer text-sm font-medium text-gray-700 hover:bg-gray-100 w-full transition-colors"
+                            >
+                                <div class="flex items-center gap-2">
+                                    <i class="pi pi-car" style="font-size: 14px;"></i>
+                                    <span>İlanlarım</span>
+                                </div>
+                            </RouterLink>
+                            <RouterLink
+                                to="/cargo-owner/posts/create"
+                                type="button"
+                                class="block px-4 py-1 cursor-pointer text-sm font-medium text-gray-700 hover:bg-gray-100 w-full transition-colors"
+                            >
+                                <div class="flex items-center gap-2">
+                                    <i class="pi pi-plus" style="font-size: 14px;"></i>
+                                    <span>İlan Oluştur</span>
+                                </div>
+                            </RouterLink>
+                            <RouterLink
+                                to="/cargo-owner/messages"
+                                type="button"
+                                class="block px-4 py-1 pb-3 cursor-pointer text-sm font-medium text-gray-700 hover:bg-gray-100 w-full transition-colors"
+                            >
+                                <div class="flex items-center gap-2">
+                                    <i class="pi pi-envelope" style="font-size: 14px;"></i>
+                                    <span>Mesajlarım</span>
+                                    <span
+                                        v-if="hasUnreadMessages"
+                                        class="w-2 h-2 rounded-full bg-red-400 shrink-0"
+                                        aria-hidden="true"
+                                    />
+                                </div>
+                            </RouterLink>
+                        </div>
+                        <div v-else>
+                            <RouterLink
+                                to="/vehicle-owner/orders"
+                                type="button"
+                                class="block px-4 py-1 cursor-pointer text-sm font-medium text-gray-700 hover:bg-gray-100 w-full transition-colors"
+                            >
+                                <div class="flex items-center gap-2">
+                                    <i class="pi pi-shopping-bag" style="font-size: 14px;"></i>
+                                    <span>Siparişlerim</span>
+                                </div>
+                            </RouterLink>
+                            <RouterLink
+                                to="/vehicle-owner/vehicles"
+                                type="button"
+                                class="block px-4 py-1 cursor-pointer text-sm font-medium text-gray-700 hover:bg-gray-100 w-full transition-colors"
+                            >
+                                <div class="flex items-center gap-2">
+                                    <i class="pi pi-car" style="font-size: 14px;"></i>
+                                    <span>Araçlarım</span>
+                                </div>
+                            </RouterLink>
+                            <RouterLink
+                                to="/vehicle-owner/messages"
+                                type="button"
+                                class="block px-4 py-1 pb-3 cursor-pointer text-sm font-medium text-gray-700 hover:bg-gray-100 w-full transition-colors"
+                            >
+                                <div class="flex items-center gap-2">
+                                    <i class="pi pi-envelope" style="font-size: 14px;"></i>
+                                    <span>Mesajlarım</span>
+                                    <span
+                                        v-if="hasUnreadMessages"
+                                        class="w-2 h-2 rounded-full bg-red-400 shrink-0"
+                                        aria-hidden="true"
+                                    />
+                                </div>
+                            </RouterLink>
+                        </div>
                         <div class="border-t border-gray-200"></div>
                         <button
                             type="button"
                             @click="handleLogout"
-                            class="w-full text-left px-4 py-3 text-sm font-medium text-red-600 cursor-pointer hover:bg-red-50 transition-colors"
+                            class="w-full text-left px-4 py-4 text-sm font-medium text-red-600 cursor-pointer hover:bg-red-50 transition-colors"
                         >
                             <div class="flex items-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -271,16 +353,15 @@
                                         </svg>
                                     </button>
                                 </div>
-                                <p class="text-sm text-center text-gray-600">
-                                    Hesabın yok mu?
-                                    <button
-                                        type="button"
-                                        class="text-primary font-semibold hover:underline ml-1"
+                                <div class="flex justify-center items-center gap-2 pt-1">
+                                    <p class="text-sm text-gray-600">Hesabın yok mu?</p>
+                                    <span
+                                        class="text-primary font-semibold text-sm hover:bg-primary/5 transition-colors cursor-pointer"
                                         @click="openRegister"
-                                    >
+                                    > 
                                         Kayıt ol
-                                    </button>
-                                </p>
+                                </span>
+                                </div>
                             </div>
                         </template>
 
@@ -362,29 +443,31 @@
                                     {{ registerErrors.userType }}
                                 </span>
                             </div>
-                            <div class="flex flex-col gap-1">
-                                <label class="text-sm font-medium text-gray-700">İsim</label>
-                                <input
-                                    type="text"
-                                    v-model="registerForm.firstName"
-                                    :class="['input', registerErrors.firstName ? 'border-red-400' : '']"
-                                    placeholder="İsminiz"
-                                />
-                                <span v-if="registerErrors.firstName" class="text-xs text-red-500 mt-0.5">
-                                    {{ registerErrors.firstName }}
-                                </span>
-                            </div>
-                            <div class="flex flex-col gap-1">
-                                <label class="text-sm font-medium text-gray-700">Soyisim</label>
-                                <input
-                                    type="text"
-                                    v-model="registerForm.lastName"
-                                    :class="['input', registerErrors.lastName ? 'border-red-400' : '']"
-                                    placeholder="Soyisminiz"
-                                />
-                                <span v-if="registerErrors.lastName" class="text-xs text-red-500 mt-0.5">
-                                    {{ registerErrors.lastName }}
-                                </span>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="flex flex-col gap-1">
+                                    <label class="text-sm font-medium text-gray-700">İsim</label>
+                                    <input
+                                        type="text"
+                                        v-model="registerForm.firstName"
+                                        :class="['input', registerErrors.firstName ? 'border-red-400' : '']"
+                                        placeholder="İsminiz"
+                                    />
+                                    <span v-if="registerErrors.firstName" class="text-xs text-red-500 mt-0.5">
+                                        {{ registerErrors.firstName }}
+                                    </span>
+                                </div>
+                                <div class="flex flex-col gap-1">
+                                    <label class="text-sm font-medium text-gray-700">Soyisim</label>
+                                    <input
+                                        type="text"
+                                        v-model="registerForm.lastName"
+                                        :class="['input', registerErrors.lastName ? 'border-red-400' : '']"
+                                        placeholder="Soyisminiz"
+                                    />
+                                    <span v-if="registerErrors.lastName" class="text-xs text-red-500 mt-0.5">
+                                        {{ registerErrors.lastName }}
+                                    </span>
+                                </div>
                             </div>
                             <div class="flex flex-col gap-1">
                                 <label class="text-sm font-medium text-gray-700">E-posta</label>
@@ -475,13 +558,13 @@
                                 type="submit"
                                 class="w-full h-11 bg-primary text-white font-semibold rounded-md hover:opacity-90 transition-opacity text-sm mt-2"
                             >
-                                Kayıt Ol
+                                Kayıt Ol 
                             </button>
-                            <p class="text-xs text-center text-gray-500">
+                            <p class="text-sm text-center text-gray-500">
                                 Zaten hesabın var mı?
                                 <button
                                     type="button"
-                                    class="text-primary font-medium cursor-pointer"
+                                    class="text-primary cursor-pointer text-sm font-semibold"
                                     @click="openLogin"
                                 >
                                     Giriş yap
@@ -496,16 +579,17 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import * as yup from 'yup';
 import { useAuthStore } from '@/stores/auth';
 import { toast } from 'vue-sonner';
-import { useRouter } from 'vue-router';
+import { RouterLink, useRouter } from 'vue-router';
 import Content from './Content.vue';
 import loginWallpaper from '@/assets/images/login_wallpaper.gif';
 import { InputMask } from 'primevue';
 import { storeToRefs } from 'pinia';
 import api from '@/api';
+import { Router } from 'lucide-vue-next';
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -514,6 +598,8 @@ const {user} = storeToRefs(authStore);
 const showLogin = ref(false);
 const isRegister = ref(false);
 const accountDropdownOpen = ref(false);
+/** Okunmamış mesaj var mı (Header dropdown Mesajlarım yanında kırmızı nokta) */
+const hasUnreadMessages = ref(false);
 
 const userType = computed(() => {
     if (user.value.type === 'cargo_owner') {
@@ -624,10 +710,9 @@ const handleLogout = () => {
 };
 
 const handleGoogleLogin = () => {
-    // Google ile giriş yapma işlemi buraya eklenecek
-    console.log('Google ile giriş yapılıyor...');
-    toast.info('Google ile giriş özelliği yakında eklenecek.', { description: 'Google Girişi', duration: 3000 });
-    api.get('/auth/google/redirect')
+    const base = import.meta.env.VITE_APP_SERVER_URL || 'http://localhost:8000/api';
+    const origin = base.replace(/\/api\/?$/, '').replace(/\/+$/, '');
+    window.location.href = `${origin}/api/auth/google/redirect`;
 };
 
 const handleFacebookLogin = () => {
@@ -645,9 +730,24 @@ const handleClickOutside = (event) => {
 
 const handleOpenLoginEvent = () => openLogin();
 
+async function fetchHasUnreadMessages() {
+    if (!authStore.isAuthenticated) return;
+    try {
+        const res = await api.get('/messages/has-unread');
+        hasUnreadMessages.value = res.data?.content?.has_unread === true;
+    } catch (_) {
+        hasUnreadMessages.value = false;
+    }
+}
+
+watch(accountDropdownOpen, (open) => {
+    if (open && authStore.isAuthenticated) fetchHasUnreadMessages();
+});
+
 onMounted(() => {
     document.addEventListener('click', handleClickOutside);
     window.addEventListener('open-login', handleOpenLoginEvent);
+    fetchHasUnreadMessages();
 });
 
 onBeforeUnmount(() => {

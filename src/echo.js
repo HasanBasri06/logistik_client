@@ -3,7 +3,10 @@ import Pusher from 'pusher-js'
 
 window.Pusher = Pusher
 
+// Backend base URL (with or without /api). Auth: POST {base}/api/broadcasting/auth
 const apiBase = import.meta.env.VITE_APP_SERVER_URL || 'http://localhost:8000/api'
+const baseUrl = apiBase.replace(/\/api\/?$/, '').replace(/\/+$/, '')
+const authEndpoint = `${baseUrl}/api/broadcasting/auth`
 
 export function createEcho() {
     const key = import.meta.env.VITE_PUSHER_APP_KEY
@@ -17,7 +20,7 @@ export function createEcho() {
         key,
         cluster,
         forceTLS: true,
-        authEndpoint: apiBase.replace(/\/api\/?$/, '') + '/api/broadcasting/auth',
+        authEndpoint,
         auth: {
             headers: {
                 Authorization: `Bearer ${localStorage.getItem('token') || ''}`,

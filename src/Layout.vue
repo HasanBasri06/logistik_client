@@ -1,5 +1,5 @@
 <template>
-    <div class="w-full h-screen bg-gray-50">
+    <div class="w-full h-screen">
         <router-view></router-view>
     </div>
     <Toaster richColors theme="light" position="bottom-right" />

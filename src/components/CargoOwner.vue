@@ -27,6 +27,11 @@
                     >
                         <i class="pi pi-envelope mr-2 text-primary" style="font-size: 14px;"></i>
                         <span>Araç Sahibi Mesajları</span>
+                        <span
+                            v-if="hasUnreadMessages"
+                            class="w-2 h-2 rounded-full bg-red-400 shrink-0 ml-1"
+                            aria-hidden="true"
+                        />
                     </router-link>
                 </li>
             </ul>
@@ -110,12 +115,28 @@
 </template>
 
 <script setup>
+import { onMounted, ref } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { storeToRefs } from 'pinia';
+import api from '@/api';
 import UserSection from './UserSection.vue';
 
-    const authStore = useAuthStore();
-    const {user} = storeToRefs(authStore);
-    console.log(user.value);
-    
+const authStore = useAuthStore();
+const { user } = storeToRefs(authStore);
+
+const hasUnreadMessages = ref(false);
+
+async function fetchHasUnreadMessages() {
+    if (!authStore.isAuthenticated) return;
+    try {
+        const res = await api.get('/messages/has-unread');
+        hasUnreadMessages.value = res.data?.content?.has_unread === true;
+    } catch (_) {
+        hasUnreadMessages.value = false;
+    }
+}
+
+onMounted(() => {
+    fetchHasUnreadMessages();
+});
 </script>

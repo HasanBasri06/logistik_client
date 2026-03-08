@@ -85,16 +85,16 @@
           <div v-else-if="page === 3" class="w-full bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden p-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-4">İlan Detayları</h3>
             <div class="flex flex-col gap-4 w-full">
-              <!-- Yüklenecek Yer: Şehir + İlçe (sadece isimler obje ile) -->
+              <!-- Yüklenecek Yer: Şehir + İlçe + Adreslerim -->
               <div class="flex items-center gap-2 w-full">
                 <div class="w-full">
                   <label class="block text-sm font-medium text-gray-700 mb-2 pl-6">Yüklenecek Yer</label>
                   <div class="flex items-center gap-2 w-full">
                     <div class="w-4 h-4 rounded-full bg-amber-200 inline-block shrink-0"></div>
-                    <div class="flex-1 flex gap-2">
+                    <div class="flex-1 grid grid-cols-[1fr_1fr_auto] gap-2 items-center">
                       <select
                         v-model="yuklenecekYer.city"
-                        class="flex-1 h-12 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
+                        class="h-12 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
                         @change="onYuklenecekCityChange"
                       >
                         <option value="">Şehir seçin</option>
@@ -102,26 +102,34 @@
                       </select>
                       <select
                         v-model="yuklenecekYer.district"
-                        class="flex-1 h-12 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm disabled:opacity-60"
+                        class="h-12 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm disabled:opacity-60"
                         :disabled="!yuklenecekYer.city || yuklenecekDistrictsLoading"
                       >
                         <option value="">İlçe seçin</option>
                         <option v-for="d in yuklenecekDistricts" :key="d.id" :value="d.name">{{ d.name }}</option>
                       </select>
+                      <button
+                        type="button"
+                        class="h-12 px-4 rounded-lg border border-primary text-primary font-medium text-sm whitespace-nowrap hover:bg-primary/5 transition-colors flex items-center gap-2 shrink-0"
+                        @click="openAddressesModal('yuklenecek')"
+                      >
+                        <i class="pi pi-map-marker" style="font-size: 14px;"></i>
+                        Adreslerim
+                      </button>
                     </div>
                   </div>
                 </div>
               </div>
-              <!-- Boşaltılacak Yer: Şehir + İlçe (sadece isimler obje ile) -->
+              <!-- Boşaltılacak Yer: Şehir + İlçe + Adreslerim -->
               <div class="flex items-center gap-2 w-full">
                 <div class="w-full">
                   <label class="block text-sm font-medium text-gray-700 mb-2 pl-6">Boşaltılacak Yer</label>
                   <div class="flex items-center gap-2 w-full">
                     <div class="w-4 h-4 rounded-full bg-green-200 inline-block shrink-0"></div>
-                    <div class="flex-1 flex gap-2">
+                    <div class="flex-1 grid grid-cols-[1fr_1fr_auto] gap-2 items-center">
                       <select
                         v-model="bosaltilanYer.city"
-                        class="flex-1 h-12 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
+                        class="h-12 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
                         @change="onBosaltilanCityChange"
                       >
                         <option value="">Şehir seçin</option>
@@ -129,16 +137,85 @@
                       </select>
                       <select
                         v-model="bosaltilanYer.district"
-                        class="flex-1 h-12 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm disabled:opacity-60"
+                        class="h-12 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm disabled:opacity-60"
                         :disabled="!bosaltilanYer.city || bosaltilanDistrictsLoading"
                       >
                         <option value="">İlçe seçin</option>
                         <option v-for="d in bosaltilanDistricts" :key="d.id" :value="d.name">{{ d.name }}</option>
                       </select>
+                      <button
+                        type="button"
+                        class="h-12 px-4 rounded-lg border border-primary text-primary font-medium text-sm whitespace-nowrap hover:bg-primary/5 transition-colors flex items-center gap-2 shrink-0"
+                        @click="openAddressesModal('bosaltilan')"
+                      >
+                        <i class="pi pi-map-marker" style="font-size: 14px;"></i>
+                        Adreslerim
+                      </button>
                     </div>
                   </div>
                 </div>
               </div>
+
+              <!-- Adreslerim modalı: aktif adreslerden seç -->
+              <Teleport to="body">
+                <Transition name="modal">
+                  <div
+                    v-show="addressesModalOpen"
+                    class="fixed inset-0 z-[100] flex items-center justify-center p-4"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="addresses-modal-title"
+                  >
+                    <div class="absolute inset-0 bg-black/50" @click="closeAddressesModal" />
+                    <div class="relative bg-white rounded-xl shadow-xl max-w-md w-full p-5 max-h-[85vh] flex flex-col">
+                      <div class="flex items-center justify-between mb-4 shrink-0">
+                        <h2 id="addresses-modal-title" class="text-lg font-semibold text-gray-900">
+                          Adreslerimden Seç
+                        </h2>
+                        <button
+                          type="button"
+                          class="p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                          aria-label="Kapat"
+                          @click="closeAddressesModal"
+                        >
+                          <i class="pi pi-times" style="font-size: 18px;"></i>
+                        </button>
+                      </div>
+                      <template v-if="userAddressesLoading">
+                        <div class="flex flex-col items-center justify-center py-8">
+                          <span class="w-8 h-8 border-4 border-gray-300 border-t-primary rounded-full animate-spin block mb-3" />
+                          <p class="text-gray-500 text-sm">Adresler yükleniyor...</p>
+                        </div>
+                      </template>
+                      <template v-else-if="activeAddresses.length === 0">
+                        <p class="text-gray-500 text-sm py-6 text-center">Aktif adresiniz bulunmuyor. Hesap ayarlarından adres ekleyebilirsiniz.</p>
+                      </template>
+                      <ul v-else class="overflow-y-auto space-y-2 pr-1">
+                        <li
+                          v-for="addr in activeAddresses"
+                          :key="addr.id"
+                          class="border border-gray-200 rounded-lg p-3 cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors"
+                          :class="{ 'border-primary bg-primary/10': selectedAddressId === addr.id }"
+                          @click="selectAddressFromModal(addr)"
+                        >
+                          <div class="font-medium text-gray-900">{{ addr.name }}</div>
+                          <div class="text-sm text-gray-600">{{ addr.city }} / {{ addr.district }}</div>
+                          <div v-if="addr.description" class="text-xs text-gray-500 mt-1 line-clamp-2">{{ addr.description }}</div>
+                        </li>
+                      </ul>
+                      <div class="mt-4 pt-3 border-t border-gray-100 shrink-0">
+                        <button
+                          type="button"
+                          class="w-full py-2 rounded-lg text-gray-600 bg-gray-100 hover:bg-gray-200 font-medium text-sm transition-colors"
+                          @click="closeAddressesModal"
+                        >
+                          İptal
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </Transition>
+              </Teleport>
 
               <!-- Kalkış / Varış saati + Tarih (3 grid, PrimeVue) -->
               <div class="flex items-center gap-2 w-full">
@@ -363,6 +440,22 @@ const shipmentsStore = useShipmentsStore();
 const authStore = useAuthStore();
 const { page, limit } = storeToRefs(postStore);
 const { user: authUser } = storeToRefs(authStore);
+
+/** Sadece aktif adresler (modal listesi) */
+const activeAddresses = computed(() => {
+  const list = userAddresses.value ?? [];
+  return list.filter((a) => a.status === 'active');
+});
+
+/** Modalda hangi adresin seçili görüneceği: mevcut şehir/ilçe ile eşleşen */
+const selectedAddressId = computed(() => {
+  if (!addressesModalOpen.value) return null;
+  const target = addressesModalFor.value === 'yuklenecek' ? yuklenecekYer.value : bosaltilanYer.value;
+  const addr = activeAddresses.value.find(
+    (a) => a.city === target?.city && a.district === target?.district
+  );
+  return addr?.id ?? null;
+});
 const vehicleSelectionRef = ref(null);
 /** Yüklenecek yer: sadece şehir ve ilçe isimleri */
 const yuklenecekYer = ref({ city: '', district: '' });
@@ -388,6 +481,12 @@ const bosaltilanDistrictsLoading = ref(false);
 const routeInfo = ref(null); // { distance: '123 km', duration: '2 saat 15 dk' }
 const routeLoading = ref(false);
 const selectedPriceType = ref('sabit');
+
+/** Adreslerim modalı: yüklenecek/boşaltılacak yer için aktif adreslerden seçim */
+const addressesModalOpen = ref(false);
+const addressesModalFor = ref('yuklenecek'); // 'yuklenecek' | 'bosaltilan'
+const userAddresses = ref([]);
+const userAddressesLoading = ref(false);
 const postTypes = ref([]);
 const postTypesLoading = ref(false);
 const postTypesError = ref(null);
@@ -496,6 +595,74 @@ async function onBosaltilanCityChange() {
   } finally {
     bosaltilanDistrictsLoading.value = false;
   }
+}
+
+async function fetchUserAddresses() {
+  userAddressesLoading.value = true;
+  userAddresses.value = [];
+  try {
+    const res = await api.get('/addresses');
+    const content = res.data?.content;
+    const list = content?.addresses ?? [];
+    userAddresses.value = Array.isArray(list) ? list : [];
+  } catch (_) {
+    userAddresses.value = [];
+  } finally {
+    userAddressesLoading.value = false;
+  }
+}
+
+function openAddressesModal(forSection) {
+  addressesModalFor.value = forSection;
+  addressesModalOpen.value = true;
+  fetchUserAddresses();
+}
+
+function closeAddressesModal() {
+  addressesModalOpen.value = false;
+}
+
+/** Seçilen adresi ilgili yere (yüklenecek/boşaltılacak) yazar ve ilçe listesini yükler */
+async function selectAddressFromModal(addr) {
+  const cityName = addr.city ?? '';
+  const districtName = addr.district ?? '';
+  if (!cityName) return;
+  if (addressesModalFor.value === 'yuklenecek') {
+    yuklenecekYer.value.city = cityName;
+    yuklenecekYer.value.district = districtName;
+    const city = cities.value.find((c) => c.name === cityName);
+    if (city?.id) {
+      yuklenecekDistricts.value = [];
+      yuklenecekDistrictsLoading.value = true;
+      try {
+        const res = await api.get(`/locations/cities/${city.id}/districts`);
+        const content = res.data?.content;
+        yuklenecekDistricts.value = Array.isArray(content) ? content : [];
+      } catch (_) {
+        yuklenecekDistricts.value = [];
+      } finally {
+        yuklenecekDistrictsLoading.value = false;
+      }
+    }
+  } else {
+    bosaltilanYer.value.city = cityName;
+    bosaltilanYer.value.district = districtName;
+    const city = cities.value.find((c) => c.name === cityName);
+    if (city?.id) {
+      bosaltilanDistricts.value = [];
+      bosaltilanDistrictsLoading.value = true;
+      try {
+        const res = await api.get(`/locations/cities/${city.id}/districts`);
+        const content = res.data?.content;
+        bosaltilanDistricts.value = Array.isArray(content) ? content : [];
+      } catch (_) {
+        bosaltilanDistricts.value = [];
+      } finally {
+        bosaltilanDistrictsLoading.value = false;
+      }
+    }
+  }
+  closeAddressesModal();
 }
 
 async function geocodePlace(cityName, districtName) {

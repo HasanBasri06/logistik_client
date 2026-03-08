@@ -3,7 +3,7 @@
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-2xl font-semibold text-gray-900">Kayıtlı Kartlarım</h2>
             <button
-                @click="openAddCardModal"
+                @click="showAddCardModal = true"
                 class="px-4 py-2 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-2"
             >
                 <i class="pi pi-plus" style="font-size: 14px;"></i>
@@ -12,88 +12,145 @@
         </div>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div 
-                v-for="card in savedCards" 
-                :key="card.id"
-                class="relative bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-6 text-white shadow-lg hover:shadow-xl transition-shadow"
-            >
-                <div class="flex items-center justify-between mb-6">
-                    <div class="text-sm text-gray-300">Kart Numarası</div>
+            <template v-if="loadCard">
+                <div class="col-span-2 flex flex-col items-center justify-center py-20">
+                    <div class="flex items-center mb-4">
+                        <span class="w-8 h-8 border-4 border-gray-300 border-t-primary rounded-full animate-spin"></span>
+                    </div>
+                    <div class="text-gray-400 text-lg text-center">Kartlarınız yükleniyor...</div>
+                </div>
+            </template>
+            <template v-else>
+                <div
+                    v-for="card in savedCards"
+                    :key="card.id"
+                    class="card-item group relative overflow-hidden rounded-2xl min-h-[200px] flex flex-col justify-between p-6 text-white shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-300"
+                    :class="cardBrandClass(card)"
+                >
+                    <!-- Dekoratif ışık / gradient overlay -->
+                    <div class="absolute inset-0 opacity-40 pointer-events-none" aria-hidden="true">
+                        <div class="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-white/20 blur-2xl" />
+                        <div class="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-black/10 to-transparent" />
+                    </div>
+
+                    <!-- Chip görünümü -->
+                    <div class="relative flex items-center justify-between">
+                        <div class="w-10 h-8 rounded-md bg-gradient-to-br from-amber-400/90 to-amber-600/90 flex items-center justify-center shadow-inner border border-amber-300/30">
+                            <div class="w-full h-full rounded-sm border border-amber-200/40 m-1 flex flex-wrap content-center justify-center gap-px">
+                                <span v-for="i in 20" :key="i" class="w-1 h-1 rounded-sm bg-amber-900/40" />
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            :disabled="deleteCardLoading === card.id"
+                            class="relative p-2 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition-all opacity-0 group-hover:opacity-100 focus:opacity-100 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+                            aria-label="Kartı sil"
+                            @click="deleteCard(card.id)"
+                        >
+                            <i v-if="deleteCardLoading === card.id" class="pi pi-spin pi-spinner text-sm" />
+                            <i v-else class="pi pi-trash text-sm" />
+                        </button>
+                    </div>
+
+                    <!-- Kart numarası -->
+                    <div class="relative mt-4">
+                        <p class="text-[10px] uppercase tracking-[0.2em] text-white/60 mb-1.5">Kart Numarası</p>
+                        <p class="text-xl md:text-2xl font-mono tracking-[0.25em] font-medium tabular-nums">
+                            •••• •••• •••• {{ card.last_four }}
+                        </p>
+                    </div>
+
+                    <!-- Alt bilgi satırı -->
+                    <div class="relative flex items-end justify-between gap-3 mt-6">
+                        <div class="min-w-0">
+                            <p class="text-[10px] uppercase tracking-widest text-white/60 mb-0.5">Kart Sahibi</p>
+                            <p class="text-sm font-semibold uppercase tracking-wide truncate">{{ card.card_holder_name }}</p>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <p class="text-[10px] uppercase tracking-widest text-white/60 mb-0.5">Son Kullanma</p>
+                            <p class="text-sm font-semibold tabular-nums">{{ card.exp_month }}/{{ String(card.exp_year).slice(-2) }}</p>
+                        </div>
+                        <div v-if="card.brand" class="shrink-0 self-end text-[10px] font-bold uppercase tracking-wider text-white/50">
+                            {{ card.brand }}
+                        </div>
+                        <div class="flex items-center justify-center w-10 h-7 rounded bg-white/10 backdrop-blur-sm shrink-0">
+                            <i class="pi pi-credit-card text-white/80 text-base" aria-hidden="true" />
+                        </div>
+                    </div>
+                </div>
+                
+                <div v-if="savedCards.length === 0" class="col-span-2 text-center py-12 text-gray-500">
+                    <i class="pi pi-credit-card text-4xl mb-3 text-gray-300"></i>
+                    <p class="mb-4">Henüz kayıtlı kartınız bulunmamaktadır.</p>
                     <button
-                        @click="deleteCard(card.id)"
-                        class="text-red-400 hover:text-red-300 transition-colors"
+                        @click="showAddCardModal = true"
+                        class="px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition-colors"
                     >
-                        <i class="pi pi-trash" style="font-size: 16px;"></i>
+                        İlk Kartınızı Ekleyin
                     </button>
                 </div>
-                <div class="text-2xl font-mono mb-6 tracking-wider">
-                    **** **** **** {{ card.lastFourDigits }}
-                </div>
-                <div class="flex items-center justify-between">
-                    <div>
-                        <div class="text-xs text-gray-400 mb-1">Kart Sahibi</div>
-                        <div class="text-sm font-medium">{{ card.cardHolder }}</div>
-                    </div>
-                    <div>
-                        <div class="text-xs text-gray-400 mb-1">Son Kullanma</div>
-                        <div class="text-sm font-medium">{{ card.expiryDate }}</div>
-                    </div>
-                </div>
-                <div class="absolute top-6 right-6">
-                    <i 
-                        :class="[
-                            'pi',
-                            card.type === 'visa' ? 'pi-credit-card' : 'pi-credit-card',
-                            'text-white/30'
-                        ]"
-                        style="font-size: 32px;"
-                    ></i>
-                </div>
-            </div>
-            
-            <div v-if="savedCards.length === 0" class="col-span-2 text-center py-12 text-gray-500">
-                <i class="pi pi-credit-card text-4xl mb-3 text-gray-300"></i>
-                <p class="mb-4">Henüz kayıtlı kartınız bulunmamaktadır.</p>
-                <button
-                    @click="openAddCardModal"
-                    class="px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition-colors"
-                >
-                    İlk Kartınızı Ekleyin
-                </button>
-            </div>
+            </template>
         </div>
+
+        <AddCardModal
+            v-if="showAddCardModal"
+            @close="showAddCardModal = false"
+            @success="getCards"
+        />
     </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import api from '@/api';
+import { onMounted, ref } from 'vue';
+import AddCardModal from '@/components/AddCardModal.vue';
 
-const savedCards = ref([
-    {
-        id: 1,
-        lastFourDigits: '1234',
-        cardHolder: 'HASAN KILIÇ',
-        expiryDate: '12/25',
-        type: 'visa'
-    },
-    {
-        id: 2,
-        lastFourDigits: '5678',
-        cardHolder: 'HASAN KILIÇ',
-        expiryDate: '06/26',
-        type: 'mastercard'
+const loadCard = ref(false);
+const showAddCardModal = ref(false);
+const savedCards = ref([]);
+
+function cardBrandClass(card) {
+    const brand = (card.brand || '').toLowerCase();
+    if (brand === 'visa') return 'bg-gradient-to-br from-[#1a1f71] via-[#2d3482] to-[#0d1140]';
+    if (brand === 'mastercard') return 'bg-gradient-to-br from-[#2d2d2d] via-[#1a1a1a] to-[#0d0d0d]';
+    return 'bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900';
+}
+
+const deleteCardLoading = ref(null);
+
+const deleteCard = async (cardId) => {
+    if (!confirm('Bu kartı silmek istediğinizden emin misiniz?')) return;
+    deleteCardLoading.value = cardId;
+    try {
+        const response = await api.delete(`/cards/${cardId}`);
+        const { content } = response.data;
+        if (content?.cards) {
+            savedCards.value = content.cards;
+        } else {
+            await getCards();
+        }
+    } catch (err) {
+        console.error('Kart silinirken hata:', err);
+        alert(err?.response?.data?.message ?? 'Kart silinirken bir hata oluştu.');
+    } finally {
+        deleteCardLoading.value = null;
     }
-]);
-
-const openAddCardModal = () => {
-    console.log('Yeni kart ekleme modalı açıldı');
-    alert('Yeni kart ekleme formu yakında eklenecek.');
 };
 
-const deleteCard = (cardId) => {
-    if (confirm('Bu kartı silmek istediğinizden emin misiniz?')) {
-        savedCards.value = savedCards.value.filter(card => card.id !== cardId);
-        console.log('Kart silindi:', cardId);
+const getCards = async () => {
+    try {
+        loadCard.value = true;
+        const response = await api.get('/cards');
+        const {content} = await response.data;
+        savedCards.value = content.cards;
+    } catch (err) {
+        console.log(err);
+    } finally {
+        loadCard.value = false;
     }
-};
+}
+
+onMounted(() => {
+    getCards();
+});
 </script>

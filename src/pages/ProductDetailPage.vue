@@ -168,10 +168,9 @@ import RequestCard from '@/components/RequestCard.vue';
 import { onMounted, onBeforeUnmount, ref, computed, watch, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 import api from '@/api';
-import { useMessageStore } from '@/stores/message';
+import { useMessageStore, formatMessageTime } from '@/stores/message';
 import { useAuthStore } from '@/stores/auth';
-import { getEcho } from '@/echo';
-import { formatMessageTime } from '@/stores/message';
+import { usePusherMessages } from '@/composables/usePusherMessages';
 
 const route = useRoute();
 const slug = computed(() => route.params.slug);
@@ -307,13 +306,21 @@ function closeMessagePanel() {
 async function sendPanelMessage() {
     const text = newMessageText.value?.trim();
     if (!text || !selectedReceiver.value?.id) return;
+    panelMessages.value = [...panelMessages.value, { id: `temp-${Date.now()}`, text, time: 'Şimdi', isMe: true }];
+    newMessageText.value = '';
+    nextTick(() => {
+        const el = panelMessagesContainer.value;
+        if (el) el.scrollTop = el.scrollHeight;
+    });
     const result = await messageStore.createMessage({
         shipment_id: shipment.value?.id ?? null,
         receiver_id: selectedReceiver.value.id,
         message: text,
     });
-    if (!result.success) return;
-    newMessageText.value = '';
+    if (!result.success) {
+        panelMessages.value = panelMessages.value.filter((m) => !m.id?.toString().startsWith('temp-'));
+        return;
+    }
     const { success, data } = await messageStore.getBySenderAndReceiver(selectedReceiver.value.id);
     if (success && Array.isArray(data)) {
         panelMessages.value = data;
@@ -324,35 +331,22 @@ async function sendPanelMessage() {
     });
 }
 
-let panelEchoChannel = null;
-function setupPanelPusherListener() {
-    const echo = getEcho();
-    const userId = authStore.user?.id;
-    if (!echo || !userId) return;
-    if (panelEchoChannel) return;
-    panelEchoChannel = echo.private(`user.${userId}`)
-        .listen('.message.sent', (e) => {
-            if (Number(e.receiver_id) !== Number(userId)) return;
-            const openForSender = selectedReceiver.value?.id;
-            if (openForSender == null || Number(e.sender_id) !== Number(openForSender)) return;
-            const time = formatMessageTime(e.created_at);
-            panelMessages.value = [...panelMessages.value, { id: e.id, text: e.message, time, isMe: false }];
-            nextTick(() => {
-                const el = panelMessagesContainer.value;
-                if (el) el.scrollTop = el.scrollHeight;
-            });
+usePusherMessages(computed(() => authStore.user?.id), {
+    onMessageSent(e) {
+        const userId = authStore.user?.id;
+        if (!userId || Number(e.receiver_id) !== Number(userId)) return;
+        const openForSender = selectedReceiver.value?.id;
+        if (openForSender == null || Number(e.sender_id) !== Number(openForSender)) return;
+        const time = formatMessageTime(e.created_at);
+        panelMessages.value = [...panelMessages.value, { id: e.id, text: e.message, time, isMe: false }];
+        nextTick(() => {
+            const el = panelMessagesContainer.value;
+            if (el) el.scrollTop = el.scrollHeight;
         });
-}
-function removePanelPusherListener() {
-    if (panelEchoChannel) {
-        panelEchoChannel.stopListening('.message.sent');
-        panelEchoChannel = null;
-    }
-}
+    },
+});
 
 onMounted(() => {
     loadShipment();
-    setupPanelPusherListener();
 });
-onBeforeUnmount(removePanelPusherListener);
 </script>

@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import api from '@/api'
 import { router } from '@/router'
+import { disconnectEcho } from '@/echo'
 
 export const useAuthStore = defineStore('auth', () => {
     const token = ref(localStorage.getItem('token') || null)
@@ -16,6 +17,7 @@ export const useAuthStore = defineStore('auth', () => {
         } else {
             localStorage.removeItem('token')
         }
+        disconnectEcho()
     }
 
     const setUser = (userData) => {
