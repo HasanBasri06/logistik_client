@@ -447,7 +447,7 @@ async function saveVehicle() {
         await api.post('/auth/create-car-by-user', {
             car_id: car.id,
             car_detail_id: selectedDetailId.value || null,
-            plate: plaka.value.trim(),
+            plaka: plaka.value.trim(),
         });
         closeAddVehicleModal();
         await fetchMyCars();
