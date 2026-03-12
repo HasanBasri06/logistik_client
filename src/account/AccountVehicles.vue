@@ -1,41 +1,109 @@
 <template>
-    <div class="flex flex-col h-full overflow-y-auto">
-        <h2 class="text-2xl font-semibold text-gray-900 mb-6">Tüm Araçlarım</h2>
-        
-        <div class="grid grid-cols-2 gap-4">
-            <div 
-                @click="openAddVehicleModal"
-                class="col-span-1 bg-primary/10 hover:bg-primary/20 transition-all duration-300 rounded-2xl border-primary flex justify-center items-center cursor-pointer"
-            >
-                <i class="pi pi-plus mr-2 text-primary" style="font-size: 60px;"></i>
+    <div class="flex flex-col h-full overflow-y-auto px-1">
+        <div class="mb-8">
+            <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Araçlarım</h1>
+            <p class="text-gray-500 mt-1 text-sm">Eklediğiniz araçları yönetin ve yeni araç ekleyin.</p>
+        </div>
+
+        <template v-if="myCarsLoading && !myCars.length">
+            <div class="flex flex-col items-center justify-center py-16 rounded-2xl bg-gray-50/80 border border-gray-100">
+                <i class="pi pi-spin pi-spinner text-3xl text-primary mb-4"></i>
+                <span class="text-gray-500">Araçlarınız yükleniyor...</span>
             </div>
-            <div 
-                v-for="vehicle in vehicles" 
-                :key="vehicle.id"
-                class="vehicle-row"
+        </template>
+        <div v-else class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+            <!-- Yeni araç ekle kartı -->
+            <button
+                type="button"
+                @click="openAddVehicleModal"
+                class="vehicle-card add-card group flex flex-col items-center justify-center min-h-[320px] rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/60 hover:bg-primary/5 hover:border-primary/40 transition-all duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-2"
             >
-                <!-- Sol Üst: Taşıt İsmi -->
-                <div class="absolute top-4 left-4">
-                    <h3 class="text-lg font-semibold text-gray-900">{{ vehicle.name }}</h3>
+                <div class="w-16 h-16 rounded-full bg-primary/10 group-hover:bg-primary/20 flex items-center justify-center mb-4 transition-colors">
+                    <i class="pi pi-plus text-3xl text-primary"></i>
                 </div>
-                
-                <!-- Orta: Araç Resmi -->
-                <div class="flex items-center justify-center flex-1">
-                    <div class="vehicle-image-container">
-                        <img :src="vehicle.image" :alt="vehicle.name" />
+                <span class="text-base font-semibold text-gray-600 group-hover:text-primary transition-colors">Yeni araç ekle</span>
+                <span class="text-sm text-gray-400 mt-1">Tıklayarak araç ekleyin</span>
+            </button>
+
+            <!-- Araç kartları -->
+            <div
+                v-for="userCar in myCars"
+                :key="userCar.id"
+                class="vehicle-card group relative flex flex-col min-h-[320px] rounded-2xl bg-white border border-gray-200 overflow-hidden shadow-sm hover:shadow-md hover:border-gray-300 transition-all duration-300"
+            >
+                <!-- Üst: araç adı + detay -->
+                <div class="px-5 pt-5 pb-2">
+                    <h3 class="text-lg font-semibold text-gray-900 truncate">{{ userCar.car?.name || 'Araç' }}</h3>
+                    <p v-if="userCar.carDetail" class="text-sm text-gray-500 mt-0.5 truncate">{{ userCar.carDetail.value || userCar.carDetail.name }}</p>
+                </div>
+
+                <!-- Orta: resim -->
+                <div class="flex-1 flex items-center justify-center px-4 py-4 min-h-[140px] bg-gray-50/50">
+                    <img
+                        :src="getCarImageUrl(userCar.carDetail?.image || userCar.car?.image)"
+                        :alt="userCar.car?.name"
+                        class="max-h-[140px] w-full object-contain"
+                    />
+                </div>
+
+                <!-- Alt: plaka (TR plakası stili) + düzenle (API: plate veya plaka) -->
+                <div class="px-5 py-4 flex items-center justify-between gap-2 bg-gray-50/30 border-t border-gray-100 min-w-0">
+                    <div v-if="userCar.plate" class="inline-flex items-stretch max-w-full h-[30px] min-w-0 border-2 border-slate-900 rounded overflow-hidden bg-white shadow shrink">
+                        <span class="flex items-center justify-center w-6 min-w-[24px] bg-[#003399] text-white text-[10px] font-extrabold tracking-tight">TR</span>
+                        <span class="flex items-center px-1.5 text-[11px] font-black text-slate-900 tracking-wider whitespace-nowrap overflow-hidden text-ellipsis min-w-0">{{ userCar.plate || userCar.plaka }}</span>
                     </div>
-                </div>
-                
-                <!-- Sağ Alt: Düzenle Butonu -->
-                <div class="absolute bottom-4 right-4">
+                    <span v-else class="text-sm text-gray-400">—</span>
                     <button
                         type="button"
-                        @click="editVehicle(vehicle)"
-                        class="edit-vehicle-btn"
+                        @click.stop="editVehicle(userCar)"
+                        class="edit-vehicle-btn ml-auto shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white bg-primary hover:bg-primary/90 border border-primary shadow-sm hover:shadow transition-all"
                     >
-                        <i class="pi pi-pencil mr-2"></i>
+                        <i class="pi pi-pencil text-sm"></i>
                         Düzenle
                     </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Araç Düzenleme Modal -->
+        <div
+            v-if="showEditVehicleModal"
+            class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+            @click.self="closeEditVehicleModal"
+        >
+            <div class="bg-white shadow-xl overflow-hidden flex flex-col rounded-lg w-full max-w-md max-h-[90vh]">
+                <div class="flex items-center justify-between p-6 border-b border-gray-200 shrink-0">
+                    <h3 class="text-xl font-semibold text-gray-900">Araç Düzenle</h3>
+                    <button type="button" @click="closeEditVehicleModal" class="text-gray-400 hover:text-gray-600 transition-colors">
+                        <i class="pi pi-times" style="font-size: 20px;"></i>
+                    </button>
+                </div>
+                <div class="p-6 flex-1 min-h-0 overflow-y-auto">
+                    <p class="text-sm text-gray-500 mb-1">Araç</p>
+                    <p class="text-lg font-semibold text-gray-900 mb-4">{{ editingUserCar?.car?.name || 'Araç' }} <span v-if="editingUserCar?.carDetail" class="text-sm font-normal text-gray-500">({{ editingUserCar.carDetail.value || editingUserCar.carDetail.name }})</span></p>
+                    <label for="edit-plaka-input" class="block text-sm font-medium text-gray-700 mb-1">Plaka <span class="text-red-500">*</span></label>
+                    <input
+                        id="edit-plaka-input"
+                        :value="editPlate"
+                        type="text"
+                        placeholder="34 ABC 1234"
+                        maxlength="13"
+                        autocomplete="off"
+                        :class="['w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary uppercase', editPlakaError ? 'border-red-400 bg-red-50/50' : 'border-gray-300']"
+                        @input="onEditPlakaInput"
+                    />
+                    <p v-if="editPlakaError" class="text-xs text-red-500 mt-1">{{ editPlakaError }}</p>
+                </div>
+                <div class="flex justify-between items-center gap-3 p-6 border-t border-gray-200">
+                    <div class="flex-1 min-w-0"></div>
+                    <div class="flex items-center gap-3 shrink-0">
+                        <button type="button" @click="closeEditVehicleModal" class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium">İptal</button>
+                        <button type="button" @click="deleteVehicle" class="px-6 py-2 rounded-lg font-medium text-white bg-red-600 hover:bg-red-700 border border-red-600 transition-colors">Araç Sil</button>
+                        <button type="button" @click="saveEditVehicle" :disabled="editVehicleLoading || !editPlate.trim()" :class="['px-6 py-2 rounded-lg font-medium transition-colors', editVehicleLoading || !editPlate.trim() ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-primary text-white hover:bg-primary/90']">
+                            <i v-if="editVehicleLoading" class="pi pi-spin pi-spinner mr-2"></i>
+                            Kaydet
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -58,85 +126,114 @@
                     </button>
                 </div>
                 
-                <!-- Modal Content -->
-                <div :class="['flex-1 min-h-0 flex flex-col', currentStep === 1 ? 'overflow-hidden p-0' : 'overflow-y-auto p-6']">
-                    <!-- Sayfa 1: Araç Türü Seçimi - PrimeVue Carousel, tam ekran -->
-                    <div v-if="currentStep === 1" class="vehicle-carousel-fullscreen">
-                        <Carousel
-                            v-model:page="carouselPage"
-                            :value="vehicleTypes"
-                            :num-visible="1"
-                            :num-scroll="1"
-                            circular
-                            :show-indicators="true"
-                            :show-navigators="true"
-                            class="vehicle-select-carousel"
-                        >
-                            <template #item="{ data }">
-                                <div class="vehicle-slide" @click="selectVehicleFromSlide(data)">
-                                    <img :src="data.image" :alt="data.label" class="vehicle-slide-image" />
-                                    <span class="vehicle-slide-label">{{ data.label }}</span>
+                <!-- Modal Content - Tek sayfa: araç seçimi -->
+                <div class="flex-1 min-h-0 flex flex-col overflow-hidden p-0">
+                    <div class="vehicle-carousel-fullscreen">
+                        <template v-if="carsLoading">
+                            <div class="flex flex-1 items-center justify-center">
+                                <i class="pi pi-spin pi-spinner text-3xl text-primary"></i>
+                                <span class="ml-3 text-gray-500">Araçlar yükleniyor...</span>
+                            </div>
+                        </template>
+                        <template v-else-if="!carsFromApi.length">
+                            <div class="flex flex-1 items-center justify-center text-gray-500">
+                                <span>Araç listesi bulunamadı.</span>
+                            </div>
+                        </template>
+                        <template v-else>
+                            <!-- Tek araç: carousel yok, tek kart + beyaz alan -->
+                            <div v-if="carsFromApi.length === 1" class="flex flex-col flex-1 min-h-0">
+                                <div class="vehicle-slide single-vehicle-slide flex flex-col items-center justify-center flex-1 bg-white">
+                                    <div class="vehicle-slide cursor-pointer" @click="selectVehicleFromSlide(carsFromApi[0])">
+                                        <img :src="getDisplayImage(carsFromApi[0])" :alt="carsFromApi[0].name" class="vehicle-slide-image" />
+                                        <span class="vehicle-slide-label">{{ carsFromApi[0].name }}</span>
+                                    </div>
                                 </div>
+                            </div>
+                            <!-- Birden fazla araç: carousel -->
+                            <template v-else>
+                                <Carousel
+                                    v-model:page="carouselPage"
+                                    :value="carsFromApi"
+                                    :num-visible="1"
+                                    :num-scroll="1"
+                                    circular
+                                    :show-indicators="true"
+                                    :show-navigators="true"
+                                    class="vehicle-select-carousel"
+                                >
+                                    <template #item="{ data }">
+                                        <div class="vehicle-slide" @click="selectVehicleFromSlide(data)">
+                                            <img :src="getDisplayImage(data)" :alt="data.name" class="vehicle-slide-image" />
+                                            <span class="vehicle-slide-label">{{ data.name }}</span>
+                                        </div>
+                                    </template>
+                                </Carousel>
                             </template>
-                        </Carousel>
-                    </div>
-                    
-                    <!-- Sayfa 2: (Gelecek içerik) -->
-                    <div v-if="currentStep === 2" class="space-y-6">
-                        <h4 class="text-lg font-semibold text-gray-900 mb-4">Sayfa 2</h4>
-                        <p class="text-gray-600">İçerik yakında eklenecek</p>
-                    </div>
-                    
-                    <!-- Sayfa 3: (Gelecek içerik) -->
-                    <div v-if="currentStep === 3" class="space-y-6">
-                        <h4 class="text-lg font-semibold text-gray-900 mb-4">Sayfa 3</h4>
-                        <p class="text-gray-600">İçerik yakında eklenecek</p>
+                            <!-- Detay seçimi: araçta detay varsa butonlar -->
+                            <div
+                                v-if="selectedCar && selectedCar.details && selectedCar.details.length"
+                                class="mt-4 px-4 pb-2 shrink-0"
+                            >
+                                <p class="text-sm font-medium text-gray-700 mb-2">Detay seçin</p>
+                                <div class="flex flex-wrap gap-2">
+                                    <button
+                                        v-for="d in selectedCar.details"
+                                        :key="d.id"
+                                        type="button"
+                                        @click="selectDetail(d)"
+                                        class="px-4 py-2 rounded-lg text-sm font-medium border-2 transition-all"
+                                        :class="selectedDetailId === d.id
+                                            ? 'border-primary bg-primary text-white'
+                                            : 'border-gray-200 text-gray-700 hover:border-primary/50 hover:bg-primary/5'"
+                                    >
+                                        {{ d.value || d.name }}
+                                    </button>
+                                </div>
+                            </div>
+                        </template>
                     </div>
                 </div>
                 
-                <!-- Modal Footer -->
-                <div class="flex items-center justify-between p-6 border-t border-gray-200">
-                    <button
-                        
-                        @click="previousStep"
-                        class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-                    >
-                        <i class="pi pi-arrow-left mr-2"></i>
-                        Geri
-                    </button>
-                    
-                    <div class="flex items-center gap-2">
-                        <div 
-                            v-for="step in 3" 
-                            :key="step"
-                            :class="[
-                                'w-2 h-2 rounded-full',
-                                step === currentStep ? 'bg-primary' : step < currentStep ? 'bg-primary/50' : 'bg-gray-300'
-                            ]"
-                        ></div>
+                <!-- Modal Footer - Plaka (sol) | İptal + Ekle (sağ) -->
+                <div class="flex justify-between items-center gap-4 p-6 border-t border-gray-200">
+                    <div class="flex-1 min-w-0 max-w-xs">
+                        <label for="plaka-input" class="block text-sm font-medium text-gray-700 mb-1">Plaka <span class="text-red-500">*</span></label>
+                        <input
+                            id="plaka-input"
+                            :value="plaka"
+                            type="text"
+                            placeholder="34 ABC 1234"
+                            maxlength="13"
+                            autocomplete="off"
+                            :class="['w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary uppercase', plakaError ? 'border-red-400 bg-red-50/50' : 'border-gray-300']"
+                            @input="onPlakaInput"
+                        />
+                        <p v-if="plakaError" class="text-xs text-red-500 mt-1">{{ plakaError }}</p>
                     </div>
-                    
-                    <button
-                        v-if="currentStep < 3"
-                        @click="nextStep"
-                        :disabled="currentStep === 1 && !selectedVehicleType"
-                        :class="[
-                            'px-6 py-2 rounded-lg font-medium transition-colors',
-                            currentStep === 1 && !selectedVehicleType
-                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                : 'bg-primary text-white hover:bg-primary/90'
-                        ]"
-                    >
-                        İleri
-                        <i class="pi pi-arrow-right ml-2"></i>
-                    </button>
-                    <button
-                        v-else
-                        @click="saveVehicle"
-                        class="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium"
-                    >
-                        Kaydet
-                    </button>
+                    <div class="flex items-center gap-3 shrink-0 mt-5">
+                        <button
+                            type="button"
+                            @click="closeAddVehicleModal"
+                            class="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                        >
+                            İptal
+                        </button>
+                        <button
+                            type="button"
+                            @click="saveVehicle"
+                            :disabled="!selectedCar || addVehicleLoading || !plaka.trim()"
+                            :class="[
+                                'px-6 py-2 rounded-lg font-medium transition-colors',
+                                !selectedCar || addVehicleLoading || !plaka.trim()
+                                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                    : 'bg-primary text-white hover:bg-primary/90'
+                            ]"
+                        >
+                            <i v-if="addVehicleLoading" class="pi pi-spin pi-spinner mr-2"></i>
+                            Ekle
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -144,147 +241,241 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import Carousel from 'primevue/carousel';
-import truckImage from '@/assets/images/truck.png';
+import api from '@/api';
 
-const vehicles = ref([
-    {
-        id: 1,
-        name: 'Kamyon',
-        image: truckImage
-    },
-    {
-        id: 2,
-        name: 'Tır',
-        image: truckImage
-    },
-    {
-        id: 3,
-        name: 'Panelvan',
-        image: truckImage
+const showEditVehicleModal = ref(false);
+const editingUserCar = ref(null);
+const editPlate = ref('');
+const editPlakaError = ref('');
+const editVehicleLoading = ref(false);
+
+function editVehicle(userCar) {
+    editingUserCar.value = userCar;
+    editPlate.value = userCar.plate ?? userCar.plaka ?? '';
+    editPlakaError.value = '';
+    showEditVehicleModal.value = true;
+}
+
+function closeEditVehicleModal() {
+    showEditVehicleModal.value = false;
+    editingUserCar.value = null;
+    editPlate.value = '';
+    editPlakaError.value = '';
+}
+
+function onEditPlakaInput(e) {
+    editPlate.value = formatPlaka(e.target.value);
+    editPlakaError.value = '';
+}
+
+async function saveEditVehicle() {
+    const uc = editingUserCar.value;
+    if (!uc?.id || !editPlate.value?.trim()) {
+        editPlakaError.value = 'Plaka zorunludur.';
+        return;
     }
-]);
+    editPlakaError.value = '';
+    editVehicleLoading.value = true;
+    try {
+        await api.put(`/cars/my/${uc.id}`, { plaka: editPlate.value.trim() });
+        closeEditVehicleModal();
+        await fetchMyCars();
+    } catch (err) {
+        editPlakaError.value = err.response?.data?.message || 'Güncellenirken hata oluştu.';
+        console.error(err);
+    } finally {
+        editVehicleLoading.value = false;
+    }
+}
 
-const editVehicle = (vehicle) => {
-    console.log('Düzenle:', vehicle);
-};
+async function deleteVehicle() {
+    const uc = editingUserCar.value;
+    if (!uc?.id) return;
+    if (!confirm('Bu aracı silmek istediğinize emin misiniz?')) return;
+    editVehicleLoading.value = true;
+    try {
+        await api.delete(`/cars/my/${uc.id}`);
+        closeEditVehicleModal();
+        await fetchMyCars();
+    } catch (err) {
+        editPlakaError.value = err.response?.data?.message || 'Silinirken hata oluştu.';
+        console.error(err);
+    } finally {
+        editVehicleLoading.value = false;
+    }
+}
 
-// Modal State
+// Benim araçlarım (sayfa listesi) - GET /cars/my
+const myCars = ref([]);
+const myCarsLoading = ref(false);
+
+// Modal: tüm araçlar (ekleme seçenekleri) - GET /cars
+const carsFromApi = ref([]);
+const carsLoading = ref(false);
 const showAddVehicleModal = ref(false);
-const currentStep = ref(1);
-const selectedVehicleType = ref(null);
+const addVehicleLoading = ref(false);
 const carouselPage = ref(0);
+const selectedCar = ref(null);
+const selectedDetailId = ref(null);
+const plaka = ref('');
+const plakaError = ref('');
+
+/**
+ * Plaka maskeleme: 2 rakam (01-81 il kodu, sadece sayı) + boşluk + 1-3 harf (A-Z) + boşluk + 1-4 rakam
+ */
+function formatPlaka(raw) {
+    const s = String(raw || '');
+    const digits = s.replace(/\D/g, '');
+    const letters = s.replace(/[^A-Za-z]/g, '').toUpperCase().replace(/[^A-Z]/g, '');
+    const rawFirst = digits.slice(0, 2);
+    const num = parseInt(rawFirst, 10) || 0;
+    const clamped = Math.min(81, Math.max(1, num));
+    const p1 = rawFirst.length >= 2 ? String(clamped).padStart(2, '0') : rawFirst;
+    const p2 = letters.slice(0, 3);
+    const p3 = digits.slice(2, 6);
+    if (!p2.length && !p3.length) return p1;
+    if (!p3.length) return p1 + (p1.length ? ' ' : '') + p2;
+    return p1 + (p1.length ? ' ' : '') + p2 + (p2.length ? ' ' : '') + p3;
+}
+
+function onPlakaInput(e) {
+    plaka.value = formatPlaka(e.target.value);
+    plakaError.value = '';
+}
+
+function getCarImageUrl(image) {
+    if (!image) return '';
+    if (typeof image === 'string' && image.startsWith('http')) return image;
+    try {
+        return new URL(`../assets/images/vehicles/${image}`, import.meta.url).href;
+    } catch {
+        return '';
+    }
+}
+
+/** Seçili araç bu kart ise ve detay seçiliyse detay resmini, yoksa aracın resmini döner */
+function getDisplayImage(car) {
+    if (!car) return '';
+    const isSelectedCar = selectedCar.value?.id === car.id;
+    if (isSelectedCar && selectedDetailId.value && car.details?.length) {
+        const detail = car.details.find((d) => d.id === selectedDetailId.value);
+        if (detail?.image) return getCarImageUrl(detail.image);
+    }
+    return getCarImageUrl(car.image);
+}
+
+async function fetchMyCars() {
+    myCarsLoading.value = true;
+    try {
+        const res = await api.get('/cars/my');
+        const content = res.data?.content ?? res.data;
+        myCars.value = Array.isArray(content?.cars) ? content.cars : [];
+    } catch (err) {
+        console.error(err);
+        myCars.value = [];
+    } finally {
+        myCarsLoading.value = false;
+    }
+}
+
+async function fetchCars() {
+    carsLoading.value = true;
+    try {
+        const res = await api.get('/cars');
+        const content = res.data?.content ?? res.data;
+        carsFromApi.value = Array.isArray(content?.cars) ? content.cars : [];
+    } catch (err) {
+        console.error(err);
+        carsFromApi.value = [];
+    } finally {
+        carsLoading.value = false;
+        if (carsFromApi.value.length) {
+            selectedCar.value = carsFromApi.value[0];
+            if (carsFromApi.value.length === 1) carouselPage.value = 0;
+        }
+    }
+}
 
 watch(carouselPage, (page) => {
-    if (vehicleTypes[page]) {
-        selectedVehicleType.value = vehicleTypes[page].value;
+    const list = carsFromApi.value;
+    if (list.length && page >= 0 && page < list.length) {
+        selectedCar.value = list[page];
+        selectedDetailId.value = null;
     }
 });
 
 const selectVehicleFromSlide = (data) => {
-    selectedVehicleType.value = data.value;
+    selectedCar.value = data;
+    selectedDetailId.value = null;
+    const idx = carsFromApi.value.findIndex((c) => c.id === data.id);
+    if (idx >= 0) carouselPage.value = idx;
 };
 
-const vehicleTypes = [
-    { value: 'motor', label: 'Motor', image: motorImg },
-    { value: 'minivan', label: 'Minivan', image: minivanImg },
-    { value: 'panelvan', label: 'Panelvan', image: panelvanImg },
-    { value: 'kamyon', label: 'Kamyon', image: kamyonImg },
-    { value: 'tir', label: 'Tır', image: tirImg }
-];
+const selectDetail = (d) => {
+    selectedDetailId.value = d.id;
+};
 
 const openAddVehicleModal = () => {
     showAddVehicleModal.value = true;
-    currentStep.value = 1;
     carouselPage.value = 0;
-    selectedVehicleType.value = vehicleTypes[0]?.value ?? null;
+    selectedCar.value = null;
+    selectedDetailId.value = null;
+    fetchCars();
 };
 
 const closeAddVehicleModal = () => {
     showAddVehicleModal.value = false;
-    currentStep.value = 1;
-    selectedVehicleType.value = null;
+    selectedCar.value = null;
+    selectedDetailId.value = null;
+    plaka.value = '';
+    plakaError.value = '';
     carouselPage.value = 0;
 };
 
-const nextStep = () => {
-    if (currentStep.value < 3) {
-        currentStep.value++;
+async function saveVehicle() {
+    const car = selectedCar.value;
+    if (!car?.id) return;
+    if (!plaka.value?.trim()) {
+        plakaError.value = 'Plaka zorunludur.';
+        return;
     }
-};
-
-const previousStep = () => {
-    if (currentStep.value > 1) {
-        currentStep.value--;
+    plakaError.value = '';
+    addVehicleLoading.value = true;
+    try {
+        await api.post('/auth/create-car-by-user', {
+            car_id: car.id,
+            car_detail_id: selectedDetailId.value || null,
+            plaka: plaka.value.trim(),
+        });
+        closeAddVehicleModal();
+        await fetchMyCars();
+    } catch (err) {
+        const msg = err.response?.data?.message || err.response?.data?.error?.plaka?.[0] || 'Araç eklenirken hata oluştu.';
+        plakaError.value = typeof msg === 'string' ? msg : 'Plaka zorunludur.';
+        console.error(err);
+    } finally {
+        addVehicleLoading.value = false;
     }
-};
+}
 
-const saveVehicle = () => {
-    console.log('Araç kaydediliyor:', selectedVehicleType.value);
-    // TODO: API'ye araç kaydetme
-    closeAddVehicleModal();
-};
+// Sayfa açıldığında benim araçlarımı getir (UserCar listesi)
+onMounted(fetchMyCars);
 </script>
 
 <style scoped>
-.vehicle-row {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 300px;
-    padding: 1.5rem;
-    border-radius: 0.75rem;
-    background-color: rgba(57, 131, 140, 0.1);
-    border: 1px solid rgba(57, 131, 140, 0.2);
-    transition: all 0.2s;
-}
-
-.vehicle-row:hover {
-    background-color: rgba(57, 131, 140, 0.15);
-    border-color: rgba(57, 131, 140, 0.3);
-}
-
-.vehicle-image-container {
-    width: 400px;
-    height: 200px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.vehicle-image-container img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-}
-
-.edit-vehicle-btn {
-    display: flex;
-    align-items: center;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    background-color: #39838C;
-    border: 1px solid #39838C;
-    color: white;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.edit-vehicle-btn:hover {
-    background-color: rgba(57, 131, 140, 0.9);
-    border-color: rgba(57, 131, 140, 0.9);
-}
-
-/* Araç seçim - PrimeVue Carousel, içeride daha küçük, ok butonları resmin ortasında */
+/* Araç seçim - PrimeVue Carousel */
 .vehicle-carousel-fullscreen {
     flex: 1;
     display: flex;
     flex-direction: column;
     min-height: 0;
     margin: 1rem 1.5rem;
+}
+
+.single-vehicle-slide {
+    background: #fff;
 }
 
 .vehicle-select-carousel {

@@ -49,11 +49,13 @@
                 <input
                   :value="weightValue"
                   type="text"
+                  :maxlength="weightUnit === 'kg' ? 6 : 2"
                   inputmode="decimal"
                   :placeholder="weightUnit === 'kg' ? '0 - 25.000 kg aralığında girin' : '0 - 25 ton aralığında girin'"
                   class="flex-1 h-12 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
                   @keydown="onWeightKeydown($event)"
                   @input="onWeightInput($event)"
+                  @blur="onWeightBlur"
                 />
                 <div class="flex rounded-lg border border-gray-200 overflow-hidden shrink-0">
                   <button
@@ -391,7 +393,7 @@
 
           <!-- Pagination: Sol Sonraki / Sağ Önceki -->
           <div
-            class="w-full  overflow-hidden flex justify-between items-center"
+            class="w-full  overflow-hidden flex justify-between items-center absolute left-0 bottom-0 px-10 bg-white border-t border-gray-200 py-5"
           >
             <button
               type="button"
@@ -403,13 +405,16 @@
             <button
               @click="handlePublishOrNext"
               type="button"
-              :disabled="!canGoNext"
+              :disabled="!canGoNext || publishLoading"
               class="px-5 py-2 rounded-lg border-2 transition-all"
-              :class="canGoNext
-                ? 'cursor-pointer border-primary text-primary font-medium hover:bg-primary hover:text-white'
-                : 'cursor-not-allowed border-gray-200 text-gray-400 opacity-60'"
+              :class="(!canGoNext || publishLoading)
+                ? 'cursor-not-allowed border-gray-200 text-gray-400 opacity-60'
+                : 'cursor-pointer border-primary text-primary font-medium hover:bg-primary hover:text-white'"
             >
-              {{ page === limit ? 'Yayınla' : 'Sonraki →' }}
+              <span v-if="publishLoading" class="flex items-center gap-2">
+                <i class="pi pi-spin pi-spinner text-sm"></i> Yayınlanıyor...
+              </span>
+              <span v-else>{{ page === limit ? 'Yayınla' : 'Sonraki →' }}</span>
             </button>
           </div>
          
@@ -473,6 +478,7 @@ const shipment_date = ref(todayStart);
 /** Boşaltılacak yer: sadece şehir ve ilçe isimleri */
 const bosaltilanYer = ref({ city: '', district: '' });
 const cities = ref([]);
+const publishLoading = ref(false);
 const citiesLoading = ref(false);
 const yuklenecekDistricts = ref([]);
 const bosaltilanDistricts = ref([]);
@@ -536,6 +542,15 @@ function onWeightKeydown(event) {
 const WEIGHT_MAX_KG = 25000;
 const WEIGHT_MAX_TON = 25;
 
+function getWeightMax() {
+  return weightUnit.value === 'ton' ? WEIGHT_MAX_TON : WEIGHT_MAX_KG;
+}
+
+function clampWeightToMax(num) {
+  if (num === null || Number.isNaN(num)) return null;
+  return Math.min(Math.max(0, num), getWeightMax());
+}
+
 function onWeightInput(event) {
   const raw = String(event.target?.value ?? '').replace(/\s/g, '').replace(/[^\d,.]/g, '');
   const endsWithSep = /[,.]$/.test(raw);
@@ -544,9 +559,16 @@ function onWeightInput(event) {
     weightValue.value = raw;
     return;
   }
-  const max = weightUnit.value === 'ton' ? WEIGHT_MAX_TON : WEIGHT_MAX_KG;
-  num = Math.min(Math.max(0, num), max);
+  // Ton cinsinde maksimum 25; 25'ten fazla yazıldığında direk 25'e sabitle
+  num = clampWeightToMax(num);
   weightValue.value = formatWeightDisplay(num) + (endsWithSep ? ',' : '');
+}
+
+function onWeightBlur() {
+  const num = parseWeightInput(weightValue.value);
+  if (num === null) return;
+  const clamped = clampWeightToMax(num);
+  if (clamped !== num) weightValue.value = formatWeightDisplay(clamped);
 }
 
 async function fetchCities() {
@@ -861,10 +883,12 @@ function getShipmentFormData() {
   };
 }
 
-function handlePublishOrNext() {
+async function handlePublishOrNext() {
   if (page.value === limit.value) {
+    publishLoading.value = true;
     const formData = getShipmentFormData();
-    shipmentsStore.logShipmentFormData(formData);
+    await shipmentsStore.logShipmentFormData(formData);
+    publishLoading.value = false;
   } else {
     postStore.nextPage();
   }

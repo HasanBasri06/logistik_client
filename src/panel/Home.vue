@@ -1,5 +1,5 @@
 <template>
-    <div class="h-screen overflow-hidden">
+    <div class="h-screen overflow-hidden flex flex-col">
         <Header />
         <!-- Arama Alanı (Navbar genişliğinde) -->
             <div class="w-full bg-white border-b border-gray-200 py-2 flex flex-col items-center shrink-0 relative" ref="searchBarRef">
@@ -42,12 +42,14 @@
                                 :pt="{
                                     root: { class: 'flex items-center h-full' },
                                     input: { class: 'py-2' },
-                                    panel: { class: 'bg-white border border-gray-100 shadow-lg' }
+                                    panel: { class: '!bg-white !border !border-gray-100 shadow-lg !p-3 rounded-lg' },
+                                    header: { class: '!bg-white' },
+                                    tableHeaderCell: { class: '!bg-white' },
+                                    tableBody: { class: '!bg-white' },
+                                    tableBodyRow: { class: '!bg-white' }
                                 }"
                                 id="datepicker-departure"
                                 placeholder="Gidiş"
-                                showTime
-                                hourFormat="24"
                                 fluid
                             />
                         </div>
@@ -60,12 +62,14 @@
                                 :pt="{
                                     root: { class: 'flex items-center h-full' },
                                     input: { class: 'py-2' },
-                                    panel: { class: 'bg-white border border-gray-100 shadow-lg' }
+                                    panel: { class: '!bg-white !border !border-gray-100 shadow-lg !p-3 rounded-lg' },
+                                    header: { class: '!bg-white' },
+                                    tableHeaderCell: { class: '!bg-white' },
+                                    tableBody: { class: '!bg-white' },
+                                    tableBodyRow: { class: '!bg-white' }
                                 }"
                                 id="datepicker-return"
                                 placeholder="Dönüş"
-                                showTime
-                                hourFormat="24"
                                 fluid
                             />
                         </div>
@@ -252,7 +256,7 @@
                 </div>
             </div>
         
-        <Content class="mt-5 flex-1 overflow-hidden flex">
+        <Content class="mt-5 flex-1 min-h-0 overflow-hidden flex">
             <div class="flex flex-row gap-6 w-full h-full">
                 <!-- Sol: Filtreleme -->
                 <div class="w-[320px] flex flex-col gap-8 overflow-y-auto shrink-0">
@@ -302,7 +306,7 @@
                 </div>
 
                 <!-- Sağ: İlanlar (Benim İlanlarım + Diğer İlanlar) -->
-                <div class="flex-1 flex flex-col gap-5 py-4 overflow-y-auto pb-[500px] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                <div class="flex-1 flex flex-col gap-5 py-4 overflow-y-auto pb-6 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                     <p v-if="shipmentsError" class="text-sm text-red-600">{{ shipmentsError }}</p>
                     <template v-else-if="shipmentsLoading">
                         <p class="text-sm text-gray-500">Yükleniyor...</p>
@@ -339,11 +343,14 @@
                             </section>
 
                             <button
+                                v-if="hasMore"
                                 @click="loadMore"
-                                class="flex items-center justify-center gap-2 w-full px-4 py-3.5 mt-2 rounded-lg border border-gray-200 bg-white text-gray-700 text-sm font-semibold cursor-pointer transition-all duration-200 hover:border-primary hover:bg-primary/5 hover:text-primary active:scale-[0.98]"
+                                :disabled="loadingMore"
+                                class="flex items-center justify-center gap-2 w-full px-4 py-3.5 mt-2 rounded-lg border border-gray-200 bg-white text-gray-700 text-sm font-semibold cursor-pointer transition-all duration-200 hover:border-primary hover:bg-primary/5 hover:text-primary active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                <ChevronDown size="20" />
-                                <span>Daha Fazla Yükle</span>
+                                <i v-if="loadingMore" class="pi pi-spin pi-spinner text-sm"></i>
+                                <ChevronDown v-else size="20" />
+                                <span>{{ loadingMore ? 'Yükleniyor...' : 'Daha Fazla Yükle' }}</span>
                             </button>
                         </template>
                     </template>
@@ -433,12 +440,14 @@
                 </div>
             </Transition>
         </Teleport>
+
     </div>
     </template>
 
 
 <script setup>
 import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import Content from '@/components/Content.vue';
 import Header from '@/components/Header.vue';
@@ -449,6 +458,7 @@ import api from '@/api';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useShipmentsStore } from '@/stores/shipments';
+import { useLocationStore } from '@/stores/location';
 
 // Lokasyon: API'den şehir/ilçe
 const apiCities = ref([]);
@@ -655,20 +665,29 @@ const fetchCities = async () => {
     }
 };
 
-// Varsayılan: Nereden Ankara, Nereye İstanbul
+const route = useRoute();
+
 const setDefaultLocations = () => {
     if (apiCities.value.length === 0) return;
+
+    const qFrom = route.query.from;
+    const qTo = route.query.to;
+
     if (!fromCity.value) {
-        fromCity.value = apiCities.value.find(c => c.name === 'Ankara') ?? null;
+        fromCity.value = (qFrom && apiCities.value.find(c => c.name === qFrom))
+            || apiCities.value.find(c => c.name === 'Ankara')
+            || null;
     }
     if (!toCity.value) {
-        toCity.value = apiCities.value.find(c => c.name === 'İstanbul') ?? null;
+        toCity.value = (qTo && apiCities.value.find(c => c.name === qTo))
+            || apiCities.value.find(c => c.name === 'İstanbul')
+            || null;
     }
 };
 
 // Nereden dropdown açılınca
 const openFromDropdown = async () => {
-    locationError.value = null;
+    locationStore.clearLocationError();
     fromCitySearch.value = '';
     fromDistrictSearch.value = '';
     await fetchCities();
@@ -711,7 +730,7 @@ const applyFromLocation = (district) => {
     fromDropdownOpen.value = false;
 };
 
-const locationError = ref(null);
+// Konum bilgisi tüm sayfalarda stores/location.js (useLocationStore) üzerinden alınır.
 
 // Konum harita modalı: açık mı, hangi alan için (from / to)
 const mapModalOpen = ref(false);
@@ -833,10 +852,18 @@ watch(mapModalOpen, (open) => {
     }
 });
 
-function parseNominatimCityDistrict(addr) {
+// Nominatim: Türkiye (TR) için şehir = state (il, örn. Ankara). city/town ilçe olabilir (Sincan) → kullanma.
+function parseNominatimCityDistrict(addr, countryCode) {
     if (!addr) return { city: null, district: null };
+    const isTurkey = (countryCode || '').toLowerCase() === 'tr';
+    if (isTurkey) {
+        return {
+            city: addr.state || null,
+            district: addr.state_district || addr.county || null
+        };
+    }
     const city = addr.state || addr.city || addr.town || addr.village || addr.municipality || null;
-    const district = addr.county || addr.suburb || addr.neighbourhood || addr.city_district || null;
+    const district = addr.state_district || addr.county || null;
     return { city, district };
 }
 
@@ -857,27 +884,8 @@ function confirmMapLocation() {
     mapModalOpen.value = false;
 }
 
-// Konum seçenekleri: enableHighAccuracy false = ağ konumu (daha az “konum kapalı” hatası)
-const geolocationOptions = {
-    enableHighAccuracy: false,
-    timeout: 15000,
-    maximumAge: 60000
-};
-
-function setLocationErrorMessage(err) {
-    if (err.code === 1) {
-        locationError.value = 'Konum kapalı görünüyor. Windows: Ayarlar > Gizlilik ve güvenlik > Konum > “Konum hizmeti”ni açın. Tarayıcıda adres çubuğundaki kilide tıklayıp Konum iznini “İzin ver” yapın.';
-    } else if (err.code === 2) {
-        locationError.value = 'Konum alınamadı. İnternet bağlantınızı ve Windows konum ayarlarını kontrol edin.';
-    } else if (err.code === 3) {
-        locationError.value = 'Konum isteği zaman aşımına uğradı. Tekrar deneyin.';
-    } else {
-        locationError.value = 'Konum kullanılamıyor. Windows Ayarlar > Gizlilik > Konum bölümünde konum hizmetinin açık olduğundan emin olun.';
-    }
-}
-
 const selectFromLocationByMap = () => {
-    locationError.value = null;
+    locationStore.clearLocationError();
     fromDropdownOpen.value = false;
     mapModalFor.value = 'from';
     mapModalOpen.value = true;
@@ -885,7 +893,7 @@ const selectFromLocationByMap = () => {
 
 // Nereye dropdown açılınca
 const openToDropdown = async () => {
-    locationError.value = null;
+    locationStore.clearLocationError();
     toCitySearch.value = '';
     toDistrictSearch.value = '';
     await fetchCities();
@@ -929,7 +937,7 @@ const applyToLocation = (district) => {
 };
 
 const selectToLocationByMap = () => {
-    locationError.value = null;
+    locationStore.clearLocationError();
     toDropdownOpen.value = false;
     mapModalFor.value = 'to';
     mapModalOpen.value = true;
@@ -949,16 +957,31 @@ const handleClickOutside = (event) => {
 };
 
 // İlan listesi tek store'dan (shipments)
+const panelRouter = useRouter();
 const shipmentsStore = useShipmentsStore();
-const { list: shipmentsList, myPostList, otherPostList, loading: shipmentsLoading, error: shipmentsError } = storeToRefs(shipmentsStore);
+const { list: shipmentsList, myPostList, otherPostList, loading: shipmentsLoading, loadingMore, error: shipmentsError, hasMore } = storeToRefs(shipmentsStore);
+const locationStore = useLocationStore();
+const { locationError } = storeToRefs(locationStore);
+
+const updatePageQuery = (page) => {
+    const query = { ...route.query };
+    if (page > 1) {
+        query.page = String(page);
+    } else {
+        delete query.page;
+    }
+    panelRouter.replace({ query });
+};
 
 const handleFilterChange = (modelKey) => {
+    updatePageQuery(1);
     shipmentsStore.fetchShipments({ filters: { [modelKey]: filters[modelKey] } });    
 };
 
 onMounted(() => {
     document.addEventListener('click', handleClickOutside);
-    shipmentsStore.fetchShipments();
+    const initialPage = parseInt(route.query.page) || 1;
+    shipmentsStore.fetchShipments({ initialPage });
     fetchCities().then(setDefaultLocations);
 });
 
@@ -988,7 +1011,7 @@ function getSearchFormData() {
 
 const handleSearch = () => {
     const searchData = getSearchFormData();
-    console.log('=== Panel Arama Verisi (API: Şehir / İlçe) ===', searchData);
+    updatePageQuery(1);
     shipmentsStore.fetchShipments({
         f_where_city: searchData.f_where_city,
         f_where_district: searchData.f_where_district,
@@ -999,7 +1022,9 @@ const handleSearch = () => {
 };
 
 const loadMore = () => {
-    shipmentsStore.fetchShipments({ append: true });
+    shipmentsStore.fetchShipments({ append: true }).then(() => {
+        updatePageQuery(shipmentsStore.currentPage);
+    });
 };
 </script>
 

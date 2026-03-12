@@ -24,6 +24,8 @@ import PostDetail from "./posts/Detail.vue";
 import ProductDetailPage from "./pages/ProductDetailPage.vue";
 import NotFound from "./pages/NotFound.vue";
 import CreatePostPage from "./pages/CreatePostPage.vue";
+import BlogPage from "./pages/BlogPage.vue";
+import BlogDetailPage from "./pages/BlogDetailPage.vue";
 
 const routes = [
     {
@@ -258,6 +260,24 @@ const routes = [
         }
     },
     {
+        path: '/blog',
+        component: BlogPage,
+        meta: {
+            layout: Layout,
+            title: 'Blog | TaşıBul',
+            requiresAuth: false
+        }
+    },
+    {
+        path: '/blog/:slug',
+        component: BlogDetailPage,
+        meta: {
+            layout: Layout,
+            title: 'Blog | TaşıBul',
+            requiresAuth: false
+        }
+    },
+    {
         path: '/:pathMatch(.*)*',
         component: NotFound,
         name: 'not-found',
@@ -300,7 +320,13 @@ router.beforeEach(async (to, from, next) => {
     if (token && to.path === '/') {
         const isValid = await authStore.checkToken()
         if (isValid) {
-            next('/panel')
+            const pending = sessionStorage.getItem('pendingSearch')
+            if (pending) {
+                sessionStorage.removeItem('pendingSearch')
+                next({ path: '/panel', query: JSON.parse(pending) })
+            } else {
+                next('/panel')
+            }
             return
         }
     }

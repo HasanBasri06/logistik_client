@@ -1,5 +1,6 @@
 <template>
-    <header class="w-full h-16 bg-white shadow-sm relative z-10">
+    <div>
+    <header class="w-full h-16 fixed top-0 z-40 transition-colors duration-300" :class="scrolled ? 'bg-white shadow-sm' : 'bg-transparent'">
         <Content class="flex items-center justify-between h-full">
             <!-- Logo (Sol) -->
             <RouterLink to="/" class="flex items-center gap-2">
@@ -27,14 +28,14 @@
                     <button
                         type="button"
                         @click="handleLoginClick"
-                        class="flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold hover:border-primary hover:text-primary transition-colors"
+                        class="flex items-center gap-2 rounded-full  border border-gray-200 px-4 py-2 text-sm font-semibold hover:border-primary group  cursor-pointer hover:text-primary transition-colors"
                     >
                         <span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-gray-100">
                             <!-- Basit user icon (SVG) -->
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
                                 viewBox="0 0 24 24"
-                                class="h-4 w-4 text-gray-600"
+                                class="h-4 w-4 text-gray-600 group-hover:text-primary"
                                 fill="none"
                                 stroke="currentColor"
                                 stroke-width="1.8"
@@ -178,6 +179,7 @@
             </ul>
         </Content>
     </header>
+    <div class="h-16"></div>
 
     <!-- Giriş / Kayıt Modal (Custom Overlay) -->
     <div
@@ -320,7 +322,9 @@
                                             : 'bg-primary text-white hover:bg-primary/90 hover:shadow-xl transform hover:-translate-y-0.5'
                                     ]"
                                 >
-                                    <span v-if="loginLoading">Giriş yapılıyor...</span>
+                                    <span v-if="loginLoading" class="flex items-center justify-center gap-2">
+                                        <i class="pi pi-spin pi-spinner text-sm"></i> Giriş yapılıyor...
+                                    </span>
                                     <span v-else>Giriş Yap</span>
                                 </button>
                                 <div class="flex items-center gap-3 my-2">
@@ -386,10 +390,18 @@
                                 <button
                                     type="button"
                                     @click="handleVerifyOtp"
-                                    :disabled="!otpCode || otpCode.length !== 6"
-                                    class="w-full h-11 bg-primary text-white font-semibold rounded-md hover:opacity-90 transition-opacity text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                                    :disabled="(!otpCode || otpCode.length !== 6) || otpVerifyLoading"
+                                    :class="[
+                                        'w-full h-11 font-semibold rounded-md transition-all text-sm',
+                                        otpVerifyLoading
+                                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                            : 'bg-primary text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed'
+                                    ]"
                                 >
-                                    Doğrula
+                                    <span v-if="otpVerifyLoading" class="flex items-center justify-center gap-2">
+                                        <i class="pi pi-spin pi-spinner text-sm"></i> Doğrulanıyor...
+                                    </span>
+                                    <span v-else>Doğrula</span>
                                 </button>
                                 <button
                                     type="button"
@@ -397,7 +409,8 @@
                                     :disabled="resendOtpLoading"
                                     class="text-sm text-primary font-medium hover:underline disabled:opacity-50"
                                 >
-                                    {{ resendOtpLoading ? 'Gönderiliyor...' : 'Kodu tekrar gönder' }}
+                                    <span v-if="resendOtpLoading" class="inline-flex items-center gap-1"><i class="pi pi-spin pi-spinner text-xs"></i> Gönderiliyor...</span>
+                                    <span v-else>Kodu tekrar gönder</span>
                                 </button>
                                 <button
                                     type="button"
@@ -556,9 +569,18 @@
                             </div>
                             <button
                                 type="submit"
-                                class="w-full h-11 bg-primary text-white font-semibold rounded-md hover:opacity-90 transition-opacity text-sm mt-2"
+                                :disabled="registerLoading"
+                                :class="[
+                                    'w-full h-11 font-semibold rounded-md transition-all text-sm mt-2',
+                                    registerLoading
+                                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                        : 'bg-primary text-white hover:opacity-90'
+                                ]"
                             >
-                                Kayıt Ol 
+                                <span v-if="registerLoading" class="flex items-center justify-center gap-2">
+                                    <i class="pi pi-spin pi-spinner text-sm"></i> Kayıt yapılıyor...
+                                </span>
+                                <span v-else>Kayıt Ol</span>
                             </button>
                             <p class="text-sm text-center text-gray-500">
                                 Zaten hesabın var mı?
@@ -576,10 +598,11 @@
             </div>
         </div>
     </div>
+    </div>
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, onUnmounted, ref, watch } from 'vue';
 import * as yup from 'yup';
 import { useAuthStore } from '@/stores/auth';
 import { toast } from 'vue-sonner';
@@ -594,6 +617,11 @@ import { Router } from 'lucide-vue-next';
 const authStore = useAuthStore();
 const router = useRouter();
 const {user} = storeToRefs(authStore);
+
+const scrolled = ref(false);
+const onScroll = () => { scrolled.value = window.scrollY > 10; };
+onMounted(() => { window.addEventListener('scroll', onScroll, { passive: true }); onScroll(); });
+onUnmounted(() => { window.removeEventListener('scroll', onScroll); });
 
 const showLogin = ref(false);
 const isRegister = ref(false);
@@ -649,7 +677,9 @@ const pendingRegisterEmail = ref("");
 const otpCode = ref("");
 const otpError = ref("");
 const otpOpenedFromLogin = ref(false);
+const registerLoading = ref(false);
 const resendOtpLoading = ref(false);
+const otpVerifyLoading = ref(false);
 const showPasswordSuggestion = ref(false);
 
 const loginSchema = yup.object({
@@ -764,6 +794,16 @@ const handleGotoAccountClick = () => {
     }
 };
 
+const redirectAfterLogin = () => {
+    const pending = sessionStorage.getItem('pendingSearch');
+    if (pending) {
+        sessionStorage.removeItem('pendingSearch');
+        router.push({ path: '/panel', query: JSON.parse(pending) });
+    } else {
+        router.push('/panel');
+    }
+};
+
 const handleLoginSubmit = async () => {
     loginErrors.value = { phone: "", password: "" };
     loginLoading.value = true;
@@ -779,7 +819,7 @@ const handleLoginSubmit = async () => {
             toast.success('Giriş başarılı!', { description: 'Başarılı', duration: 3000 });
             showLogin.value = false;
             loginForm.value = { phone: "", password: "" };
-            router.push('/panel');
+            redirectAfterLogin();
         } else if (result.needOtp && result.email) {
             otpOpenedFromLogin.value = true;
             isRegister.value = true;
@@ -884,6 +924,7 @@ const handleRegisterSubmit = async () => {
     try {
         await registerSchema.validate(registerForm.value, { abortEarly: false });
         
+        registerLoading.value = true;
         const result = await authStore.register({
             first_name: registerForm.value.firstName,
             last_name: registerForm.value.lastName,
@@ -919,7 +960,7 @@ const handleRegisterSubmit = async () => {
                 password: "",
                 confirmPassword: ""
             };
-            router.push('/panel');
+            redirectAfterLogin();
         } else {
             // Server'dan dönen hata mesajını toast ile göster
             let errorMessage = result.error || 'Kayıt işlemi başarısız!';
@@ -957,8 +998,9 @@ const handleRegisterSubmit = async () => {
                 });
             }
         }
+        registerLoading.value = false;
     } catch (err) {
-        // Yup validation hataları
+        registerLoading.value = false;
         if (err.inner) {
             err.inner.forEach((e) => {
                 if (e.path && registerErrors.value[e.path] !== undefined) {
@@ -1069,7 +1111,9 @@ const handleVerifyOtp = async () => {
         otpError.value = 'Lütfen 6 haneli kodu girin.';
         return;
     }
+    otpVerifyLoading.value = true;
     const result = await authStore.verifyOtp(pendingRegisterEmail.value, code);
+    otpVerifyLoading.value = false;
     if (result.success) {
         toast.success('Kayıt tamamlandı.', { description: 'Başarılı', duration: 3000 });
         showLogin.value = false;
@@ -1077,7 +1121,7 @@ const handleVerifyOtp = async () => {
         otpOpenedFromLogin.value = false;
         pendingRegisterEmail.value = '';
         otpCode.value = '';
-        router.push('/panel');
+        redirectAfterLogin();
     } else {
         otpError.value = result.error || 'Kod hatalı.';
         toast.error(result.error || 'Doğrulama başarısız.', { description: 'Hata', duration: 3000 });

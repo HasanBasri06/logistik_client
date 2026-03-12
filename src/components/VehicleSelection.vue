@@ -38,13 +38,14 @@
         <Carousel
           ref="carsCarouselRef"
           v-model="activeCarIndex"
-          :items-to-show="4"
+          :items-to-show="3"
           :items-to-scroll="4"
-          :wrap-around="true"
+          :wrap-around="false"
           :transition="400"
           :mouse-drag="true"
           :touch-drag="true"
           :gap="20"
+          snap-align="start"
           @slide-end="onCarouselSlideEnd"
         >
           <Slide v-for="car in cars" :key="car.id">
@@ -86,11 +87,11 @@
           <div class="flex flex-col items-center justify-center p-10 rounded-xl bg-gray-50 border border-gray-200 relative">
             <div class="absolute top-5 left-5 text-primary font-medium">{{ selectedCar.price }} TL 'den başlar</div>
             <div class="w-auto h-auto px-5 py-2 relative">
-              <div class="absolute -top-6 flex items-center border-dotted justify-center border-b border-primary/40 left-2/4 -translate-x-2/4 w-[90%] h-6 text-sm text-primary pb-2">
-                1 metre
+              <div v-if="selectedCar.width" class="absolute -top-6 flex items-center border-dotted justify-center border-b border-primary/40 left-2/4 -translate-x-2/4 w-[90%] h-6 text-sm text-primary pb-2">
+                {{ selectedCar.width }} metre
               </div>
-              <div class="w-full h-full border-r border-dotted text-primary border-primary/40 absolute">
-                <div class="absolute top-2/4 -translate-y-2/4 -right-15 text-sm">2 metre</div>
+              <div v-if="selectedCar.height" class="w-full h-full border-r border-dotted text-primary border-primary/40 absolute">
+                <div class="absolute top-2/4 -translate-y-2/4 -right-15 text-sm">{{ selectedCar.height }} metre</div>
               </div>
               <img
                 :src="getDisplayImage(selectedCar)"
@@ -218,10 +219,22 @@ function parseStoreDetailValues(storeVal) {
   return ids.map((id, i) => ({ id: Number(id) || id, name: names[i] ?? "" }));
 }
 
+function autoSelectFirstDetails(car) {
+  const details = car?.details ?? [];
+  if (!details.length) return [];
+  const groups = {};
+  for (const item of details) {
+    const type = item.type ?? item.name ?? "Varyant";
+    if (!groups[type]) groups[type] = item;
+  }
+  return Object.values(groups).map((item) => ({ id: item.id, name: item.value }));
+}
+
 const selectCar = async (car, index) => {
   selectedCar.value = car;
   postStore.selectedCar = car;
-  selectedDetailValues.value = parseStoreDetailValues(postStore.selectedDetailValues);
+  const stored = parseStoreDetailValues(postStore.selectedDetailValues);
+  selectedDetailValues.value = stored.length ? stored : autoSelectFirstDetails(car);
   if (typeof index === "number") {
     activeCarIndex.value = index;
     await nextTick();
@@ -236,7 +249,8 @@ const restoreFromStore = async () => {
   if (idx === -1) return;
   selectedCar.value = cars.value[idx];
   activeCarIndex.value = idx;
-  selectedDetailValues.value = parseStoreDetailValues(postStore.selectedDetailValues);
+  const parsed = parseStoreDetailValues(postStore.selectedDetailValues);
+  selectedDetailValues.value = parsed.length ? parsed : autoSelectFirstDetails(cars.value[idx]);
   await nextTick();
   carsCarouselRef.value?.slideTo(idx);
 };

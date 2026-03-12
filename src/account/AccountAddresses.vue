@@ -28,8 +28,9 @@
                 <div
                     v-for="address in addresses"
                     :key="address.id"
-                    class="border border-gray-200 rounded-lg p-4 flex flex-col bg-white hover:shadow-md transition-shadow"
+                    class="border border-gray-200 rounded-lg p-4 flex flex-col bg-white hover:shadow-md transition-shadow justify-between"
                 >
+                <div>
                     <h3 class="text-base font-semibold text-gray-900 mb-2">{{ address.name }}</h3>
                     <p class="text-xs text-gray-500 mb-1">{{ address.city }} / {{ address.district }}</p>
                     <p v-if="address.description" class="text-sm text-gray-600 flex-1 line-clamp-3">{{ address.description }}</p>
@@ -39,6 +40,7 @@
                     >
                         {{ statusLabel(address.status) }}
                     </span>
+                </div>
                     <button
                         type="button"
                         class="mt-4 w-full py-2 border border-primary text-primary font-medium rounded-lg hover:bg-primary/5 transition-colors flex items-center justify-center gap-2"
@@ -139,6 +141,7 @@
                                     <option value="inactive">Pasif</option>
                                 </select>
                             </div>
+                            <p v-if="editError" class="text-sm text-red-600">{{ editError }}</p>
                             <div class="flex justify-end gap-2 pt-2">
                                 <button
                                     type="button"
@@ -149,9 +152,10 @@
                                 </button>
                                 <button
                                     type="submit"
-                                    class="px-4 py-2 rounded-lg text-white bg-primary hover:bg-primary/90 font-medium transition-colors"
+                                    class="px-4 py-2 rounded-lg text-white bg-primary hover:bg-primary/90 font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                                    :disabled="editLoading"
                                 >
-                                    Kaydet
+                                    {{ editLoading ? 'Kaydediliyor...' : 'Kaydet' }}
                                 </button>
                             </div>
                         </form>
@@ -275,6 +279,8 @@ const editingAddressId = ref(null);
 const addModalOpen = ref(false);
 const addLoading = ref(false);
 const addError = ref('');
+const editLoading = ref(false);
+const editError = ref('');
 
 const cities = ref([]);
 const citiesLoading = ref(false);
@@ -408,19 +414,36 @@ async function openEditModal(address) {
 function closeEditModal() {
     editModalOpen.value = false;
     editingAddressId.value = null;
+    editError.value = '';
 }
 
-function saveAddress() {
+async function saveAddress() {
     const address = addresses.value.find((a) => a.id === editingAddressId.value);
     if (!address) return;
     const city = cities.value.find((c) => c.id === Number(editForm.city_id));
     const district = editDistricts.value.find((d) => d.id === Number(editForm.district_id));
-    address.name = editForm.name.trim();
-    address.city = city?.name ?? '';
-    address.district = district?.name ?? '';
-    address.description = (editForm.description || '').trim();
-    address.status = editForm.status;
-    closeEditModal();
+    if (!city || !district) {
+        editError.value = 'Şehir ve ilçe seçin.';
+        return;
+    }
+    editError.value = '';
+    editLoading.value = true;
+    try {
+        await api.put(`/addresses/${editingAddressId.value}`, {
+            name: editForm.name.trim(),
+            city: city.name,
+            district: district.name,
+            description: (editForm.description || '').trim() || null,
+            status: editForm.status
+        });
+        closeEditModal();
+        await fetchAddresses();
+    } catch (err) {
+        const msg = err?.response?.data?.message ?? err?.response?.data?.errors ?? err?.message ?? 'Adres güncellenirken bir hata oluştu.';
+        editError.value = typeof msg === 'object' ? Object.values(msg).flat().join(' ') : msg;
+    } finally {
+        editLoading.value = false;
+    }
 }
 
 async function openAddModal() {

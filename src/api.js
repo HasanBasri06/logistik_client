@@ -5,7 +5,7 @@ const apiBaseURL = baseURL ? `${baseURL.replace(/\/$/, '')}/api` : '/api'
 
 const api = axios.create({
     baseURL: apiBaseURL,
-    timeout: 10000,
+    timeout: 20000,
 })
 
 // Request interceptor - Token'ı header'a ekle

@@ -4,6 +4,49 @@
         <Content class="flex-1 flex gap-6 py-6 min-h-0 flex-row">
 
             <div class="flex-1 min-w-0 flex flex-col gap-4 overflow-y-auto no_scrool">
+                <!-- En yakın kullanıcılar (sol üst) -->
+                <div class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden shrink-0">
+                    <div class="px-4 py-3 border-b border-gray-100 bg-primary/5">
+                        <span class="text-sm font-semibold text-primary">En yakın kullanıcılar</span>
+                    </div>
+                    <div class="p-4">
+                        <template v-if="closeUsersLoading">
+                            <p class="text-sm text-gray-500 flex items-center gap-2">
+                                <i class="pi pi-spin pi-spinner text-primary"></i>
+                                Yükleniyor...
+                            </p>
+                        </template>
+                        <template v-else-if="closeUsersList.length === 0">
+                            <p class="text-sm text-gray-500">Konum paylaştığınızda size yakın kullanıcılar burada listelenecek.</p>
+                        </template>
+                        <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                            <div
+                                v-for="u in closeUsersList"
+                                :key="u.id"
+                                class="rounded-xl border border-gray-200 bg-gray-50/50 p-4 flex items-center gap-3"
+                            >
+                                <span class="flex items-center justify-center w-10 h-10 rounded-full bg-primary/15 text-primary text-sm font-semibold shrink-0" :title="u.full_name || u.first_name || '?'">
+                                    {{ (u.full_name || u.first_name || '?')[0] }}
+                                </span>
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-sm font-semibold text-gray-900 truncate" :title="u.full_name || [u.first_name, u.last_name].filter(Boolean).join(' ') || 'Kullanıcı'">{{ u.full_name || [u.first_name, u.last_name].filter(Boolean).join(' ') || 'Kullanıcı' }}</p>
+                                    <p :title="[u.user_city, u.user_district].filter(Boolean).join(' / ') || '—'" class="text-xs text-gray-500 truncate mt-0.5">{{ [u.user_city, u.user_district].filter(Boolean).join(' / ') || '—' }}</p>
+                                    <p v-if="distanceKmByUserId[u.id] != null" class="text-xs text-primary font-medium mt-1">~{{ Math.round(distanceKmByUserId[u.id]) }} km uzakta</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    class="flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 text-gray-500 hover:border-primary hover:bg-primary/10 hover:text-primary transition-colors shrink-0"
+                                    title="Mesaj gönder"
+                                    @click="openMessagePanel({ user: u, fromCloseUser: true })"
+                                >
+                                    <i class="pi pi-comments text-base"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
                 <template v-if="loading">
                     <div class="flex items-center justify-center py-12">
                         <i class="pi pi-spin pi-spinner text-2xl text-primary"></i>
@@ -14,7 +57,7 @@
                     <p class="text-red-600 font-medium">{{ error }}</p>
                 </template>
                 <template v-else-if="requestCount == 0">
-                    <div class="text-center text-gray-500 py-40 bg-primary/10 rounded-lg border border-primary/20">Henüz teklif verilmemiş</div>
+                    <img src="../assets/images/no_teklif.png" alt="No offer" class="w-[500px] h-auto mx-auto">
                 </template>
                 <template v-else>
                     <h2 class="text-lg font-semibold text-gray-900">{{ requestCount }} adet teklif bulunmaktadır.</h2>
@@ -138,7 +181,13 @@
                         </p>
                         <p v-if="panelMessagesLoading" class="text-sm text-gray-500 text-center py-4">Mesajlar yükleniyor...</p>
                     </div>
-                    <div class="w-full shrink-0 border-t border-gray-200 p-2 bg-white">
+                    <div class="relative w-full shrink-0 border-t border-gray-200 bg-white pt-2 pb-2 px-2">
+                        <div
+                            v-if="showCloseUserBadge"
+                            class="absolute left-2 right-2 bottom-full mb-1 px-3 py-2 rounded-lg bg-primary/15 text-primary text-xs font-medium text-center opacity-70"
+                        >
+                            Yakındaki bu araç sahibine yükünüzü taşıtmak için hemen mesaj gönderiniz.
+                        </div>
                         <form @submit.prevent="sendPanelMessage" class="flex items-center gap-2">
                             <input
                                 v-model="newMessageText"
@@ -171,16 +220,42 @@ import api from '@/api';
 import { useMessageStore, formatMessageTime } from '@/stores/message';
 import { useAuthStore } from '@/stores/auth';
 import { usePusherMessages } from '@/composables/usePusherMessages';
+import { useLocationStore } from '@/stores/location';
+import { storeToRefs } from 'pinia';
 
+// Route & stores
 const route = useRoute();
 const slug = computed(() => route.params.slug);
 const messageStore = useMessageStore();
 const authStore = useAuthStore();
+const locationStore = useLocationStore();
+const { userCity, userDistrict, userCoords } = storeToRefs(locationStore);
 
+// İlan state
 const shipment = ref(null);
 const loading = ref(false);
 const error = ref(null);
 
+const loadShipment = async () => {
+    const slugVal = slug.value;
+    if (!slugVal) { shipment.value = null; return; }
+    loading.value = true;
+    error.value = null;
+    try {
+        const res = await api.get(`/shipments/${slugVal}/requests`);
+        const data = res.data?.content ?? res.data;
+        shipment.value = data?.shipment ?? data ?? null;
+    } catch (err) {
+        console.error(err);
+        error.value = err?.response?.data?.message ?? err?.message ?? 'İlan yüklenemedi.';
+        shipment.value = null;
+    } finally {
+        loading.value = false;
+    }
+};
+watch(slug, loadShipment);
+
+// İlan computed (güzergah, araç, fiyat) 
 const requestCount = computed(() => shipment.value?.requests?.length ?? 0);
 
 const routeFrom = computed(() => {
@@ -240,30 +315,91 @@ const vehicleImageUrl = computed(() => {
   return getCarImageUrl(image) || '';
 });
 
-const loadShipment = async () => {
-    const slugVal = slug.value;
-    if (!slugVal) {
-        shipment.value = null;
+// En yakın kullanıcılar: AuthController getCloseUsers (şehir/ilçe param ile)
+const closeUsersList = ref([]);
+const closeUsersLoading = ref(false);
+const distanceFromShipmentKm = ref(null);
+const distanceKmByUserId = ref({});
+
+function haversineKm(lat1, lon1, lat2, lon2) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+}
+
+async function geocodeCityDistrict(city, district) {
+    if (!city && !district) return null;
+    const q = [city, district, 'Türkiye'].filter(Boolean).join(', ');
+    try {
+        const res = await fetch(
+            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&countrycodes=tr`,
+            { headers: { 'Accept-Language': 'tr' } }
+        );
+        const data = await res.json();
+        const item = data?.[0];
+        if (item?.lat != null && item?.lon != null) return { lat: parseFloat(item.lat), lng: parseFloat(item.lon) };
+    } catch (_) {}
+    return null;
+}
+
+async function updateDistanceToShipment() {
+    const coords = userCoords.value;
+    const s = shipment.value;
+    if (!coords?.lat || !coords?.lng || !s?.f_where_city) {
+        distanceFromShipmentKm.value = null;
         return;
     }
-    loading.value = true;
-    error.value = null;
+    const fromCoords = await geocodeCityDistrict(s.f_where_city, s.f_where_district);
+    if (!fromCoords) {
+        distanceFromShipmentKm.value = null;
+        return;
+    }
+    distanceFromShipmentKm.value = haversineKm(coords.lat, coords.lng, fromCoords.lat, fromCoords.lng);
+}
+
+watch([() => shipment.value, userCoords], () => updateDistanceToShipment(), { immediate: true });
+
+async function updateDistancesForCloseUsers() {
+    const coords = userCoords.value;
+    const list = closeUsersList.value;
+    if (!coords?.lat || !coords?.lng || !list.length) {
+        distanceKmByUserId.value = {};
+        return;
+    }
+    const map = {};
+    for (const u of list) {
+        const pt = await geocodeCityDistrict(u.user_city, u.user_district);
+        if (pt) map[u.id] = haversineKm(coords.lat, coords.lng, pt.lat, pt.lng);
+        await new Promise((r) => setTimeout(r, 200));
+    }
+    distanceKmByUserId.value = map;
+}
+
+async function fetchCloseUsers() {
+    closeUsersLoading.value = true;
+    distanceKmByUserId.value = {};
     try {
-        const response = await api.get(`/shipments/${slugVal}/requests`);
-        const data = response.data?.content ?? response.data;
-        shipment.value = data?.shipment ?? data ?? null;
+        const res = await api.get('/auth/close-users', {
+            params: {
+                user_city: userCity.value ?? undefined,
+                user_district: userDistrict.value ?? undefined,
+            },
+        });
+        const content = res.data?.content ?? res.data;
+        closeUsersList.value = Array.isArray(content?.users) ? content.users : [];
+        await updateDistancesForCloseUsers();
     } catch (err) {
         console.error(err);
-        error.value = err?.response?.data?.message ?? err?.message ?? 'İlan yüklenemedi.';
-        shipment.value = null;
+        closeUsersList.value = [];
     } finally {
-        loading.value = false;
+        closeUsersLoading.value = false;
     }
-};
+}
 
-watch(slug, loadShipment);
-
-// Mesaj paneli (sağdan kayan duvar)
+// Mesaj paneli
 const showMessagePanel = ref(false);
 const messagePanelVisible = ref(false);
 const panelMessagesContainer = ref(null);
@@ -271,11 +407,21 @@ const panelMessages = ref([]);
 const panelMessagesLoading = ref(false);
 const newMessageText = ref('');
 const selectedReceiver = ref(null);
+const messagePanelOpenedFromCloseUser = ref(false);
+const closeUserBadgeHidden = ref(false);
+
+const showCloseUserBadge = computed(() => messagePanelOpenedFromCloseUser.value && !closeUserBadgeHidden.value);
+
+function scrollPanelToBottom() {
+    nextTick(() => { const el = panelMessagesContainer.value; if (el) el.scrollTop = el.scrollHeight; });
+}
 
 async function openMessagePanel(request) {
     const user = request?.user;
     if (!user?.id) return;
     selectedReceiver.value = user;
+    messagePanelOpenedFromCloseUser.value = !!request?.fromCloseUser;
+    closeUserBadgeHidden.value = false;
     panelMessages.value = [];
     panelMessagesLoading.value = true;
     const { success, data } = await messageStore.getBySenderAndReceiver(user.id);
@@ -285,13 +431,7 @@ async function openMessagePanel(request) {
     }
     newMessageText.value = '';
     showMessagePanel.value = true;
-    nextTick(() => {
-        messagePanelVisible.value = true;
-        nextTick(() => {
-            const el = panelMessagesContainer.value;
-            if (el) el.scrollTop = el.scrollHeight;
-        });
-    });
+    nextTick(() => { messagePanelVisible.value = true; scrollPanelToBottom(); });
 }
 
 function closeMessagePanel() {
@@ -300,6 +440,8 @@ function closeMessagePanel() {
         showMessagePanel.value = false;
         selectedReceiver.value = null;
         panelMessages.value = [];
+        messagePanelOpenedFromCloseUser.value = false;
+        closeUserBadgeHidden.value = false;
     }, 300);
 }
 
@@ -308,10 +450,7 @@ async function sendPanelMessage() {
     if (!text || !selectedReceiver.value?.id) return;
     panelMessages.value = [...panelMessages.value, { id: `temp-${Date.now()}`, text, time: 'Şimdi', isMe: true }];
     newMessageText.value = '';
-    nextTick(() => {
-        const el = panelMessagesContainer.value;
-        if (el) el.scrollTop = el.scrollHeight;
-    });
+    scrollPanelToBottom();
     const result = await messageStore.createMessage({
         shipment_id: shipment.value?.id ?? null,
         receiver_id: selectedReceiver.value.id,
@@ -321,32 +460,23 @@ async function sendPanelMessage() {
         panelMessages.value = panelMessages.value.filter((m) => !m.id?.toString().startsWith('temp-'));
         return;
     }
+    closeUserBadgeHidden.value = true;
     const { success, data } = await messageStore.getBySenderAndReceiver(selectedReceiver.value.id);
-    if (success && Array.isArray(data)) {
-        panelMessages.value = data;
-    }
-    nextTick(() => {
-        const el = panelMessagesContainer.value;
-        if (el) el.scrollTop = el.scrollHeight;
-    });
+    if (success && Array.isArray(data)) panelMessages.value = data;
+    scrollPanelToBottom();
 }
 
 usePusherMessages(computed(() => authStore.user?.id), {
     onMessageSent(e) {
-        const userId = authStore.user?.id;
-        if (!userId || Number(e.receiver_id) !== Number(userId)) return;
-        const openForSender = selectedReceiver.value?.id;
-        if (openForSender == null || Number(e.sender_id) !== Number(openForSender)) return;
-        const time = formatMessageTime(e.created_at);
-        panelMessages.value = [...panelMessages.value, { id: e.id, text: e.message, time, isMe: false }];
-        nextTick(() => {
-            const el = panelMessagesContainer.value;
-            if (el) el.scrollTop = el.scrollHeight;
-        });
+        if (!authStore.user?.id || Number(e.receiver_id) !== Number(authStore.user.id)) return;
+        if (selectedReceiver.value?.id == null || Number(e.sender_id) !== Number(selectedReceiver.value.id)) return;
+        panelMessages.value = [...panelMessages.value, { id: e.id, text: e.message, time: formatMessageTime(e.created_at), isMe: false }];
+        scrollPanelToBottom();
     },
 });
 
 onMounted(() => {
     loadShipment();
+    fetchCloseUsers();
 });
 </script>
