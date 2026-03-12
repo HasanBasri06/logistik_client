@@ -145,14 +145,14 @@ const handleSearch = () => {
 
 <template>
     <div class="w-full min-h-[500px] md:h-[700px] relative -mt-16 pt-16 px-4 lg:px-0">
-        <img :src="HeroSectionBackground" alt="Hero Section Background" class="w-full h-full object-cover absolute z-0 top-0 left-0">
+        <img :src="HeroSectionBackground" alt="Hero Section Background" class="w-full h-full object-cover absolute z-0 top-0 left-0" style="mask-image: linear-gradient(to bottom, black 50%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%);">
         <div class="w-full h-full flex justify-center items-center flex-col gap-8 md:gap-14 py-10 md:py-0 z-10 relative">
             <div class="flex flex-col w-full max-w-[700px] text-center gap-4">
                 <h1 class="text-3xl md:text-5xl lg:text-6xl font-black leading-tight md:leading-normal">Yüklerinizi kolayca yönetin ve takip edin</h1>
                 <p class="text-sm md:text-lg">Yüklerinizi tek platform üzerinden oluşturun, taşıyıcılarla eşleşin ve sevkiyat sürecini kolayca yönetin.</p>
             </div>
 
-            <form @submit.prevent="handleSearch" class="flex flex-col md:flex-row items-stretch md:items-center relative bg-white rounded-xl w-full max-w-[700px] md:w-auto">
+            <form @submit.prevent="handleSearch" class="flex flex-col md:flex-row items-stretch md:items-center relative bg-transparent md:bg-white rounded-xl w-full max-w-[700px] md:w-auto">
 
                 <div ref="fromRef" class="relative">
                     <input
@@ -161,7 +161,7 @@ const handleSearch = () => {
                         placeholder="Nereden"
                         autocomplete="off"
                         @focus="fromQuery.length >= 3 && (showFromDropdown = true)"
-                        class="w-full md:w-auto border border-gray-300 md:border-l md:border-t md:border-b md:border-r-0 rounded-t-xl md:rounded-t-none md:rounded-l-xl px-4 py-4 outline-none bg-white"
+                        class="w-full md:w-auto border border-gray-300 md:border-l md:border-t md:border-b md:border-r-0 rounded-t-none md:rounded-t-none md:rounded-l-xl px-4 py-4 outline-none bg-white"
                     />
                     <div v-if="showFromDropdown" class="absolute top-full left-0 mt-2 w-full md:w-72 bg-white rounded-xl border border-gray-200 shadow-xl z-50 overflow-hidden">
                         <div v-if="fromLoading" class="flex items-center justify-center py-4">
@@ -225,8 +225,8 @@ const handleSearch = () => {
                     </div>
                 </div>
 
-                <div class="flex md:contents">
-                    <div ref="carRef" class="relative flex-1 md:flex-none">
+                <div class="flex-col md:flex-row md:contents ">
+                    <div ref="carRef" class="relative flex-1 md:flex-none mt-4 md:mt-0">
                         <div
                             @click="toggleCarDropdown"
                             class="border border-gray-300 md:border-r md:border-t md:border-b md:border-l-0 w-full md:w-28 px-4 py-[19px] bg-white cursor-pointer flex items-center gap-2 select-none"
@@ -260,7 +260,7 @@ const handleSearch = () => {
                             <div v-else class="px-4 py-4 text-sm text-gray-400 text-center">Araç bulunamadı</div>
                         </div>
                     </div>
-                    <button type="submit" class="bg-primary text-white cursor-pointer px-4 py-4 rounded-b-xl md:rounded-bl-none md:rounded-r-xl border border-primary shrink-0">Taşıt Ara</button>
+                    <button type="submit" class="bg-primary w-full md:w-auto mt-4 md:mt-0 text-white cursor-pointer px-4 py-4 rounded-none md:rounded-bl-none md:rounded-r-xl border border-primary shrink-0">Taşıt Ara</button>
                 </div>
             </form>
 
