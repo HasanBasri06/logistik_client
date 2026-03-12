@@ -64,7 +64,7 @@
               <img
                 :src="getDisplayImage(car)"
                 :alt="car.name"
-                class="h-24 w-full object-contain"
+                class="h-16 w-full object-contain"
               />
               <span
                 class="mt-2 text-sm font-medium"
@@ -297,3 +297,29 @@ const getDisplayImage = (car) => {
 
 onMounted(getCars);
 </script>
+
+<style scoped>
+:deep(.carousel__prev),
+:deep(.carousel__next) {
+  width: 36px;
+  height: 36px;
+  background-color: white;
+  border: 2px solid var(--p-primary-color, #6366f1);
+  border-radius: 9999px;
+  color: var(--p-primary-color, #6366f1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s;
+}
+
+:deep(.carousel__prev:hover),
+:deep(.carousel__next:hover) {
+  background-color: var(--p-primary-color, #6366f1);
+  color: white;
+}
+
+:deep(.carousel__prev svg),
+:deep(.carousel__next svg) {
+  width: 20px;
+  height: 20px;
+}
+</style>

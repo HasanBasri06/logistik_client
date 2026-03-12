@@ -348,7 +348,7 @@
                           </div>
                           <div class="flex flex-col items-end gap-0.5">
                             <span class="text-lg font-bold text-primary">{{ routeInfo.distance > 30 ? formatPrice(calculateRoutePrice()) : postStore.selectedCar.price }} ₺</span>
-                            <span class="text-sm text-gray-400 line-through">24.000 ₺</span>
+                            <!-- <span class="text-sm text-gray-400 line-through">24.000 ₺</span>-->
                           </div>
                         </div>
                         <div v-if="selectedPriceType === 'sabit'" class="mt-3 flex items-center gap-1.5 text-primary text-sm font-medium">

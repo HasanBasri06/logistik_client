@@ -447,7 +447,7 @@ async function saveVehicle() {
         await api.post('/auth/create-car-by-user', {
             car_id: car.id,
             car_detail_id: selectedDetailId.value || null,
-            plaka: plaka.value.trim(),
+            plate: plaka.value.trim(),
         });
         closeAddVehicleModal();
         await fetchMyCars();
@@ -499,20 +499,28 @@ onMounted(fetchMyCars);
     position: relative;
 }
 
-.vehicle-select-carousel :deep(.p-carousel-prev-button) {
+.vehicle-select-carousel :deep(.p-carousel-prev-button),
+.vehicle-select-carousel :deep(.p-carousel-next-button) {
     position: absolute;
-    left: 0.5rem;
     top: 50%;
     transform: translateY(-50%);
     z-index: 10;
+    width: 40px;
+    height: 40px;
+    border-radius: 9999px;
+    background-color: color-mix(in srgb, var(--p-primary-color, #6366f1) 25%, transparent);
+    color: var(--p-primary-color, #6366f1);
+    transition: all 0.2s;
+}
+
+
+
+.vehicle-select-carousel :deep(.p-carousel-prev-button) {
+    left: 0.5rem;
 }
 
 .vehicle-select-carousel :deep(.p-carousel-next-button) {
-    position: absolute;
     right: 0.5rem;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 10;
 }
 
 .vehicle-select-carousel :deep(.p-carousel-viewport) {
