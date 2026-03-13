@@ -126,6 +126,13 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
+    /** Giriş modalını açmak isteyen bileşenler bunu true yapar; Header izleyip modalı açar. */
+    const requestShowLoginModal = ref(false)
+
+    const openLoginModal = () => {
+        requestShowLoginModal.value = true
+    }
+
     const logout = () => {
         setToken(null)
         setUser(null)
@@ -163,6 +170,8 @@ export const useAuthStore = defineStore('auth', () => {
         token,
         user,
         isAuthenticated,
+        requestShowLoginModal,
+        openLoginModal,
         setToken,
         setUser,
         login,

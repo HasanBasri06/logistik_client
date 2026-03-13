@@ -1,31 +1,47 @@
 <template>
-    <div class="w-full h-auto bg-white border border-gray-200 rounded-lg" v-if="request && Object.keys(request).length > 0">
-        <div class="w-full h-10 bg-gray-900 rounded-t-lg flex justify-between items-center px-4 text-white text-sm">
-            <div>{{ request.created_at }}</div>
-            <div>{{ request.price }}</div>
+    <div
+        v-if="request && Object.keys(request).length > 0"
+        class="w-full rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
+    >
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 pb-4">
+            <span class="text-xs font-medium text-gray-500">{{ request.created_at }}</span>
+            <span class="text-lg font-bold text-primary">{{ request.price }}</span>
         </div>
-        <div class="p-4 text-sm text-gray-600">
+        <p v-if="request.message" class="mt-4 text-sm text-gray-600 leading-relaxed">
             {{ request.message }}
-        </div>
-        <div class="flex items-center justify-between px-4 pb-4 mt-2 border-t border-gray-200 py-3">
-            <div class="flex items-center gap-2">
-                <div class="w-10 h-10 bg-gray-200 rounded-full"></div>
-                <div class="flex flex-col gap-1">
-                    <span class="text-sm font-medium text-gray-900">{{ request.user.full_name }}</span>
-                    <span class="text-xs text-gray-500">Puan: {{ request.user.comments_avg_score ?? 0 }} <i class="pi pi-star text-yellow-500"></i></span>
+        </p>
+        <div class="mt-4 flex flex-wrap items-center justify-between gap-4 border-t border-gray-100 pt-4">
+            <div class="flex items-center gap-3">
+                <span
+                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/15 text-sm font-semibold text-primary"
+                >
+                    {{ (request.user?.full_name || request.user?.first_name || '?')[0] }}
+                </span>
+                <div>
+                    <p class="text-sm font-semibold text-gray-900">{{ request.user?.full_name ?? '—' }}</p>
+                    <p class="text-xs text-gray-500 flex items-center gap-1">
+                        <i class="pi pi-star-fill text-amber-400 text-[10px]"></i>
+                        {{ request.user?.comments_avg_score ?? 0 }} puan
+                    </p>
                 </div>
             </div>
             <div class="flex items-center gap-2">
                 <button
                     type="button"
-                    class="text-primary bg-transparent border border-primary cursor-pointer px-4 py-2 rounded-lg text-sm"
+                    class="rounded-xl border border-primary px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
                     @click="$emit('message-click', request)"
-                >Mesaj Gönder</button>
-                <button class="bg-primary text-white px-4 py-2 cursor-pointer rounded-lg text-sm">Hemen Al</button>
+                >
+                    Mesaj
+                </button>
+                <button type="button" class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors">
+                    Hemen Al
+                </button>
             </div>
         </div>
     </div>
-    <div v-else class="text-gray-500 py-2">Henüz teklif verilmemiş</div>
+    <div v-else class="rounded-xl border border-gray-200 bg-gray-50 p-4 text-center text-sm text-gray-500">
+        Henüz teklif verilmemiş
+    </div>
 </template>
 
 <script setup>

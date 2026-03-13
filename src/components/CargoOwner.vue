@@ -1,5 +1,5 @@
 <template>
-    <div class="w-[275px] flex flex-col gap-4 overflow-y-auto py-3">
+    <div class="hidden md:flex md:w-[275px] md:flex-col md:gap-4 md:overflow-y-auto md:py-3">
         <user-section />
         <div class="w-full h-auto pb-3 rounded-md border border-gray-200 text-gray-800 bg-white">
             <div class="w-full h-10 px-4 text-sm font-semibold flex items-center justify-start rounded-t-md border-b border-b-gray-200">Siparişlerim</div>
@@ -107,10 +107,17 @@
             </ul>
         </div>
 
-        <div class="w-full h-24 pb-3 rounded-md border border-gray-200 text-gray-800 flex items-center justify-center gap-2 flex-col bg-primary/10">
+        <div
+            role="button"
+            tabindex="0"
+            class="w-full h-24 pb-3 rounded-md border border-gray-200 text-gray-800 flex items-center justify-center gap-2 flex-col bg-primary/10 cursor-pointer hover:bg-primary/15 transition-colors"
+            @click="ekibineSorOpen = true"
+            @keydown.enter.space.prevent="ekibineSorOpen = true"
+        >
             <i class="pi pi-question-circle mr-2 text-primary" style="font-size: 24px;"></i>
             <h2 class="text-center text-primary text-sm font-semibold">TaşıBul Ekibine Sor</h2>
         </div>
+        <EkibineSorModal v-model:open="ekibineSorOpen" />
     </div>
 </template>
 
@@ -120,11 +127,13 @@ import { useAuthStore } from '@/stores/auth';
 import { storeToRefs } from 'pinia';
 import api from '@/api';
 import UserSection from './UserSection.vue';
+import EkibineSorModal from './EkibineSorModal.vue';
 
 const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);
 
 const hasUnreadMessages = ref(false);
+const ekibineSorOpen = ref(false);
 
 async function fetchHasUnreadMessages() {
     if (!authStore.isAuthenticated) return;

@@ -61,7 +61,8 @@ export const useMessageStore = defineStore('message', () => {
             const { data } = await api.get('/messages/conversation', {
                 params: { sender_id: senderId, receiver_id: receiverId },
             })
-            const list = data?.content ?? data?.data ?? data ?? []
+            const content = data?.content ?? data?.data ?? data
+            const list = Array.isArray(content) ? content : (content?.messages ?? [])
             const currentUserId = senderId
             const mapped = Array.isArray(list)
                 ? list.map((m) => ({
@@ -74,8 +75,8 @@ export const useMessageStore = defineStore('message', () => {
                 }))
                 : []
             const firstWithShipment = Array.isArray(list) ? list.find((m) => m.shipment_id != null) : null
-            const conversationShipmentId = firstWithShipment?.shipment_id ?? null
-            const conversationShipment = firstWithShipment?.shipment ?? null
+            const conversationShipmentId = firstWithShipment?.shipment_id ?? content?.conversation_shipment_id ?? null
+            const conversationShipment = firstWithShipment?.shipment ?? content?.conversation_shipment ?? null
             return {
                 success: true,
                 data: mapped,

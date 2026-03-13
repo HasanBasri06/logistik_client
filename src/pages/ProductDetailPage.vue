@@ -1,130 +1,180 @@
 <template>
     <Header />
-    <div class="h-[calc(100vh-64px)] flex flex-col">
-        <Content class="flex-1 flex gap-6 py-6 min-h-0 flex-row">
-
-            <div class="flex-1 min-w-0 flex flex-col gap-4 overflow-y-auto no_scrool">
-                <!-- En yakın kullanıcılar (sol üst) -->
-                <div class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden shrink-0">
-                    <div class="px-4 py-3 border-b border-gray-100 bg-primary/5">
-                        <span class="text-sm font-semibold text-primary">En yakın kullanıcılar</span>
-                    </div>
-                    <div class="p-4">
-                        <template v-if="closeUsersLoading">
-                            <p class="text-sm text-gray-500 flex items-center gap-2">
-                                <i class="pi pi-spin pi-spinner text-primary"></i>
-                                Yükleniyor...
-                            </p>
-                        </template>
-                        <template v-else-if="closeUsersList.length === 0">
-                            <p class="text-sm text-gray-500">Konum paylaştığınızda size yakın kullanıcılar burada listelenecek.</p>
-                        </template>
-                        <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                            <div
-                                v-for="u in closeUsersList"
-                                :key="u.id"
-                                class="rounded-xl border border-gray-200 bg-gray-50/50 p-4 flex items-center gap-3"
-                            >
-                                <span class="flex items-center justify-center w-10 h-10 rounded-full bg-primary/15 text-primary text-sm font-semibold shrink-0" :title="u.full_name || u.first_name || '?'">
-                                    {{ (u.full_name || u.first_name || '?')[0] }}
-                                </span>
-                                <div class="min-w-0 flex-1">
-                                    <p class="text-sm font-semibold text-gray-900 truncate" :title="u.full_name || [u.first_name, u.last_name].filter(Boolean).join(' ') || 'Kullanıcı'">{{ u.full_name || [u.first_name, u.last_name].filter(Boolean).join(' ') || 'Kullanıcı' }}</p>
-                                    <p :title="[u.user_city, u.user_district].filter(Boolean).join(' / ') || '—'" class="text-xs text-gray-500 truncate mt-0.5">{{ [u.user_city, u.user_district].filter(Boolean).join(' / ') || '—' }}</p>
-                                    <p v-if="distanceKmByUserId[u.id] != null" class="text-xs text-primary font-medium mt-1">~{{ Math.round(distanceKmByUserId[u.id]) }} km uzakta</p>
+    <div class="min-h-[calc(100vh-64px)] bg-gray-50/60">
+        <Content class="py-6 md:py-8">
+            <div class="flex flex-col gap-6 lg:flex-row lg:gap-8">
+                <!-- Sol: Ana içerik -->
+                <div class="flex-1 min-w-0 flex flex-col gap-6 order-2 lg:order-1">
+                    <!-- İlan özeti kartı (mobilde üstte) -->
+                    <section
+                        v-if="!loading && !error && shipment"
+                        class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden"
+                    >
+                        <div class="p-5 md:p-6">
+                            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-6">
+                                <div class="flex flex-col gap-1">
+                                    <p class="text-xs font-medium text-primary uppercase tracking-wide">Güzergah</p>
+                                    <div class="flex flex-wrap items-center gap-2 md:gap-3">
+                                        <span class="text-lg md:text-xl font-bold text-gray-900">{{ routeFrom }}</span>
+                                        <i class="pi pi-arrow-right text-primary text-sm"></i>
+                                        <span class="text-lg md:text-xl font-bold text-gray-900">{{ routeTo }}</span>
+                                    </div>
                                 </div>
-                                <button
-                                    type="button"
-                                    class="flex items-center justify-center w-9 h-9 rounded-lg border border-gray-200 text-gray-500 hover:border-primary hover:bg-primary/10 hover:text-primary transition-colors shrink-0"
-                                    title="Mesaj gönder"
-                                    @click="openMessagePanel({ user: u, fromCloseUser: true })"
-                                >
-                                    <i class="pi pi-comments text-base"></i>
-                                </button>
+                                <div class="flex items-center gap-3 pt-2 md:pt-0 md:pl-4 border-t border-gray-100 md:border-t-0 md:border-l md:border-gray-200">
+                                    <span class="text-2xl font-bold text-primary">{{ priceDisplay }}</span>
+                                </div>
+                            </div>
+                            <div class="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-600">
+                                <span v-if="vehicleLabel" class="flex items-center gap-1.5">
+                                    <i class="pi pi-truck text-primary text-base"></i>
+                                    {{ vehicleLabel }}
+                                </span>
+                                <span v-if="weightDisplay" class="flex items-center gap-1.5">
+                                    <i class="pi pi-box text-primary text-base"></i>
+                                    {{ weightDisplay }}
+                                </span>
+                                <span v-if="timeDisplay" class="flex items-center gap-1.5">
+                                    <i class="pi pi-clock text-primary text-base"></i>
+                                    {{ timeDisplay }}
+                                </span>
+                                <span class="flex items-center gap-1.5">
+                                    <i class="pi pi-tag text-primary text-base"></i>
+                                    {{ postTypeLabel }}
+                                </span>
                             </div>
                         </div>
+                    </section>
 
-                    </div>
+                    <!-- Loading -->
+                    <template v-if="loading">
+                        <div class="rounded-2xl border border-gray-200 bg-white p-12 flex flex-col items-center justify-center gap-3">
+                            <i class="pi pi-spin pi-spinner text-3xl text-primary"></i>
+                            <p class="text-gray-600 font-medium">İlan yükleniyor...</p>
+                        </div>
+                    </template>
+
+                    <!-- Error -->
+                    <template v-else-if="error">
+                        <div class="rounded-2xl border border-red-200 bg-red-50 p-6 text-center">
+                            <i class="pi pi-exclamation-triangle text-2xl text-red-500 mb-2"></i>
+                            <p class="font-medium text-red-700">{{ error }}</p>
+                        </div>
+                    </template>
+
+                    <!-- Teklifler bölümü -->
+                    <template v-else-if="shipment">
+                        <section class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+                            <div class="px-5 py-4 border-b border-gray-100 bg-gray-50/80">
+                                <h2 class="text-base font-semibold text-gray-900">
+                                    Teklifler
+                                    <span v-if="requestCount > 0" class="ml-2 text-primary font-bold">({{ requestCount }})</span>
+                                </h2>
+                            </div>
+                            <div class="p-5">
+                                <template v-if="requestCount === 0">
+                                    <div class="flex flex-col items-center justify-center py-12 text-center">
+                                        <div class="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+                                            <i class="pi pi-inbox text-3xl text-gray-400"></i>
+                                        </div>
+                                        <p class="text-gray-600 font-medium">Henüz teklif bulunmuyor</p>
+                                        <p class="text-sm text-gray-500 mt-1">Teklifler burada listelenecek.</p>
+                                    </div>
+                                </template>
+                                <div v-else class="flex flex-col gap-4">
+                                    <RequestCard
+                                        v-for="req in (shipment?.requests || [])"
+                                        :key="req?.id ?? req?.created_at"
+                                        :request="req"
+                                        @message-click="openMessagePanel"
+                                    />
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- En yakın kullanıcılar -->
+                        <section class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+                            <div class="px-5 py-4 border-b border-gray-100 bg-gray-50/80">
+                                <h2 class="text-base font-semibold text-gray-900">Yakındaki taşıyıcılar</h2>
+                                <p class="text-xs text-gray-500 mt-0.5">Konum paylaştığınızda size yakın kullanıcılar listelenir.</p>
+                            </div>
+                            <div class="p-5">
+                                <template v-if="closeUsersLoading">
+                                    <p class="text-sm text-gray-500 flex items-center gap-2">
+                                        <i class="pi pi-spin pi-spinner text-primary"></i>
+                                        Yükleniyor...
+                                    </p>
+                                </template>
+                                <template v-else-if="closeUsersList.length === 0">
+                                    <p class="text-sm text-gray-500">Henüz yakın kullanıcı bilgisi yok.</p>
+                                </template>
+                                <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div
+                                        v-for="u in closeUsersList"
+                                        :key="u.id"
+                                        class="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/50 p-4 hover:border-primary/30 hover:bg-primary/5 transition-colors"
+                                    >
+                                        <span
+                                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/15 text-sm font-semibold text-primary"
+                                            :title="u.full_name || u.first_name || '?'"
+                                        >
+                                            {{ (u.full_name || u.first_name || '?')[0] }}
+                                        </span>
+                                        <div class="min-w-0 flex-1">
+                                            <p class="text-sm font-semibold text-gray-900 truncate">
+                                                {{ u.full_name || [u.first_name, u.last_name].filter(Boolean).join(' ') || 'Kullanıcı' }}
+                                            </p>
+                                            <p class="text-xs text-gray-500 truncate mt-0.5">
+                                                {{ [u.user_city, u.user_district].filter(Boolean).join(' / ') || '—' }}
+                                            </p>
+                                            <p v-if="distanceKmByUserId[u.id] != null" class="text-xs text-primary font-medium mt-1">
+                                                ~{{ Math.round(distanceKmByUserId[u.id]) }} km
+                                            </p>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            class="shrink-0 flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:border-primary hover:bg-primary/10 hover:text-primary transition-colors"
+                                            title="Mesaj gönder"
+                                            @click="openMessagePanel({ user: u, fromCloseUser: true })"
+                                        >
+                                            <i class="pi pi-comments text-base"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                    </template>
                 </div>
 
-                <template v-if="loading">
-                    <div class="flex items-center justify-center py-12">
-                        <i class="pi pi-spin pi-spinner text-2xl text-primary"></i>
-                        <span class="ml-2 text-gray-600">Yükleniyor...</span>
-                    </div>
-                </template>
-                <template v-else-if="error">
-                    <p class="text-red-600 font-medium">{{ error }}</p>
-                </template>
-                <template v-else-if="requestCount == 0">
-                    <img src="../assets/images/no_teklif.png" alt="No offer" class="w-[500px] h-auto mx-auto">
-                </template>
-                <template v-else>
-                    <h2 class="text-lg font-semibold text-gray-900">{{ requestCount }} adet teklif bulunmaktadır.</h2>
-                    <RequestCard
-                        v-for="req in (shipment?.requests || [])"
-                        :key="req?.id ?? req?.created_at"
-                        :request="req"
-                        @message-click="openMessagePanel"
-                    />
-                </template>
-                
-            </div>
-
-            <div class="w-1/3 shrink-0 flex flex-col space-y-4">
-                <div class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden sticky w-full top-6 self-start">
-                    <div class="px-5 py-4 border-b border-gray-100 bg-primary/5">
-                        <span class="text-sm font-semibold text-primary">Güzergah</span>
-                    </div>
-                    <div class="p-5 flex flex-col gap-5">
-                        <div class="flex items-center gap-3">
-                            <span class="text-lg font-semibold text-gray-900">{{ routeFrom }}</span>
-                            <i class="pi pi-arrow-right text-primary text-sm shrink-0"></i>
-                            <span class="text-lg font-semibold text-gray-900">{{ routeTo }}</span>
+                <!-- Sağ: Sticky özet (masaüstü) -->
+                <aside
+                    v-if="!loading && !error && shipment"
+                    class="w-full lg:w-80 shrink-0 order-1 lg:order-2 lg:self-start lg:sticky lg:top-24"
+                >
+                    <div class="flex flex-col gap-4">
+                        <div class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden p-5">
+                            <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Araç</p>
+                            <div class="flex flex-col items-center gap-3">
+                                <img
+                                    v-if="vehicleImageUrl"
+                                    :src="vehicleImageUrl"
+                                    :alt="vehicleLabel || 'Araç'"
+                                    class="w-full max-w-36 h-24 object-contain rounded-xl"
+                                />
+                                <span v-if="vehicleLabel" class="text-sm font-semibold text-gray-900 text-center">{{ vehicleLabel }}</span>
+                                <span v-else-if="!vehicleImageUrl" class="text-sm text-gray-400">—</span>
+                            </div>
                         </div>
-                        <div class="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-600">
-                            <span v-if="vehicleLabel" class="font-medium text-gray-700">{{ vehicleLabel }}</span>
-                            <span v-if="weightDisplay">{{ weightDisplay }}</span>
-                            <span v-if="timeDisplay" class="text-primary font-semibold">({{ timeDisplay }})</span>
-                        </div>
-                        <div class="pt-3 border-t border-gray-100 flex justify-between items-center">
-                            <span class="text-sm text-gray-500">Ücret</span>
-                            <span class="text-lg font-semibold text-primary">{{ priceDisplay }}</span>
+                        <div class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden p-5">
+                            <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Yük tipi</p>
+                            <p class="text-base font-semibold text-gray-900">{{ postTypeLabel }}</p>
                         </div>
                     </div>
-                </div>
-
-                <div class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden w-full sticky top-6 self-start">
-                    <div class="px-5 py-4 border-b border-gray-100 bg-primary/5">
-                        <span class="text-sm font-semibold text-primary">Araç</span>
-                    </div>
-                    <div class="flex flex-col gap-4 p-5 items-center">
-                        <img
-                            v-if="vehicleImageUrl"
-                            :src="vehicleImageUrl"
-                            :alt="vehicleLabel || 'Araç'"
-                            class="w-full max-w-40 h-28 object-contain rounded-lg"
-                        />
-                        <span v-if="vehicleLabel" class="text-xs font-semibold text-primary max-w-fit px-2 py-1 rounded-full text-center">{{ vehicleLabel }}</span>
-                        <span v-else-if="!vehicleImageUrl" class="text-xs text-gray-400">—</span>
-                    </div>
-                </div>
-                
-                <div class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden w-full sticky top-6 self-start">
-                    <div class="px-5 py-4 border-b border-gray-100 bg-primary/5">
-                        <span class="text-sm font-semibold text-primary">Yük Tipi</span>
-                    </div>
-                    <div class="p-5 flex flex-col gap-5">
-                        <div class="flex items-center gap-3">
-                            <span class="text-lg font-semibold text-gray-900">{{ postTypeLabel }}</span>
-                        </div>
-                    </div>
-                </div>
+                </aside>
             </div>
         </Content>
     </div>
 
-    <!-- Mesaj duvarı – sağdan kayan panel -->
+    <!-- Mesaj paneli -->
     <Teleport to="body">
         <div
             v-if="showMessagePanel"
@@ -136,28 +186,26 @@
                 @click="closeMessagePanel"
             />
             <div
-                class="relative h-screen w-96 bg-white border-l border-gray-200 shadow-xl flex flex-col transition-transform duration-300 ease-out"
+                class="relative h-full w-full max-w-md bg-white border-l border-gray-200 shadow-xl flex flex-col transition-transform duration-300 ease-out"
                 :class="messagePanelVisible ? 'translate-x-0' : 'translate-x-full'"
             >
-                <div class="flex items-center justify-between p-3 border-b border-gray-200">
-                    <span class="text-sm font-semibold text-gray-900">
+                <div class="flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-white">
+                    <span class="text-sm font-semibold text-gray-900 truncate">
                         {{ selectedReceiver?.full_name ? `Mesaj: ${selectedReceiver.full_name}` : 'Mesaj' }}
                     </span>
                     <button
                         type="button"
-                        class="p-1 rounded hover:bg-gray-100 text-gray-500 hover:text-gray-700"
+                        class="p-2 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-gray-700 transition-colors"
                         aria-label="Kapat"
                         @click="closeMessagePanel"
                     >
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
+                        <i class="pi pi-times text-lg"></i>
                     </button>
                 </div>
                 <div class="flex-1 flex flex-col min-h-0">
                     <div
                         ref="panelMessagesContainer"
-                        class="flex-1 overflow-y-auto px-3 py-2 flex flex-col gap-3 bg-gray-50"
+                        class="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-3 bg-gray-50"
                     >
                         <div
                             v-for="(msg, index) in panelMessages"
@@ -166,38 +214,41 @@
                         >
                             <div
                                 :class="[
-                                    'max-w-[85%] px-3 py-2 rounded-lg flex flex-col gap-0.5',
+                                    'max-w-[85%] px-4 py-2.5 rounded-2xl flex flex-col gap-0.5',
                                     msg.isMe
-                                        ? 'bg-primary text-white rounded-br-none'
-                                        : 'bg-white text-gray-800 border border-gray-200 rounded-bl-none'
+                                        ? 'bg-primary text-white rounded-br-md'
+                                        : 'bg-white text-gray-800 border border-gray-200 rounded-bl-md'
                                 ]"
                             >
                                 <p class="text-sm leading-snug">{{ msg.text }}</p>
                                 <span class="text-xs opacity-80">{{ msg.time }}</span>
                             </div>
                         </div>
-                        <p v-if="!panelMessages.length && !panelMessagesLoading" class="text-sm text-gray-500 text-center py-4">
-                            Henüz mesaj yok. Aşağıdan mesaj göndererek başlayın.
+                        <p v-if="!panelMessages.length && !panelMessagesLoading" class="text-sm text-gray-500 text-center py-8">
+                            Henüz mesaj yok. Aşağıdan mesaj göndererek sohbeti başlatın.
                         </p>
-                        <p v-if="panelMessagesLoading" class="text-sm text-gray-500 text-center py-4">Mesajlar yükleniyor...</p>
+                        <p v-if="panelMessagesLoading" class="text-sm text-gray-500 text-center py-8 flex items-center justify-center gap-2">
+                            <i class="pi pi-spin pi-spinner text-primary"></i>
+                            Mesajlar yükleniyor...
+                        </p>
                     </div>
-                    <div class="relative w-full shrink-0 border-t border-gray-200 bg-white pt-2 pb-2 px-2">
+                    <div class="relative w-full shrink-0 border-t border-gray-200 bg-white p-4">
                         <div
                             v-if="showCloseUserBadge"
-                            class="absolute left-2 right-2 bottom-full mb-1 px-3 py-2 rounded-lg bg-primary/15 text-primary text-xs font-medium text-center opacity-70"
+                            class="absolute left-4 right-4 bottom-full mb-2 px-3 py-2 rounded-lg bg-primary/10 text-primary text-xs font-medium text-center"
                         >
-                            Yakındaki bu araç sahibine yükünüzü taşıtmak için hemen mesaj gönderiniz.
+                            Bu taşıyıcıya mesaj göndererek iletişime geçin.
                         </div>
                         <form @submit.prevent="sendPanelMessage" class="flex items-center gap-2">
                             <input
                                 v-model="newMessageText"
                                 type="text"
                                 placeholder="Mesajınızı yazın..."
-                                class="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+                                class="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
                             />
                             <button
                                 type="submit"
-                                class="flex items-center justify-center w-10 h-10 shrink-0 rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors"
+                                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-white hover:bg-primary/90 transition-colors"
                                 aria-label="Gönder"
                             >
                                 <i class="pi pi-send text-sm"></i>
@@ -214,7 +265,7 @@
 import Header from '@/components/Header.vue';
 import Content from '@/components/Content.vue';
 import RequestCard from '@/components/RequestCard.vue';
-import { onMounted, onBeforeUnmount, ref, computed, watch, nextTick } from 'vue';
+import { onMounted, ref, computed, watch, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 import api from '@/api';
 import { useMessageStore, formatMessageTime } from '@/stores/message';
@@ -223,7 +274,6 @@ import { usePusherMessages } from '@/composables/usePusherMessages';
 import { useLocationStore } from '@/stores/location';
 import { storeToRefs } from 'pinia';
 
-// Route & stores
 const route = useRoute();
 const slug = computed(() => route.params.slug);
 const messageStore = useMessageStore();
@@ -231,7 +281,6 @@ const authStore = useAuthStore();
 const locationStore = useLocationStore();
 const { userCity, userDistrict, userCoords } = storeToRefs(locationStore);
 
-// İlan state
 const shipment = ref(null);
 const loading = ref(false);
 const error = ref(null);
@@ -255,70 +304,67 @@ const loadShipment = async () => {
 };
 watch(slug, loadShipment);
 
-// İlan computed (güzergah, araç, fiyat) 
 const requestCount = computed(() => shipment.value?.requests?.length ?? 0);
 
 const routeFrom = computed(() => {
-  const s = shipment.value;
-  if (!s) return '—';
-  const parts = [s.f_where_city, s.f_where_district].filter(Boolean);
-  return parts.length ? parts.join(' / ') : '—';
+    const s = shipment.value;
+    if (!s) return '—';
+    const parts = [s.f_where_city, s.f_where_district].filter(Boolean);
+    return parts.length ? parts.join(' / ') : '—';
 });
 const routeTo = computed(() => {
-  const s = shipment.value;
-  if (!s) return '—';
-  const parts = [s.t_where_city, s.t_where_district].filter(Boolean);
-  return parts.length ? parts.join(' / ') : '—';
+    const s = shipment.value;
+    if (!s) return '—';
+    const parts = [s.t_where_city, s.t_where_district].filter(Boolean);
+    return parts.length ? parts.join(' / ') : '—';
 });
 const vehicleLabel = computed(() => {
-  const s = shipment.value;
-  const car = s?.car;
-  const detail = s?.get_car_detail ?? s?.getCarDetail;
-  if (!car?.name) return detail?.value ?? null;
-  return detail?.value ? `${car.name} / ${detail.value}` : car.name;
+    const s = shipment.value;
+    const car = s?.car;
+    const detail = s?.get_car_detail ?? s?.getCarDetail;
+    if (!car?.name) return detail?.value ?? null;
+    return detail?.value ? `${car.name} / ${detail.value}` : car.name;
 });
 const weightDisplay = computed(() => {
-  const w = shipment.value?.weight;
-  return w ? String(w).trim() : null;
+    const w = shipment.value?.weight;
+    return w ? String(w).trim() : null;
 });
 const timeDisplay = computed(() => {
-  const s = shipment.value;
-  const dep = s?.departure_time ?? s?.departureTime;
-  const arr = s?.time_arrival ?? s?.timeArrival;
-  if (!dep && !arr) return null;
-  return [dep, arr].filter(Boolean).join(' - ');
+    const s = shipment.value;
+    const dep = s?.departure_time ?? s?.departureTime;
+    const arr = s?.time_arrival ?? s?.timeArrival;
+    if (!dep && !arr) return null;
+    return [dep, arr].filter(Boolean).join(' - ');
 });
 const priceDisplay = computed(() => {
-  const p = shipment.value?.price;
-  if (p == null) return '—';
-  if (typeof p === 'string') return p;
-  return Number(p) === 0 ? 'Fiyat görüşülecektir' : `${Number(p).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺`;
+    const p = shipment.value?.price;
+    if (p == null) return '—';
+    if (typeof p === 'string') return p;
+    return Number(p) === 0 ? 'Fiyat görüşülecektir' : `${Number(p).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺`;
 });
 const postTypeLabel = computed(() => {
-  const pt = shipment.value?.post_type ?? shipment.value?.postType;
-  return pt?.value ?? '—';
+    const pt = shipment.value?.post_type ?? shipment.value?.postType;
+    return pt?.value ?? '—';
 });
 
 function getCarImageUrl(image) {
-  if (!image) return '';
-  if (typeof image === 'string' && image.startsWith('http')) return image;
-  try {
-    return new URL(`../assets/images/vehicles/${image}`, import.meta.url).href;
-  } catch {
-    return '';
-  }
+    if (!image) return '';
+    if (typeof image === 'string' && image.startsWith('http')) return image;
+    try {
+        return new URL(`../assets/images/vehicles/${image}`, import.meta.url).href;
+    } catch {
+        return '';
+    }
 }
 const vehicleImageUrl = computed(() => {
-  const car = shipment.value?.car;
-  const detail = shipment.value?.get_car_detail ?? shipment.value?.getCarDetail;
-  const image = detail?.image ?? car?.image;
-  return getCarImageUrl(image) || '';
+    const car = shipment.value?.car;
+    const detail = shipment.value?.get_car_detail ?? shipment.value?.getCarDetail;
+    const image = detail?.image ?? car?.image;
+    return getCarImageUrl(image) || '';
 });
 
-// En yakın kullanıcılar: AuthController getCloseUsers (şehir/ilçe param ile)
 const closeUsersList = ref([]);
 const closeUsersLoading = ref(false);
-const distanceFromShipmentKm = ref(null);
 const distanceKmByUserId = ref({});
 
 function haversineKm(lat1, lon1, lat2, lon2) {
@@ -345,23 +391,6 @@ async function geocodeCityDistrict(city, district) {
     return null;
 }
 
-async function updateDistanceToShipment() {
-    const coords = userCoords.value;
-    const s = shipment.value;
-    if (!coords?.lat || !coords?.lng || !s?.f_where_city) {
-        distanceFromShipmentKm.value = null;
-        return;
-    }
-    const fromCoords = await geocodeCityDistrict(s.f_where_city, s.f_where_district);
-    if (!fromCoords) {
-        distanceFromShipmentKm.value = null;
-        return;
-    }
-    distanceFromShipmentKm.value = haversineKm(coords.lat, coords.lng, fromCoords.lat, fromCoords.lng);
-}
-
-watch([() => shipment.value, userCoords], () => updateDistanceToShipment(), { immediate: true });
-
 async function updateDistancesForCloseUsers() {
     const coords = userCoords.value;
     const list = closeUsersList.value;
@@ -378,19 +407,32 @@ async function updateDistancesForCloseUsers() {
     distanceKmByUserId.value = map;
 }
 
+function sortCloseUsersByDistance() {
+    const dist = distanceKmByUserId.value;
+    closeUsersList.value = closeUsersList.value.slice().sort((a, b) => {
+        const kmA = dist[a.id] ?? Infinity;
+        const kmB = dist[b.id] ?? Infinity;
+        return kmA - kmB;
+    });
+}
+
 async function fetchCloseUsers() {
     closeUsersLoading.value = true;
     distanceKmByUserId.value = {};
+    const s = shipment.value;
+    const city = s?.f_where_city ?? userCity.value;
+    const district = s?.f_where_district ?? userDistrict.value;
     try {
         const res = await api.get('/auth/close-users', {
             params: {
-                user_city: userCity.value ?? undefined,
-                user_district: userDistrict.value ?? undefined,
+                user_city: city ?? undefined,
+                user_district: district ?? undefined,
             },
         });
         const content = res.data?.content ?? res.data;
         closeUsersList.value = Array.isArray(content?.users) ? content.users : [];
         await updateDistancesForCloseUsers();
+        sortCloseUsersByDistance();
     } catch (err) {
         console.error(err);
         closeUsersList.value = [];
@@ -399,7 +441,6 @@ async function fetchCloseUsers() {
     }
 }
 
-// Mesaj paneli
 const showMessagePanel = ref(false);
 const messagePanelVisible = ref(false);
 const panelMessagesContainer = ref(null);
@@ -475,8 +516,13 @@ usePusherMessages(computed(() => authStore.user?.id), {
     },
 });
 
-onMounted(() => {
-    loadShipment();
+onMounted(async () => {
+    await loadShipment();
+    fetchCloseUsers();
+});
+
+watch(slug, async () => {
+    await loadShipment();
     fetchCloseUsers();
 });
 </script>

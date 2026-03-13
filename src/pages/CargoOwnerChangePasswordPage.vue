@@ -1,11 +1,13 @@
 <template>
     <Header />
-    <div class="h-[calc(100vh-64px)]">
+    <div class="min-h-[calc(100vh-64px)] bg-gray-50/50">
         <Content>
-            <div class="flex flex-row gap-3 w-full h-[calc(100vh-64px)]">
+            <div class="flex flex-row gap-6 w-full py-6">
                 <CargoOwner />
-                <div class="bg-white flex-1 mt-3 border border-gray-200 p-3 rounded-md flex flex-col overflow-hidden">
-                    <AccountChangePassword />
+                <div class="flex-1 min-w-0">
+                    <div class="rounded-2xl border border-gray-200 bg-white p-6 md:p-8 shadow-sm">
+                        <AccountChangePassword />
+                    </div>
                 </div>
             </div>
         </Content>

@@ -144,15 +144,15 @@ const handleSearch = () => {
 </script>
 
 <template>
-    <div class="w-full min-h-[500px] md:h-[700px] relative -mt-16 pt-16 px-4 lg:px-0">
+    <div class="w-full min-h-[500px] md:h-[700px] relative -mt-16 pt-16 px-4 lg:px-0 flex  justify-center items-center">
         <img :src="HeroSectionBackground" alt="Hero Section Background" class="w-full h-full object-cover absolute z-0 top-0 left-0" style="mask-image: linear-gradient(to bottom, black 50%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%);">
-        <div class="w-full h-full flex justify-center items-center flex-col gap-8 md:gap-14 py-10 md:py-0 z-10 relative">
-            <div class="flex flex-col w-full max-w-[700px] text-center gap-4">
+        <div class="w-full max-w-[900px] h-full min-h-[500px] md:min-h-0 flex flex-col justify-center items-center gap-8 md:gap-14 py-10 md:py-16 z-10 relative">
+            <div class="flex flex-col w-full max-w-[700px] text-center gap-4 mx-auto">
                 <h1 class="text-3xl md:text-5xl lg:text-6xl font-black leading-tight md:leading-normal">Yüklerinizi kolayca yönetin ve takip edin</h1>
                 <p class="text-sm md:text-lg">Yüklerinizi tek platform üzerinden oluşturun, taşıyıcılarla eşleşin ve sevkiyat sürecini kolayca yönetin.</p>
             </div>
 
-            <form @submit.prevent="handleSearch" class="flex flex-col md:flex-row items-stretch md:items-center relative bg-transparent md:bg-white rounded-xl w-full max-w-[700px] md:w-auto">
+            <form @submit.prevent="handleSearch" class="flex flex-col md:flex-row items-stretch md:items-center relative bg-transparent md:bg-white rounded-xl w-full max-w-[700px] mx-auto">
 
                 <div ref="fromRef" class="relative">
                     <input
@@ -264,7 +264,7 @@ const handleSearch = () => {
                 </div>
             </form>
 
-            <div class="flex gap-6 md:gap-10">
+            <div class="flex flex-wrap justify-center gap-6 md:gap-10">
                 <div class="flex flex-col gap-2 text-center">
                     <h3 class="text-2xl md:text-4xl font-bold">30%</h3>
                     <p class="text-xs md:text-sm text-gray-600">Daha ucuz</p>

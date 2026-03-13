@@ -1,53 +1,139 @@
 <template>
     <div class="flex flex-col h-full overflow-y-auto">
-        <h2 class="text-2xl font-semibold text-gray-900 mb-6">Şifre Değiştir</h2>
-        
-        <form @submit.prevent="handlePasswordChange" class="flex flex-col gap-6 max-w-md">
-            <div class="flex flex-col gap-1">
-                <label class="text-sm font-medium text-gray-700">Eski Şifre</label>
-                <input
-                    type="password"
-                    v-model="passwordForm.currentPassword"
-                    :class="['input', passwordErrors.currentPassword ? 'border-red-400' : '']"
-                    placeholder="Mevcut şifrenizi girin"
-                />
-                <span v-if="passwordErrors.currentPassword" class="text-xs text-red-500 mt-0.5">
-                    {{ passwordErrors.currentPassword }}
+        <div class="flex flex-col gap-1 mb-8">
+            <div class="flex items-center gap-3">
+                <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <i class="pi pi-lock text-xl"></i>
                 </span>
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-900">Şifre Değiştir</h2>
+                    <p class="text-sm text-gray-500 mt-0.5">E-posta adresinize gönderilen doğrulama kodu ile şifrenizi güncelleyin.</p>
+                </div>
+            </div>
+        </div>
+
+        <form @submit.prevent="handlePasswordChange" class="flex flex-col gap-6 max-w-md">
+            <div class="flex flex-col gap-2">
+                <label class="text-sm font-semibold text-gray-700">E-posta Doğrulama Kodu</label>
+                <div class="flex gap-2">
+                    <input
+                        v-model="passwordForm.code"
+                        type="text"
+                        inputmode="numeric"
+                        maxlength="6"
+                        placeholder="000000"
+                        :class="[
+                            'w-full h-12 px-4 rounded-lg border-2 text-center text-lg tracking-[0.35em] focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all',
+                            passwordErrors.code ? 'border-red-400 focus:border-red-500' : 'border-gray-200 focus:border-primary'
+                        ]"
+                        :disabled="loading"
+                        @input="passwordForm.code = passwordForm.code.replace(/\D/g, '').slice(0, 6)"
+                    />
+                </div>
+                <div class="flex items-center justify-between gap-2 flex-wrap">
+                    <span v-if="passwordErrors.code" class="text-xs text-red-500 flex items-center gap-1">
+                        <i class="pi pi-exclamation-circle text-[10px]"></i>
+                        {{ passwordErrors.code }}
+                    </span>
+                    <button
+                        type="button"
+                        class="text-sm font-medium text-primary hover:underline disabled:opacity-50 disabled:pointer-events-none ml-auto"
+                        :disabled="codeSending"
+                        @click="sendCode"
+                    >
+                        <span v-if="codeSending" class="inline-flex items-center gap-1">
+                            <i class="pi pi-spin pi-spinner text-xs"></i>
+                            Gönderiliyor...
+                        </span>
+                        <span v-else>{{ codeSent ? 'Kodu tekrar gönder' : 'Doğrulama kodu gönder' }}</span>
+                    </button>
+                </div>
+                <p v-if="codeSent && emailMasked" class="text-xs text-gray-500">
+                    Kod <strong>{{ emailMasked }}</strong> adresine gönderildi.
+                </p>
             </div>
 
-            <div class="flex flex-col gap-1">
-                <label class="text-sm font-medium text-gray-700">Yeni Şifre</label>
-                <input
-                    type="password"
-                    v-model="passwordForm.newPassword"
-                    :class="['input', passwordErrors.newPassword ? 'border-red-400' : '']"
-                    placeholder="Yeni şifrenizi girin"
-                />
-                <span v-if="passwordErrors.newPassword" class="text-xs text-red-500 mt-0.5">
+            <div class="flex flex-col gap-2">
+                <label class="text-sm font-semibold text-gray-700">Yeni Şifre</label>
+                <div class="relative">
+                    <input
+                        :type="showNew ? 'text' : 'password'"
+                        v-model="passwordForm.newPassword"
+                        :class="[
+                            'w-full h-12 px-4 pl-12 pr-12 rounded-lg border-2 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all',
+                            passwordErrors.newPassword ? 'border-red-400 focus:border-red-500' : 'border-gray-200 focus:border-primary'
+                        ]"
+                        placeholder="En az 6 karakter"
+                        :disabled="loading"
+                    />
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                        <i class="pi pi-key text-base"></i>
+                    </span>
+                    <button
+                        type="button"
+                        class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                        @click="showNew = !showNew"
+                        :aria-label="showNew ? 'Gizle' : 'Göster'"
+                    >
+                        <i :class="showNew ? 'pi pi-eye-slash' : 'pi pi-eye'" class="text-lg"></i>
+                    </button>
+                </div>
+                <p class="text-xs text-gray-500">En az 6 karakter olmalıdır.</p>
+                <span v-if="passwordErrors.newPassword" class="text-xs text-red-500 flex items-center gap-1">
+                    <i class="pi pi-exclamation-circle text-[10px]"></i>
                     {{ passwordErrors.newPassword }}
                 </span>
             </div>
 
-            <div class="flex flex-col gap-1">
-                <label class="text-sm font-medium text-gray-700">Yeni Şifre Tekrar</label>
-                <input
-                    type="password"
-                    v-model="passwordForm.confirmPassword"
-                    :class="['input', passwordErrors.confirmPassword ? 'border-red-400' : '']"
-                    placeholder="Yeni şifrenizi tekrar girin"
-                />
-                <span v-if="passwordErrors.confirmPassword" class="text-xs text-red-500 mt-0.5">
+            <div class="flex flex-col gap-2">
+                <label class="text-sm font-semibold text-gray-700">Yeni Şifre (Tekrar)</label>
+                <div class="relative">
+                    <input
+                        :type="showConfirm ? 'text' : 'password'"
+                        v-model="passwordForm.confirmPassword"
+                        :class="[
+                            'w-full h-12 px-4 pl-12 pr-12 rounded-lg border-2 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all',
+                            passwordErrors.confirmPassword ? 'border-red-400 focus:border-red-500' : 'border-gray-200 focus:border-primary'
+                        ]"
+                        placeholder="Yeni şifrenizi tekrar girin"
+                        :disabled="loading"
+                    />
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                        <i class="pi pi-key text-base"></i>
+                    </span>
+                    <button
+                        type="button"
+                        class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                        @click="showConfirm = !showConfirm"
+                        :aria-label="showConfirm ? 'Gizle' : 'Göster'"
+                    >
+                        <i :class="showConfirm ? 'pi pi-eye-slash' : 'pi pi-eye'" class="text-lg"></i>
+                    </button>
+                </div>
+                <span v-if="passwordErrors.confirmPassword" class="text-xs text-red-500 flex items-center gap-1">
+                    <i class="pi pi-exclamation-circle text-[10px]"></i>
                     {{ passwordErrors.confirmPassword }}
                 </span>
             </div>
 
-            <button
-                type="submit"
-                class="px-6 py-3 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition-colors mt-2"
-            >
-                Şifreyi Değiştir
-            </button>
+            <div class="pt-2">
+                <button
+                    type="submit"
+                    :disabled="loading"
+                    :class="[
+                        'w-full h-12 rounded-xl font-semibold text-white shadow-lg transition-all duration-200',
+                        loading
+                            ? 'bg-gray-300 cursor-not-allowed'
+                            : 'bg-primary hover:bg-primary/90 hover:shadow-xl hover:-translate-y-0.5'
+                    ]"
+                >
+                    <span v-if="loading" class="inline-flex items-center gap-2">
+                        <i class="pi pi-spin pi-spinner"></i>
+                        Güncelleniyor...
+                    </span>
+                    <span v-else>Şifreyi Güncelle</span>
+                </button>
+            </div>
         </form>
     </div>
 </template>
@@ -55,55 +141,93 @@
 <script setup>
 import { ref } from 'vue';
 import * as yup from 'yup';
+import api from '@/api';
+import { toast } from 'vue-sonner';
 
 const passwordForm = ref({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: ""
+    code: '',
+    newPassword: '',
+    confirmPassword: '',
 });
 
 const passwordErrors = ref({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: ""
+    code: '',
+    newPassword: '',
+    confirmPassword: '',
 });
+
+const showNew = ref(false);
+const showConfirm = ref(false);
+const loading = ref(false);
+const codeSending = ref(false);
+const codeSent = ref(false);
+const emailMasked = ref('');
 
 const passwordSchema = yup.object({
-    currentPassword: yup
+    code: yup
         .string()
-        .required("Eski şifre zorunludur."),
+        .required('Doğrulama kodu zorunludur.')
+        .length(6, 'Doğrulama kodu 6 haneli olmalıdır.'),
     newPassword: yup
         .string()
-        .min(6, "Yeni şifre en az 6 karakter olmalıdır.")
-        .required("Yeni şifre zorunludur."),
+        .min(6, 'Yeni şifre en az 6 karakter olmalıdır.')
+        .required('Yeni şifre zorunludur.'),
     confirmPassword: yup
         .string()
-        .oneOf([yup.ref("newPassword")], "Şifreler eşleşmiyor.")
-        .required("Şifre tekrar zorunludur.")
+        .oneOf([yup.ref('newPassword')], 'Şifreler eşleşmiyor.')
+        .required('Şifre tekrar zorunludur.'),
 });
 
+async function sendCode() {
+    codeSending.value = true;
+    passwordErrors.value.code = '';
+    try {
+        const res = await api.post('/auth/send-password-change-code');
+        const content = res.data?.content ?? res.data;
+        emailMasked.value = content?.email_masked ?? '';
+        codeSent.value = true;
+        toast.success('Doğrulama kodu gönderildi.', { description: 'E-posta adresinizi kontrol edin.' });
+    } catch (err) {
+        const msg = err.response?.data?.message || err.response?.data?.error || 'Kod gönderilemedi.';
+        toast.error('Hata', { description: msg });
+    } finally {
+        codeSending.value = false;
+    }
+}
+
 const handlePasswordChange = async () => {
-    passwordErrors.value = {
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: ""
-    };
+    passwordErrors.value = { code: '', newPassword: '', confirmPassword: '' };
     try {
         await passwordSchema.validate(passwordForm.value, { abortEarly: false });
-        console.log('Şifre değiştirildi');
-        passwordForm.value = {
-            currentPassword: "",
-            newPassword: "",
-            confirmPassword: ""
-        };
+        loading.value = true;
+        await api.put('/auth/change-password', {
+            code: passwordForm.value.code.trim(),
+            new_password: passwordForm.value.newPassword,
+            new_password_confirmation: passwordForm.value.confirmPassword,
+        });
+        toast.success('Şifreniz güncellendi.', { description: 'Bir sonraki girişte yeni şifrenizi kullanın.' });
+        passwordForm.value = { code: '', newPassword: '', confirmPassword: '' };
+        codeSent.value = false;
+        emailMasked.value = '';
     } catch (err) {
-        if (err.inner) {
+        if (err.name === 'ValidationError' && err.inner) {
             err.inner.forEach((e) => {
                 if (e.path && passwordErrors.value[e.path] !== undefined) {
                     passwordErrors.value[e.path] = e.message;
                 }
             });
+        } else {
+            const data = err.response?.data;
+            const msg = data?.message || data?.error || 'Şifre güncellenemedi.';
+            toast.error('Hata', { description: msg });
+            const errs = data?.errors || data?.content?.errors;
+            if (errs && typeof errs === 'object') {
+                if (errs.code) passwordErrors.value.code = Array.isArray(errs.code) ? errs.code[0] : errs.code;
+                if (errs.new_password) passwordErrors.value.newPassword = Array.isArray(errs.new_password) ? errs.new_password[0] : errs.new_password;
+            }
         }
+    } finally {
+        loading.value = false;
     }
 };
 </script>
