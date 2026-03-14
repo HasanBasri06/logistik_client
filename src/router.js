@@ -4,6 +4,7 @@ import Home from "./Home.vue";
 import Layout from "./Layout.vue";
 import HomePanel from "./panel/Home.vue";
 import Help from "./Help.vue";
+import Pricing from "./Pricing.vue";
 import Account from "./Account.vue";
 import AccountOrdersPage from "./pages/AccountOrdersPage.vue";
 import AccountReviewsPage from "./pages/AccountReviewsPage.vue";
@@ -50,7 +51,16 @@ const routes = [
         meta: {
             layout: Layout,
             title: 'Yardım | TaşıBul',
-            requiresAuth: true
+            requiresAuth: false
+        }
+    },
+    {
+        path: '/fiyatlandirma',
+        component: Pricing,
+        meta: {
+            layout: Layout,
+            title: 'Fiyatlandırma | TaşıBul',
+            requiresAuth: false
         }
     },
     {

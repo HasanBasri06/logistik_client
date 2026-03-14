@@ -38,14 +38,15 @@
         <Carousel
           ref="carsCarouselRef"
           v-model="activeCarIndex"
-          :items-to-show="3"
-          :items-to-scroll="4"
+          :items-to-show="1"
+          :items-to-scroll="1"
           :wrap-around="false"
           :transition="400"
           :mouse-drag="true"
           :touch-drag="true"
           :gap="20"
           snap-align="start"
+          :breakpoints="carouselBreakpoints"
           @slide-end="onCarouselSlideEnd"
         >
           <Slide v-for="car in cars" :key="car.id">
@@ -151,6 +152,10 @@ import api from "@/api";
 import { usePostStore } from "@/stores/post";
 import { Carousel, Slide } from "vue3-carousel";
 import "vue3-carousel/carousel.css";
+
+const carouselBreakpoints = {
+  768: { itemsToShow: 3, itemsToScroll: 1 },
+};
 
 const cars = ref([]);
 const carsLoading = ref(false);

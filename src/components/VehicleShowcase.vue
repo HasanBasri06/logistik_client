@@ -9,7 +9,8 @@ const scrollContainer = ref(null);
 
 const scrollBy = (direction) => {
     if (!scrollContainer.value) return;
-    const amount = 284 * 2;
+    const isMobile = window.innerWidth < 768;
+    const amount = isMobile ? Math.max(280, window.innerWidth - 32) : 284 * 2;
     scrollContainer.value.scrollBy({ left: direction * amount, behavior: 'smooth' });
 };
 
@@ -67,12 +68,12 @@ onMounted(getCars);
 
                 <div
                     ref="scrollContainer"
-                    class="flex gap-6 overflow-x-auto no_scrool scroll-smooth py-4 px-1"
+                    class="flex gap-4 md:gap-6 overflow-x-auto no_scrool scroll-smooth py-4 px-1"
                 >
                     <div
                         v-for="car in cars"
                         :key="car.id"
-                        class="group flex flex-col items-center gap-4 rounded-2xl border border-gray-100 bg-white p-6 w-[260px] shrink-0 transition-all duration-300 hover:shadow-xl hover:border-primary/20 hover:-translate-y-1"
+                        class="vehicle-card group flex flex-col items-center gap-4 rounded-2xl border border-gray-100 bg-white p-6 w-[calc(100vw-2rem)] min-w-0 md:w-[260px] shrink-0 transition-all duration-300 hover:shadow-xl hover:border-primary/20 hover:-translate-y-1"
                     >
                         <div class="w-full h-36 flex items-center justify-center p-2 rounded-xl overflow-hidden">
                             <img

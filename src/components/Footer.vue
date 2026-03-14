@@ -1,25 +1,25 @@
 <template>
-    <footer class="w-full bg-[#111827] text-gray-300 mt-12 md:mt-24">
+    <footer class="w-full bg-[#111827] text-gray-300 ">
         <Content>
                 <div class="py-10 md:py-14">
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 md:gap-10">
+                <div class="flex flex-col items-center gap-10 text-center md:grid md:grid-cols-3 md:items-stretch md:gap-10 lg:grid-cols-5 md:text-left">
 
-                    <div class="col-span-2 md:col-span-3 lg:col-span-1 flex flex-col gap-4">
+                    <div class="flex flex-col items-center gap-4 md:col-span-3 lg:col-span-1 md:items-start">
                         <RouterLink to="/" class="text-white font-bold text-lg tracking-tight hover:text-primary transition-colors">
                             TaşıBul
                         </RouterLink>
                         <p class="text-sm text-gray-400 leading-relaxed">
                             Yük taşımacılığı ilan platformu. Yükünüzü güvenle taşıtın, aracınızla yük taşıyın.
                         </p>
-                        <a href="mailto:destek@tasibul.com" class="footer-link flex items-center gap-2 mt-2">
+                        <a href="mailto:destek@tasibul.com" class="footer-link flex items-center justify-center gap-2 mt-2 md:justify-start">
                             <i class="pi pi-envelope text-xs"></i>
                             destek@tasibul.com
                         </a>
                     </div>
 
-                    <div>
+                    <div class="w-full md:w-auto">
                         <h3 class="text-white font-semibold text-sm uppercase tracking-wider mb-5">Yasal Yükümlülük</h3>
-                        <ul class="space-y-3">
+                        <ul class="space-y-3 flex flex-col items-center md:items-stretch">
                             <li><a href="#" class="footer-link">Mesafeli Satış Sözleşmesi</a></li>
                             <li><a href="#" class="footer-link">Gizlilik Sözleşmesi</a></li>
                             <li><a href="#" class="footer-link">Üyelik Sözleşmesi</a></li>
@@ -28,9 +28,9 @@
                         </ul>
                     </div>
 
-                    <div>
+                    <div class="w-full md:w-auto">
                         <h3 class="text-white font-semibold text-sm uppercase tracking-wider mb-5">Sosyal Medya</h3>
-                        <ul class="space-y-3">
+                        <ul class="space-y-3 flex flex-col items-center md:items-stretch">
                             <li>
                                 <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="footer-link flex items-center gap-2">
                                     <Instagram :size="16" /> Instagram
@@ -65,10 +65,10 @@
                         </ul>
                     </div>
 
-                    <div>
+                    <div class="w-full md:w-auto">
                         <h3 class="text-white font-semibold text-sm uppercase tracking-wider mb-5">Mobil</h3>
                         <p class="text-sm text-gray-400 leading-relaxed">Yakın zamanda eklenecektir.</p>
-                        <div class="flex flex-col gap-3 mt-4">
+                        <div class="flex flex-col items-center gap-3 mt-4 md:items-stretch">
                             <div class="flex items-center gap-3 rounded-lg bg-white/5 px-4 py-3 opacity-50">
                                 <i class="pi pi-apple text-lg text-white"></i>
                                 <div>
@@ -86,17 +86,17 @@
                         </div>
                     </div>
 
-                    <div>
+                    <div class="w-full md:w-auto">
                         <h3 class="text-white font-semibold text-sm uppercase tracking-wider mb-5">Blog</h3>
                         <p class="text-sm text-gray-400 leading-relaxed">Lojistik sektöründeki gelişmeleri ve platformumuzdaki yenilikleri blogumuzdan takip edin.</p>
-                        <RouterLink to="/blog" class="inline-flex items-center gap-1.5 text-sm text-primary hover:text-white transition-colors mt-4">
+                        <RouterLink to="/blog" class="inline-flex items-center justify-center gap-1.5 text-sm text-primary hover:text-white transition-colors mt-4 md:justify-start">
                             Blogu Keşfet <i class="pi pi-arrow-right text-xs"></i>
                         </RouterLink>
                     </div>
 
                 </div>
 
-                <div class="mt-10 md:mt-12 pt-8 border-t border-gray-700/60 flex flex-col md:flex-row items-center justify-between gap-2">
+                <div class="mt-10 md:mt-12 pt-8 border-t border-gray-700/60 flex flex-col items-center text-center md:flex-row md:justify-between md:text-left gap-3">
                     <p class="text-xs text-gray-500">
                         © {{ currentYear }} TaşıBul. Tüm hakları saklıdır.
                     </p>

@@ -71,7 +71,7 @@ const bottomRow = [
 </script>
 
 <template>
-    <div class="mt-12 md:mt-24 flex flex-col items-center gap-8 md:gap-12 overflow-hidden">
+    <div class="mt-12 md:mt-24 flex flex-col items-center gap-8 md:gap-12 overflow-hidden mb-12 md:mb-24">
 
         <div class="flex flex-col items-center gap-4 text-center max-w-xl">
             <span class="text-sm font-semibold text-primary tracking-wide uppercase">Yorumlar</span>

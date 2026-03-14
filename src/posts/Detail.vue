@@ -464,6 +464,22 @@ import { useMessageStore, formatMessageTime } from '@/stores/message';
 import { useAuthStore } from '@/stores/auth';
 import { usePusherMessages } from '@/composables/usePusherMessages';
 import TeklifVerModal from '@/components/TeklifVerModal.vue';
+import { useHead } from '@vueuse/head';
+
+useHead({
+    title: 'İlan Detayı | TaşıBul',
+    meta: [
+        { name: 'description', content: 'Bu ilanın detayını görüyorsunuz.' },
+        { name: 'keywords', content: 'TaşıBul, İlan Detayı, İlan' },
+        { name: 'author', content: 'TaşıBul' },
+        { name: 'robots', content: 'index, follow' },
+        { name: 'googlebot', content: 'index, follow' },
+        { name: 'bingbot', content: 'index, follow' },
+        { property: 'og:title', content: 'İlan Detayı | TaşıBul' },
+        { property: 'og:description', content: 'Bu ilanın detayını görüyorsunuz.' },
+        { property: 'og:image', content: 'https://www.tasibul.com/assets/yuk_arac-DpOYK3pA.png' }
+    ]
+});
 
 const route = useRoute();
 const authStore = useAuthStore()
@@ -527,11 +543,12 @@ const displayPrice = computed(() => {
 
 // Paylaşım linkleri (Bu ilanı paylaş)
 const shareUrls = computed(() => {
-    const url = typeof window !== 'undefined' ? window.location.href : '';
-    const text = 'Bu ilana göz at';
+    const url = typeof window !== 'undefined' ? encodeURIComponent(window.location.href) : '';
+    const text = encodeURIComponent('TaşıBul üzerinden bu ilanı buldum:');
+
     return {
-        facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
-        whatsapp: `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`
+        facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`,
+        whatsapp: `https://wa.me/?text=${text}%20${url}`
     };
 });
 
