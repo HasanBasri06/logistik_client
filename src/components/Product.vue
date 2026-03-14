@@ -61,7 +61,7 @@
 
         <div class="w-px h-5 bg-gray-200"></div>
 
-        <div class="text-sm font-medium text-gray-600">20 Ton</div>
+        <div class="text-sm font-medium text-gray-600">{{shipment.weight}}</div>
 
         <div class="w-px h-5 bg-gray-200"></div>
         
@@ -155,4 +155,5 @@ const handleCanceledBtn = (e, shipment) => {
 
   console.log("shipment:", shipment);
 };
+
 </script>

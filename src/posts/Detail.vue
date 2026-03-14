@@ -219,7 +219,7 @@
                                         {{ selectedOrigin?.name || 'Ankara' }}
                                     </h3>
                                     <p class="text-sm text-gray-600"> 
-                                        {{ shipment?.departure_time }}
+                                        {{ shipment?.departure_time ?? 'belirlenecek' }}
                                     </p>
                                 </div>
                                 
@@ -235,7 +235,7 @@
                                         {{ selectedDestination?.name || 'İzmir' }}
                                     </h3>
                                     <p class="text-sm text-gray-600">
-                                        {{ shipment?.time_arrival }}
+                                        {{ shipment?.time_arrival ?? 'belirlenecek' }}
                                     </p>
                                 </div>
                             </div>
@@ -548,7 +548,7 @@ const shareUrls = computed(() => {
     const text = encodeURIComponent('TaşıBul üzerinden bu ilanı buldum:');
 
     return {
-        facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}`,
+        facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${text}`,
         whatsapp: `https://wa.me/?text=${text}%20${url}`
     };
 });
@@ -817,6 +817,20 @@ const calculateRoute = () => {
     );
 };
 
+/** Google Geocoder'dan gelen şehir adını DB ile uyumlu forma getirir (İli, Province vb. kaldırır) */
+function normalizeCityName(name) {
+    if (!name || typeof name !== 'string') return '';
+    let s = name.trim();
+    const suffixes = [' İli', ' İl', ' Province'];
+    for (const suf of suffixes) {
+        if (s.endsWith(suf)) {
+            s = s.slice(0, -suf.length).trim();
+            break;
+        }
+    }
+    return s;
+}
+
 const extractCitiesFromRoute = (directionsResult) => {
     if (!geocoder.value || !directionsResult?.routes?.[0]) return;
     
@@ -831,6 +845,7 @@ const extractCitiesFromRoute = (directionsResult) => {
     
     if (steps.length === 0) {
         routeCities.value = [];
+        fetchRouteListings();
         return;
     }
     
@@ -841,6 +856,7 @@ const extractCitiesFromRoute = (directionsResult) => {
     const midCount = n <= 2 ? 0 : n - 2;
     if (midCount === 0) {
         routeCities.value = [];
+        fetchRouteListings();
         return;
     }
     if (midCount <= maxSamples) {
@@ -872,11 +888,13 @@ const extractCitiesFromRoute = (directionsResult) => {
     });
     
     Promise.all(geocodePromises).then((cities) => {
-        const originName = (selectedOrigin.value?.name || '').toLowerCase();
-        const destName = (selectedDestination.value?.name || '').toLowerCase();
+        const originCityPart = (selectedOrigin.value?.name || '').split(' / ')[0]?.trim().toLowerCase() || '';
+        const destCityPart = (selectedDestination.value?.name || '').split(' / ')[0]?.trim().toLowerCase() || '';
         cities.filter(Boolean).forEach((c) => {
-            const cityLower = c.toLowerCase();
-            if (cityLower !== originName && cityLower !== destName) citySet.add(c);
+            const normalized = normalizeCityName(c);
+            if (!normalized) return;
+            const cityLower = normalized.toLowerCase();
+            if (cityLower !== originCityPart && cityLower !== destCityPart) citySet.add(normalized);
         });
         routeCities.value = [...citySet];
         fetchRouteListings();
@@ -885,9 +903,11 @@ const extractCitiesFromRoute = (directionsResult) => {
 
 async function fetchRouteListings() {
     const s = shipment.value;
-    const originCity = s?.f_where_city || selectedOrigin.value?.name?.split(' / ')[0]?.trim();
-    const destCity = s?.t_where_city || selectedDestination.value?.name?.split(' / ')[0]?.trim();
-    const cities = [originCity, ...routeCities.value, destCity].filter(Boolean);
+    const originCity = normalizeCityName(s?.f_where_city || selectedOrigin.value?.name?.split(' / ')[0]?.trim() || '');
+    const destCity = normalizeCityName(s?.t_where_city || selectedDestination.value?.name?.split(' / ')[0]?.trim() || '');
+    const middle = routeCities.value.map((c) => normalizeCityName(c)).filter(Boolean);
+    const citiesOrdered = [originCity, ...middle, destCity].filter(Boolean);
+    const cities = [...new Set(citiesOrdered)];
     if (!cities.length) {
         routeListings.value = [];
         return;
@@ -1198,6 +1218,10 @@ onBeforeUnmount(() => {
     if (directionsRenderer.value) {
         directionsRenderer.value.setMap(null);
     }
+});
+
+onMounted(() => {
+    console.log("shipment:", shipment.value);
 });
 </script>
 

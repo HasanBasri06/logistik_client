@@ -19,26 +19,26 @@
             </span>
             <div>
               <h2 id="location-modal-title" class="text-lg font-semibold text-gray-900">Konum bilgisi gerekli</h2>
-              <p class="text-sm text-gray-500 mt-0.5">Konumunuza erişemiyoruz. Arama sonuçlarını iyileştirmek için konum izni verin.</p>
+              <p class="text-sm text-gray-500 mt-0.5">Konumunuza erişemiyoruz. Arama sonuçlarını iyileştirmek için tarayıcıdan konum izni verin.</p>
             </div>
           </div>
-          <p v-if="locationError" class="text-sm text-gray-600 mb-4">{{ locationError }}</p>
-          <div class="flex justify-end gap-2">
+          <p v-if="locationError" class="text-sm text-gray-600 mb-3">{{ locationError }}</p>
+          <template v-if="locationErrorCode === 1">
+            <p class="text-sm font-medium text-gray-700 mb-2">Tarayıcıdan izin vermek için:</p>
+            <ol class="text-sm text-gray-600 list-decimal list-inside space-y-1 mb-3">
+              <li>Adres çubuğundaki <strong>kilit</strong> (veya bilgi) simgesine tıklayın.</li>
+              <li>Açılan pencerede <strong>Konum</strong> satırını bulun.</li>
+              <li>Konum erişimini <strong>İzin ver</strong> veya <strong>Açık</strong> yapın.</li>
+            </ol>
+            <img :src="konumIzniImg" alt="Tarayıcıda konum izninin nereden açılacağı" class="w-full rounded-lg border border-gray-200 mb-4" />
+          </template>
+          <div class="flex justify-end">
             <button
               type="button"
               class="px-4 py-2 rounded-lg border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
               @click="closeLocationModal"
             >
               Daha sonra
-            </button>
-            <button
-              type="button"
-              class="px-4 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-primary/90 transition-colors flex items-center gap-2"
-              :disabled="locationRequesting"
-              @click="requestUserLocation"
-            >
-              <span v-if="locationRequesting" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              {{ locationRequesting ? 'Alınıyor...' : 'Tekrar dene' }}
             </button>
           </div>
         </div>
@@ -53,16 +53,20 @@ import { useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { MapPin } from 'lucide-vue-next';
 import Layout from './Layout.vue';
+import konumIzniImg from '@/assets/images/konum_izni.png';
 import { useHead } from '@vueuse/head';
 import { useLocationStore } from './stores/location';
 
 const route = useRoute();
 const locationStore = useLocationStore();
-const { locationDeniedModalOpen, locationError, locationRequesting } = storeToRefs(locationStore);
+const { locationDeniedModalOpen, locationError, locationErrorCode, locationRequesting } = storeToRefs(locationStore);
 const { requestUserLocation, closeLocationModal } = locationStore;
 
 onMounted(() => {
-  locationStore.requestUserLocation();
+  const konumIzin = typeof localStorage !== 'undefined' && localStorage.getItem(locationStore.KONUM_IZIN_STORAGE_KEY);
+  if (konumIzin !== 'false') {
+    locationStore.requestUserLocation();
+  }
 });
 
 const layout = computed(() => route.meta.layout || Layout);

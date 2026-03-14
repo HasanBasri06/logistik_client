@@ -256,6 +256,32 @@
                 </div>
             </div>
         
+
+        <!-- Konum gerekli uyarısı: modalda "Daha sonra" denmişse (localStorage konum false) göster -->
+        <Content v-if="showKonumBanner" class="my-5 flex">
+            <div class="w-full max-w-[1200px] mx-auto px-4">
+                <div class="flex flex-wrap items-center gap-4 rounded-xl border border-amber-200 bg-amber-50/80 px-5 py-4">
+                    <span class="flex items-center justify-center w-11 h-11 rounded-full bg-amber-100 text-amber-600 shrink-0">
+                        <MapPin class="w-5 h-5" />
+                    </span>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-amber-800">Konum izni gerekli</p>
+                        <p class="text-sm text-amber-700/90 mt-0.5">
+                            {{ locationError || 'Arama sonuçlarını iyileştirmek için konum erişimine izin verin.' }}
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        :disabled="locationRequesting"
+                        class="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-amber-600 text-white text-sm font-medium hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-70 transition-colors"
+                        @click="requestUserLocation"
+                    >
+                        <span v-if="locationRequesting" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        {{ locationRequesting ? 'Alınıyor...' : 'Konum izni ver' }}
+                    </button>
+                </div>
+            </div>
+        </Content>
         <Content class="mt-5 flex-1 min-h-0 overflow-hidden flex">
             <div class="flex flex-row gap-6 w-full h-full">
                 <!-- Sol: Filtreleme -->
@@ -304,6 +330,7 @@
                         Seçilenleri Temizle
                     </button>
                 </div>
+
 
                 <!-- Sağ: İlanlar (Benim İlanlarım + Diğer İlanlar) -->
                 <div class="flex-1 flex flex-col gap-5 py-4 overflow-y-auto pb-6 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
@@ -961,7 +988,15 @@ const panelRouter = useRouter();
 const shipmentsStore = useShipmentsStore();
 const { list: shipmentsList, myPostList, otherPostList, loading: shipmentsLoading, loadingMore, error: shipmentsError, hasMore } = storeToRefs(shipmentsStore);
 const locationStore = useLocationStore();
-const { locationError } = storeToRefs(locationStore);
+const { locationError, userCoords, locationRequesting } = storeToRefs(locationStore);
+const { requestUserLocation } = locationStore;
+
+const showKonumBanner = computed(() => {
+    if (userCoords.value) return false;
+    if (typeof localStorage === 'undefined') return false;
+    const konumIzin = localStorage.getItem(locationStore.KONUM_IZIN_STORAGE_KEY);
+    return konumIzin === 'false';
+});
 
 const updatePageQuery = (page) => {
     const query = { ...route.query };
@@ -983,6 +1018,13 @@ onMounted(() => {
     const initialPage = parseInt(route.query.page) || 1;
     shipmentsStore.fetchShipments({ initialPage });
     fetchCities().then(setDefaultLocations);
+    if (userCoords.value && typeof localStorage !== 'undefined') {
+        try {
+            localStorage.setItem(locationStore.KONUM_IZIN_STORAGE_KEY, 'true');
+        } catch (_) {}
+    } else if (!userCoords.value) {
+        requestUserLocation();
+    }
 });
 
 onBeforeUnmount(() => {

@@ -2,6 +2,8 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import api from '@/api';
 
+const KONUM_IZIN_STORAGE_KEY = 'tasibul_konum_izin';
+
 const geolocationOptions = {
     enableHighAccuracy: false,
     timeout: 15000,
@@ -60,12 +62,14 @@ export const useLocationStore = defineStore('location', () => {
     const userCity = ref(null);
     const userDistrict = ref(null);
     const locationError = ref(null);
+    const locationErrorCode = ref(null);
     const locationDeniedModalOpen = ref(false);
     const locationRequesting = ref(false);
 
     function setLocationErrorMessage(err) {
+        locationErrorCode.value = err?.code ?? null;
         if (err.code === 1) {
-            locationError.value = 'Konum kapalı görünüyor. Windows: Ayarlar > Gizlilik ve güvenlik > Konum > "Konum hizmeti"ni açın. Tarayıcıda adres çubuğundaki kilide tıklayıp Konum iznini "İzin ver" yapın.';
+            locationError.value = 'Tarayıcıda konum izni kapalı. Aşağıdaki adımlarla tarayıcıdan izin verebilirsiniz.';
         } else if (err.code === 2) {
             locationError.value = 'Konum alınamadı. İnternet bağlantınızı ve Windows konum ayarlarını kontrol edin.';
         } else if (err.code === 3) {
@@ -78,17 +82,22 @@ export const useLocationStore = defineStore('location', () => {
     function requestUserLocation() {
         if (!navigator.geolocation) {
             locationError.value = 'Tarayıcınız konum bilgisini desteklemiyor.';
+            locationErrorCode.value = null;
             locationDeniedModalOpen.value = true;
             return;
         }
         locationRequesting.value = true;
         locationError.value = null;
+        locationErrorCode.value = null;
         navigator.geolocation.getCurrentPosition(
             async (position) => {
                 locationRequesting.value = false;
                 const coords = { lat: position.coords.latitude, lng: position.coords.longitude };
                 userCoords.value = coords;
                 locationDeniedModalOpen.value = false;
+                try {
+                    localStorage.setItem(KONUM_IZIN_STORAGE_KEY, 'true');
+                } catch (_) {}
                 let city = null;
                 let district = null;
                 let openAddress = null;
@@ -145,7 +154,11 @@ export const useLocationStore = defineStore('location', () => {
     }
 
     function closeLocationModal() {
+        try {
+            localStorage.setItem(KONUM_IZIN_STORAGE_KEY, 'false');
+        } catch (_) {}
         locationDeniedModalOpen.value = false;
+        locationErrorCode.value = null;
     }
 
     function clearLocationError() {
@@ -153,11 +166,13 @@ export const useLocationStore = defineStore('location', () => {
     }
 
     return {
+        KONUM_IZIN_STORAGE_KEY,
         userCoords,
         userOpenAddress,
         userCity,
         userDistrict,
         locationError,
+        locationErrorCode,
         locationDeniedModalOpen,
         locationRequesting,
         requestUserLocation,
