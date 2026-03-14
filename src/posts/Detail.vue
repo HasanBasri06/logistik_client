@@ -190,9 +190,27 @@
                 
                 <!-- Kalkış ve Varış Yeni Tasarım -->
                 <div
-                    class="rounded-lg border border-gray-200 shadow-sm overflow-hidden transition-colors duration-200"
+                    class="rounded-lg border border-gray-200 shadow-sm overflow-visible md:overflow-hidden transition-colors duration-200 relative"
                     :class="shipmentLoading ? 'bg-gray-200 animate-pulse' : 'bg-white'"
                 >
+                    <!-- Mobil: teklif verme sağ üstte (top-2/4, right-2/4) -->
+                    <div
+                        v-if="!is_me"
+                        class="md:hidden absolute top-2/4 right-2/4 z-10 flex flex-col gap-2 -translate-y-1/2 translate-x-1/2"
+                    >
+                        <button
+                            @click="handleOfferClick"
+                            class="h-11 px-4 rounded-full bg-primary text-white font-semibold text-sm shadow-lg whitespace-nowrap"
+                        >
+                            Teklif Ver
+                        </button>
+                        <button
+                            @click="openMessageOfferPanel"
+                            class="h-11 px-4 rounded-full border-2 border-primary text-primary bg-white font-semibold text-sm shadow-lg whitespace-nowrap"
+                        >
+                            Mesaj ile Teklif
+                        </button>
+                    </div>
                     <div class="p-5">
                         <div class="flex items-start gap-4">
                             <!-- Sol: Yuvarlaklar ve Çizgi -->
@@ -242,7 +260,7 @@
                         </div>
                     </div>
 
-                    <div v-if="!is_me" class="bg-gray-50 border-t border-gray-100 w-full flex">
+                    <div v-if="!is_me" class="hidden md:flex bg-gray-50 border-t border-gray-100 w-full">
                         <button
                             @click="handleOfferClick"
                             class="flex-1 h-12 bg-primary text-white font-semibold transition-all duration-200 text-base"
@@ -257,7 +275,7 @@
                             Mesaj İle Teklif Ver
                         </button>
                     </div>
-                    <div v-else class="bg-gray-50 border-t border-gray-100 w-full flex">
+                    <div v-else class="hidden md:flex bg-gray-50 border-t border-gray-100 w-full">
                         <button
                             class="flex-1 h-12 border-primary text-primary font-semibold transition-all duration-200 text-base"
                         >

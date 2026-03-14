@@ -1,88 +1,100 @@
 <template>
     <div class="h-screen overflow-hidden flex flex-col">
         <Header />
-        <!-- Arama Alanı (Navbar genişliğinde) -->
-        <div class="w-full bg-white border-b border-gray-200 py-2 flex flex-col items-center shrink-0 relative" ref="searchBarRef">
-            <div class="w-full flex flex-col max-w-[1200px] mx-auto px-4 relative">
-                <div class="flex gap-3 h-14 py-2">
+        <!-- Arama Alanı (responsive) -->
+        <div class="w-full bg-white border-b border-gray-200 py-2 sm:py-2 flex flex-col items-center shrink-0 relative" ref="searchBarRef">
+            <div class="w-full flex flex-col max-w-[1200px] mx-auto px-3 sm:px-4 relative">
+                <!-- Mobil: tek input → tıklanınca filtre modalı açılır -->
+                <div
+                    class="sm:hidden flex items-center gap-2 w-full h-12 px-4 rounded-xl border border-gray-200 bg-gray-50 cursor-pointer"
+                    @click="mobileFilterOpen = true"
+                >
+                    <span class="text-gray-400 shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    </span>
+                    <span class="text-sm text-gray-600 truncate flex-1">{{ mobileSearchSummary }}</span>
+                    <ChevronDown class="w-5 h-5 text-gray-400 shrink-0" />
+                </div>
+
+                <!-- Masaüstü: tüm arama alanları -->
+                <div class="hidden sm:flex flex-wrap items-stretch gap-2 sm:gap-3 min-h-12 sm:h-14 py-2">
                     <!-- Nereden -->
                     <div
-                        class="w-[334px] bg-white border border-gray-200 px-3 rounded-lg cursor-pointer shrink-0 flex items-center h-full"
+                        class="flex-1 min-w-0 sm:min-w-0 sm:w-[334px] bg-white border border-gray-200 px-3 rounded-lg cursor-pointer shrink-0 sm:shrink-0 flex items-center h-10 sm:h-full order-1"
                         @click="toDropdownOpen = false; fromDropdownOpen = !fromDropdownOpen; fromDropdownOpen && openFromDropdown()"
                     >
-                        <span class="text-sm text-gray-600 truncate">{{ fromLocationLabel }}</span>
+                        <span class="text-sm text-gray-600 truncate block">{{ fromLocationLabel }}</span>
                     </div>
 
-                
-                <!-- Swap Butonu -->
-                <button 
-                    @click="swapCities"
-                    class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-200 bg-white text-gray-700 cursor-pointer transition-all duration-200 shrink-0 hover:border-primary hover:bg-primary/5 hover:text-primary active:scale-95"
-                    type="button"
-                >
-                    <ArrowLeftRight size="20" />
-                </button>
-                
-                <!-- Nereye -->
-                <div
-                    class="w-[334px] bg-white border border-gray-200 px-3 rounded-lg cursor-pointer shrink-0 flex items-center h-full"
-                    @click="fromDropdownOpen = false; toDropdownOpen = !toDropdownOpen; toDropdownOpen && openToDropdown()"
-                >
-                    <span class="text-sm text-gray-600 truncate">{{ toLocationLabel }}</span>
-                </div>
-                
-                <!-- Gidiş ve Dönüş Saati -->
-                <div class="flex gap-3">
-                    <div
-                        class="w-[130px] bg-white px-3 rounded-lg border border-gray-200"
-                        @click="fromDropdownOpen = false; toDropdownOpen = false"
+                    <!-- Swap Butonu -->
+                    <button
+                        @click="swapCities"
+                        class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-200 bg-white text-gray-700 cursor-pointer transition-all duration-200 shrink-0 hover:border-primary hover:bg-primary/5 hover:text-primary active:scale-95 order-2"
+                        type="button"
                     >
-                        <DatePicker
-                            v-model="departureTime"
-                            :pt="{
-                                root: { class: 'flex items-center h-full' },
-                                input: { class: 'py-2' },
-                                panel: { class: '!bg-white !border !border-gray-100 shadow-lg !p-3 rounded-lg' },
-                                header: { class: '!bg-white' },
-                                tableHeaderCell: { class: '!bg-white' },
-                                tableBody: { class: '!bg-white' },
-                                tableBodyRow: { class: '!bg-white' }
-                            }"
-                            id="datepicker-departure"
-                            placeholder="Gidiş"
-                            fluid
-                        />
-                    </div>
-                    <div
-                        class="w-[130px] bg-white px-3 rounded-lg border border-gray-200"
-                        @click="fromDropdownOpen = false; toDropdownOpen = false"
-                    >
-                        <DatePicker
-                            v-model="returnTime"
-                            :pt="{
-                                root: { class: 'flex items-center h-full' },
-                                input: { class: 'py-2' },
-                                panel: { class: '!bg-white !border !border-gray-100 shadow-lg !p-3 rounded-lg' },
-                                header: { class: '!bg-white' },
-                                tableHeaderCell: { class: '!bg-white' },
-                                tableBody: { class: '!bg-white' },
-                                tableBodyRow: { class: '!bg-white' }
-                            }"
-                            id="datepicker-return"
-                            placeholder="Dönüş"
-                            fluid
-                        />
-                    </div>
-                </div>
-                <div class="w-[150px] shrink-0">
-                    <button 
-                        @click="handleSearch"
-                        class="w-full h-full bg-primary rounded-lg text-sm font-semibold text-white hover:bg-primary/90 transition-colors"
-                    >
-                        Ara
+                        <ArrowLeftRight size="20" />
                     </button>
+
+                    <!-- Nereye -->
+                    <div
+                        class="flex-1 min-w-0 sm:min-w-0 sm:w-[334px] bg-white border border-gray-200 px-3 rounded-lg cursor-pointer shrink-0 sm:shrink-0 flex items-center h-10 sm:h-full order-3"
+                        @click="fromDropdownOpen = false; toDropdownOpen = !toDropdownOpen; toDropdownOpen && openToDropdown()"
+                    >
+                        <span class="text-sm text-gray-600 truncate block">{{ toLocationLabel }}</span>
+                    </div>
+
+                    <!-- Gidiş ve Dönüş Saati -->
+                    <div class="flex gap-2 sm:gap-3 flex-1 min-w-0 order-4 sm:order-4 basis-full sm:basis-auto sm:flex-initial">
+                        <div
+                            class="flex-1 min-w-0 sm:w-[130px] bg-white px-2 sm:px-3 rounded-lg border border-gray-200 min-h-10 sm:min-h-0"
+                            @click="fromDropdownOpen = false; toDropdownOpen = false"
+                        >
+                            <DatePicker
+                                v-model="departureTime"
+                                :pt="{
+                                    root: { class: 'flex items-center h-full min-h-10 sm:min-h-0' },
+                                    input: { class: 'py-2 text-sm' },
+                                    panel: { class: '!bg-white !border !border-gray-100 shadow-lg !p-3 rounded-lg' },
+                                    header: { class: '!bg-white' },
+                                    tableHeaderCell: { class: '!bg-white' },
+                                    tableBody: { class: '!bg-white' },
+                                    tableBodyRow: { class: '!bg-white' }
+                                }"
+                                id="datepicker-departure"
+                                placeholder="Gidiş"
+                                fluid
+                            />
+                        </div>
+                        <div
+                            class="flex-1 min-w-0 sm:w-[130px] bg-white px-2 sm:px-3 rounded-lg border border-gray-200 min-h-10 sm:min-h-0"
+                            @click="fromDropdownOpen = false; toDropdownOpen = false"
+                        >
+                            <DatePicker
+                                v-model="returnTime"
+                                :pt="{
+                                    root: { class: 'flex items-center h-full min-h-10 sm:min-h-0' },
+                                    input: { class: 'py-2 text-sm' },
+                                    panel: { class: '!bg-white !border !border-gray-100 shadow-lg !p-3 rounded-lg' },
+                                    header: { class: '!bg-white' },
+                                    tableHeaderCell: { class: '!bg-white' },
+                                    tableBody: { class: '!bg-white' },
+                                    tableBodyRow: { class: '!bg-white' }
+                                }"
+                                id="datepicker-return"
+                                placeholder="Dönüş"
+                                fluid
+                            />
+                        </div>
+                    </div>
+                    <div class="w-full sm:w-[150px] shrink-0 order-5 min-h-10 sm:min-h-0 sm:self-stretch">
+                        <button
+                            @click="handleSearch"
+                            class="w-full h-full min-h-10 sm:min-h-0 bg-primary rounded-lg text-sm font-semibold text-white hover:bg-primary/90 transition-colors"
+                        >
+                            Ara
+                        </button>
+                    </div>
                 </div>
-            </div>
                 <!-- Nereden: 3 bölüm (Şehirler | İlçeler | Seçilen) -->
                 <Transition
                     enter-active-class="transition duration-200 ease-out"
@@ -255,7 +267,222 @@
                 </Transition>
             </div>
         </div>
-        
+
+        <!-- Mobil: Filtreleme full modal -->
+        <Teleport to="body">
+            <Transition name="modal">
+                <div
+                    v-if="mobileFilterOpen"
+                    class="fixed inset-0 z-[100] flex flex-col bg-white sm:hidden"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="mobile-filter-title"
+                >
+                    <div class="flex items-center justify-between shrink-0 px-4 py-3 border-b border-gray-200">
+                        <h2 id="mobile-filter-title" class="text-lg font-semibold text-gray-900">Filtrele</h2>
+                        <button
+                            type="button"
+                            class="p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+                            aria-label="Kapat"
+                            @click="mobileFilterOpen = false; fromDropdownOpen = false; toDropdownOpen = false"
+                        >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                    </div>
+                    <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                        <!-- Nereden: tıklanınca şehir seçim full modal açılır -->
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Nereden</label>
+                            <div
+                                class="w-full min-h-12 px-4 rounded-lg border border-gray-200 bg-white flex items-center cursor-pointer"
+                                @click="mobileLocationPickerFor = 'from'; openFromDropdown(); mobileLocationPickerOpen = true"
+                            >
+                                <span class="text-sm text-gray-700">{{ fromLocationLabel }}</span>
+                            </div>
+                        </div>
+                        <!-- Swap -->
+                        <div class="flex justify-center">
+                            <button type="button" @click="swapCities" class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-200 bg-white text-gray-600"> <ArrowLeftRight size="20" /> </button>
+                        </div>
+                        <!-- Nereye: tıklanınca şehir seçim full modal açılır -->
+                        <div>
+                            <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Nereye</label>
+                            <div
+                                class="w-full min-h-12 px-4 rounded-lg border border-gray-200 bg-white flex items-center cursor-pointer"
+                                @click="mobileLocationPickerFor = 'to'; openToDropdown(); mobileLocationPickerOpen = true"
+                            >
+                                <span class="text-sm text-gray-700">{{ toLocationLabel }}</span>
+                            </div>
+                        </div>
+                        <!-- Gidiş / Dönüş -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Gidiş</label>
+                                <div class="rounded-lg border border-gray-200 overflow-hidden" @click="fromDropdownOpen = false; toDropdownOpen = false">
+                                    <DatePicker v-model="departureTime" :pt="{ root: { class: 'w-full' }, input: { class: 'py-2.5 text-sm w-full' }, panel: { class: '!bg-white !border !border-gray-100 shadow-lg !p-3 rounded-lg' } }" placeholder="Gidiş" fluid />
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Dönüş</label>
+                                <div class="rounded-lg border border-gray-200 overflow-hidden" @click="fromDropdownOpen = false; toDropdownOpen = false">
+                                    <DatePicker v-model="returnTime" :pt="{ root: { class: 'w-full' }, input: { class: 'py-2.5 text-sm w-full' }, panel: { class: '!bg-white !border !border-gray-100 shadow-lg !p-3 rounded-lg' } }" placeholder="Dönüş" fluid />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="shrink-0 p-4 border-t border-gray-200 bg-gray-50">
+                        <button
+                            type="button"
+                            @click="handleSearch(); mobileFilterOpen = false"
+                            class="w-full h-12 bg-primary rounded-xl text-base font-semibold text-white hover:bg-primary/90 transition-colors"
+                        >
+                            Ara
+                        </button>
+                    </div>
+                </div>
+            </Transition>
+        </Teleport>
+
+        <!-- Mobil: Şehir/İlçe seçim full modal (Nereden veya Nereye - web ile aynı ekran) -->
+        <Teleport to="body">
+            <Transition name="modal">
+                <div
+                    v-if="mobileLocationPickerOpen"
+                    class="fixed inset-0 z-[101] flex flex-col bg-white sm:hidden"
+                    role="dialog"
+                    aria-modal="true"
+                    :aria-labelledby="mobileLocationPickerFor === 'from' ? 'mobile-location-from-title' : 'mobile-location-to-title'"
+                >
+                    <div class="flex items-center gap-3 shrink-0 px-4 py-3 border-b border-gray-200">
+                        <button
+                            type="button"
+                            class="p-2 -ml-2 rounded-lg text-gray-600 hover:bg-gray-100"
+                            aria-label="Geri"
+                            @click="mobileLocationPickerOpen = false"
+                        >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                        </button>
+                        <h2 :id="mobileLocationPickerFor === 'from' ? 'mobile-location-from-title' : 'mobile-location-to-title'" class="text-lg font-semibold text-gray-900">
+                            {{ mobileLocationPickerFor === 'from' ? 'Nereden' : 'Nereye' }} seçin
+                        </h2>
+                    </div>
+                    <div class="flex-1 flex flex-col min-h-0 overflow-hidden">
+                        <!-- Web ile aynı: 3 bölüm (Şehirler | İlçeler | Seçilen) -->
+                        <div class="grid grid-cols-3 flex-1 divide-x divide-gray-200 min-h-0">
+                            <!-- Şehirler -->
+                            <div class="flex flex-col overflow-hidden">
+                                <h3 class="px-3 py-2 text-xs font-semibold text-gray-500 border-b border-gray-100 shrink-0">Şehirler</h3>
+                                <div class="p-2 border-b border-gray-100 shrink-0">
+                                    <input
+                                        v-if="mobileLocationPickerFor === 'from'"
+                                        v-model="fromCitySearch"
+                                        type="text"
+                                        placeholder="Şehir ara..."
+                                        class="w-full h-9 px-2.5 rounded border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                                    />
+                                    <input
+                                        v-else
+                                        v-model="toCitySearch"
+                                        type="text"
+                                        placeholder="Şehir ara..."
+                                        class="w-full h-9 px-2.5 rounded border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                                    />
+                                </div>
+                                <div class="flex-1 overflow-y-auto p-2">
+                                    <p v-if="citiesLoading" class="text-xs text-gray-400 py-2">Yükleniyor...</p>
+                                    <template v-else-if="mobileLocationPickerFor === 'from'">
+                                        <button
+                                            v-for="c in fromCitiesForList"
+                                            :key="c.id"
+                                            type="button"
+                                            @click="selectFromCityTemp(c)"
+                                            :class="['w-full text-left px-2 py-2.5 rounded text-sm', fromTempCity?.id === c.id ? 'bg-primary/10 text-primary font-medium' : 'text-gray-700 hover:bg-gray-100']"
+                                        >
+                                            {{ c.name }}
+                                        </button>
+                                    </template>
+                                    <template v-else>
+                                        <button
+                                            v-for="c in toCitiesForList"
+                                            :key="c.id"
+                                            type="button"
+                                            @click="selectToCityTemp(c)"
+                                            :class="['w-full text-left px-2 py-2.5 rounded text-sm', toTempCity?.id === c.id ? 'bg-primary/10 text-primary font-medium' : 'text-gray-700 hover:bg-gray-100']"
+                                        >
+                                            {{ c.name }}
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+                            <!-- İlçeler -->
+                            <div class="flex flex-col overflow-hidden">
+                                <h3 class="px-3 py-2 text-xs font-semibold text-gray-500 border-b border-gray-100 shrink-0">İlçeler</h3>
+                                <div class="p-2 border-b border-gray-100 shrink-0">
+                                    <input
+                                        v-if="mobileLocationPickerFor === 'from'"
+                                        v-model="fromDistrictSearch"
+                                        type="text"
+                                        placeholder="İlçe ara..."
+                                        class="w-full h-9 px-2.5 rounded border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                                        :disabled="mobileLocationPickerFor === 'from' ? !fromTempCity : !toTempCity"
+                                    />
+                                    <input
+                                        v-else
+                                        v-model="toDistrictSearch"
+                                        type="text"
+                                        placeholder="İlçe ara..."
+                                        class="w-full h-9 px-2.5 rounded border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                                        :disabled="!toTempCity"
+                                    />
+                                </div>
+                                <div class="flex-1 overflow-y-auto p-2">
+                                    <p v-if="mobileLocationPickerFor === 'from' && !fromTempCity" class="text-xs text-gray-400 py-2">Önce şehir seçin</p>
+                                    <p v-else-if="mobileLocationPickerFor === 'to' && !toTempCity" class="text-xs text-gray-400 py-2">Önce şehir seçin</p>
+                                    <p v-else-if="mobileLocationPickerFor === 'from' && fromDistrictsLoading" class="text-xs text-gray-400 py-2">Yükleniyor...</p>
+                                    <p v-else-if="mobileLocationPickerFor === 'to' && toDistrictsLoading" class="text-xs text-gray-400 py-2">Yükleniyor...</p>
+                                    <template v-else-if="mobileLocationPickerFor === 'from'">
+                                        <button
+                                            v-for="d in fromDistrictsForList"
+                                            :key="d.id == null ? 'her-yer' : d.id"
+                                            type="button"
+                                            @click="applyFromLocationAndCloseMobilePicker(d)"
+                                            :class="['w-full text-left px-2 py-2.5 rounded text-sm', isFromDistrictSelected(d) ? 'bg-primary/10 text-primary font-medium' : 'text-gray-700 hover:bg-gray-100']"
+                                        >
+                                            {{ d.name }}
+                                        </button>
+                                    </template>
+                                    <template v-else>
+                                        <button
+                                            v-for="d in toDistrictsForList"
+                                            :key="d.id == null ? 'her-yer' : d.id"
+                                            type="button"
+                                            @click="applyToLocationAndCloseMobilePicker(d)"
+                                            :class="['w-full text-left px-2 py-2.5 rounded text-sm', isToDistrictSelected(d) ? 'bg-primary/10 text-primary font-medium' : 'text-gray-700 hover:bg-gray-100']"
+                                        >
+                                            {{ d.name }}
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+                            <!-- Seçilen -->
+                            <div class="flex flex-col overflow-hidden p-3">
+                                <h3 class="px-1 py-2 text-xs font-semibold text-gray-500 border-b border-gray-100 shrink-0">Seçilen</h3>
+                                <p class="text-sm text-gray-700 py-2 shrink-0">{{ mobileLocationPickerFor === 'from' ? (fromCity || fromDistrict ? fromLocationLabel : 'Henüz seçim yok') : (toCity || toDistrict ? toLocationLabel : 'Henüz seçim yok') }}</p>
+                                <button
+                                    type="button"
+                                    class="mt-auto flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg border border-primary text-primary text-sm font-medium hover:bg-primary/5"
+                                    @click="openMapFromLocationPicker"
+                                >
+                                    <MapPin class="w-4 h-4 shrink-0" />
+                                    Konum ile seç
+                                </button>
+                                <p v-if="locationError" class="text-xs text-amber-600 mt-2">{{ locationError }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </Transition>
+        </Teleport>
 
         <!-- Konum gerekli uyarısı: modalda "Daha sonra" denmişse (localStorage konum false) göster -->
         <Content v-if="showKonumBanner" class="my-5 flex">
@@ -609,12 +836,21 @@ const toLocationLabel = computed(() => {
     return 'Nereye';
 });
 
+const mobileSearchSummary = computed(() => {
+    const from = fromLocationLabel.value === 'Nereden' ? 'Nereden' : fromLocationLabel.value;
+    const to = toLocationLabel.value === 'Nereye' ? 'Nereye' : toLocationLabel.value;
+    return `${from} → ${to}`;
+});
+
 const departureTime = ref(null);
 const returnTime = ref(null);
 const fromCityDropdownOpen = ref(false);
 const fromDropdownOpen = ref(false);
 const toDropdownOpen = ref(false);
 const searchBarRef = ref(null);
+const mobileFilterOpen = ref(false);
+const mobileLocationPickerOpen = ref(false);
+const mobileLocationPickerFor = ref('from'); // 'from' | 'to'
 
 /** Filtre seçenekleri: label (görünen metin), value (API'ye gönderilecek değer) */
 const filterSections = [
@@ -755,6 +991,11 @@ const applyFromLocation = (district) => {
     fromDistrict.value = district;
     fromLocationDisplayName.value = null; // Liste seçiminde tam ad yerine Şehir/İlçe kullan
     fromDropdownOpen.value = false;
+};
+
+const applyFromLocationAndCloseMobilePicker = (district) => {
+    applyFromLocation(district);
+    mobileLocationPickerOpen.value = false;
 };
 
 // Konum bilgisi tüm sayfalarda stores/location.js (useLocationStore) üzerinden alınır.
@@ -963,11 +1204,22 @@ const applyToLocation = (district) => {
     toDropdownOpen.value = false;
 };
 
+const applyToLocationAndCloseMobilePicker = (district) => {
+    applyToLocation(district);
+    mobileLocationPickerOpen.value = false;
+};
+
 const selectToLocationByMap = () => {
     locationStore.clearLocationError();
     toDropdownOpen.value = false;
     mapModalFor.value = 'to';
     mapModalOpen.value = true;
+};
+
+const openMapFromLocationPicker = () => {
+    mobileLocationPickerOpen.value = false;
+    if (mobileLocationPickerFor.value === 'from') selectFromLocationByMap();
+    else selectToLocationByMap();
 };
 
 // Click outside handler: Nereden panelini kapat
