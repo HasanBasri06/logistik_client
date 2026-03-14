@@ -27,7 +27,7 @@
                         </router-link>
 
                         <router-link
-                            to="/cargo-owner/cards"
+                            to="/cargo-owner/cuzdan"
                             class="bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4 hover:border-primary/50 hover:bg-primary/5 transition-all"
                         >
                             <div class="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0">
@@ -41,7 +41,7 @@
                         </router-link>
                     </div>
 
-                    <div class="grid grid-cols-3 gap-4">
+                    <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <router-link
                             to="/cargo-owner/posts/create"
                             class="group bg-primary/5 border-2 border-primary/20 rounded-xl p-5 flex flex-col gap-3 hover:border-primary hover:bg-primary/10 transition-all"
@@ -125,7 +125,7 @@
                         </router-link>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <router-link
                             to="/cargo-owner/cards"
                             class="bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4 hover:border-primary/50 hover:bg-primary/5 transition-all"

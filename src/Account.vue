@@ -12,7 +12,10 @@
                     </div>
 
                     <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        <div class="bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4">
+                        <router-link
+                            to="/vehicle-owner/cuzdan"
+                            class="bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4 hover:border-primary/50 hover:bg-primary/5 transition-all"
+                        >
                             <div class="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0">
                                 <i class="pi pi-wallet text-emerald-600" style="font-size: 22px;"></i>
                             </div>
@@ -20,7 +23,8 @@
                                 <p class="text-xs text-gray-500">Toplam Kazanç</p>
                                 <p class="text-2xl font-bold text-gray-900">{{ totalEarnings.toLocaleString('tr-TR') }} ₺</p>
                             </div>
-                        </div>
+                            <i class="pi pi-chevron-right text-gray-300" style="font-size: 14px;"></i>
+                        </router-link>
 
                         <div class="bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4">
                             <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">

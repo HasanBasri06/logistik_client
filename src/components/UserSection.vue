@@ -1,5 +1,5 @@
 <template>
-    <router-link to="/cargo-owner"
+    <router-link :to="user.role === 'cargo-owner' ? '/cargo-owner' : '/vehicle-owner'"
         class="w-full h-auto rounded-md border border-gray-200 bg-white p-3 hover:bg-gray-50 transition-colors cursor-pointer">
         <div class="flex flex-row gap-2 items-start">
             <div class="w-14 h-14 rounded-full overflow-hidden object-cover">

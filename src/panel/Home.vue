@@ -2,259 +2,259 @@
     <div class="h-screen overflow-hidden flex flex-col">
         <Header />
         <!-- Arama Alanı (Navbar genişliğinde) -->
-            <div class="w-full bg-white border-b border-gray-200 py-2 flex flex-col items-center shrink-0 relative" ref="searchBarRef">
-                <div class="w-full flex flex-col max-w-[1200px] mx-auto px-4 relative">
-                    <div class="flex gap-3 h-14 py-2">
-                        <!-- Nereden -->
-                        <div
-                            class="w-[334px] bg-white border border-gray-200 px-3 rounded-lg cursor-pointer shrink-0 flex items-center h-full"
-                            @click="toDropdownOpen = false; fromDropdownOpen = !fromDropdownOpen; fromDropdownOpen && openFromDropdown()"
-                        >
-                            <span class="text-sm text-gray-600 truncate">{{ fromLocationLabel }}</span>
-                        </div>
-
-                    
-                    <!-- Swap Butonu -->
-                    <button 
-                        @click="swapCities"
-                        class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-200 bg-white text-gray-700 cursor-pointer transition-all duration-200 shrink-0 hover:border-primary hover:bg-primary/5 hover:text-primary active:scale-95"
-                        type="button"
-                    >
-                        <ArrowLeftRight size="20" />
-                    </button>
-                    
-                    <!-- Nereye -->
+        <div class="w-full bg-white border-b border-gray-200 py-2 flex flex-col items-center shrink-0 relative" ref="searchBarRef">
+            <div class="w-full flex flex-col max-w-[1200px] mx-auto px-4 relative">
+                <div class="flex gap-3 h-14 py-2">
+                    <!-- Nereden -->
                     <div
                         class="w-[334px] bg-white border border-gray-200 px-3 rounded-lg cursor-pointer shrink-0 flex items-center h-full"
-                        @click="fromDropdownOpen = false; toDropdownOpen = !toDropdownOpen; toDropdownOpen && openToDropdown()"
+                        @click="toDropdownOpen = false; fromDropdownOpen = !fromDropdownOpen; fromDropdownOpen && openFromDropdown()"
                     >
-                        <span class="text-sm text-gray-600 truncate">{{ toLocationLabel }}</span>
+                        <span class="text-sm text-gray-600 truncate">{{ fromLocationLabel }}</span>
                     </div>
-                    
-                    <!-- Gidiş ve Dönüş Saati -->
-                    <div class="flex gap-3">
-                        <div
-                            class="w-[130px] bg-white px-3 rounded-lg border border-gray-200"
-                            @click="fromDropdownOpen = false; toDropdownOpen = false"
-                        >
-                            <DatePicker
-                                v-model="departureTime"
-                                :pt="{
-                                    root: { class: 'flex items-center h-full' },
-                                    input: { class: 'py-2' },
-                                    panel: { class: '!bg-white !border !border-gray-100 shadow-lg !p-3 rounded-lg' },
-                                    header: { class: '!bg-white' },
-                                    tableHeaderCell: { class: '!bg-white' },
-                                    tableBody: { class: '!bg-white' },
-                                    tableBodyRow: { class: '!bg-white' }
-                                }"
-                                id="datepicker-departure"
-                                placeholder="Gidiş"
-                                fluid
-                            />
-                        </div>
-                        <div
-                            class="w-[130px] bg-white px-3 rounded-lg border border-gray-200"
-                            @click="fromDropdownOpen = false; toDropdownOpen = false"
-                        >
-                            <DatePicker
-                                v-model="returnTime"
-                                :pt="{
-                                    root: { class: 'flex items-center h-full' },
-                                    input: { class: 'py-2' },
-                                    panel: { class: '!bg-white !border !border-gray-100 shadow-lg !p-3 rounded-lg' },
-                                    header: { class: '!bg-white' },
-                                    tableHeaderCell: { class: '!bg-white' },
-                                    tableBody: { class: '!bg-white' },
-                                    tableBodyRow: { class: '!bg-white' }
-                                }"
-                                id="datepicker-return"
-                                placeholder="Dönüş"
-                                fluid
-                            />
-                        </div>
+
+                
+                <!-- Swap Butonu -->
+                <button 
+                    @click="swapCities"
+                    class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-200 bg-white text-gray-700 cursor-pointer transition-all duration-200 shrink-0 hover:border-primary hover:bg-primary/5 hover:text-primary active:scale-95"
+                    type="button"
+                >
+                    <ArrowLeftRight size="20" />
+                </button>
+                
+                <!-- Nereye -->
+                <div
+                    class="w-[334px] bg-white border border-gray-200 px-3 rounded-lg cursor-pointer shrink-0 flex items-center h-full"
+                    @click="fromDropdownOpen = false; toDropdownOpen = !toDropdownOpen; toDropdownOpen && openToDropdown()"
+                >
+                    <span class="text-sm text-gray-600 truncate">{{ toLocationLabel }}</span>
+                </div>
+                
+                <!-- Gidiş ve Dönüş Saati -->
+                <div class="flex gap-3">
+                    <div
+                        class="w-[130px] bg-white px-3 rounded-lg border border-gray-200"
+                        @click="fromDropdownOpen = false; toDropdownOpen = false"
+                    >
+                        <DatePicker
+                            v-model="departureTime"
+                            :pt="{
+                                root: { class: 'flex items-center h-full' },
+                                input: { class: 'py-2' },
+                                panel: { class: '!bg-white !border !border-gray-100 shadow-lg !p-3 rounded-lg' },
+                                header: { class: '!bg-white' },
+                                tableHeaderCell: { class: '!bg-white' },
+                                tableBody: { class: '!bg-white' },
+                                tableBodyRow: { class: '!bg-white' }
+                            }"
+                            id="datepicker-departure"
+                            placeholder="Gidiş"
+                            fluid
+                        />
                     </div>
-                    <div class="w-[150px] shrink-0">
-                        <button 
-                            @click="handleSearch"
-                            class="w-full h-full bg-primary rounded-lg text-sm font-semibold text-white hover:bg-primary/90 transition-colors"
-                        >
-                            Ara
-                        </button>
+                    <div
+                        class="w-[130px] bg-white px-3 rounded-lg border border-gray-200"
+                        @click="fromDropdownOpen = false; toDropdownOpen = false"
+                    >
+                        <DatePicker
+                            v-model="returnTime"
+                            :pt="{
+                                root: { class: 'flex items-center h-full' },
+                                input: { class: 'py-2' },
+                                panel: { class: '!bg-white !border !border-gray-100 shadow-lg !p-3 rounded-lg' },
+                                header: { class: '!bg-white' },
+                                tableHeaderCell: { class: '!bg-white' },
+                                tableBody: { class: '!bg-white' },
+                                tableBodyRow: { class: '!bg-white' }
+                            }"
+                            id="datepicker-return"
+                            placeholder="Dönüş"
+                            fluid
+                        />
                     </div>
                 </div>
-                    <!-- Nereden: 3 bölüm (Şehirler | İlçeler | Seçilen) -->
-                    <Transition
-                        enter-active-class="transition duration-200 ease-out"
-                        enter-from-class="opacity-0 -translate-y-2"
-                        enter-to-class="opacity-100 translate-y-0"
-                        leave-active-class="transition duration-200 ease-in"
-                        leave-from-class="opacity-100 translate-y-0"
-                        leave-to-class="opacity-0 -translate-y-2"
+                <div class="w-[150px] shrink-0">
+                    <button 
+                        @click="handleSearch"
+                        class="w-full h-full bg-primary rounded-lg text-sm font-semibold text-white hover:bg-primary/90 transition-colors"
                     >
-                        <div
-                            v-show="fromDropdownOpen"
-                            class="absolute left-0 right-0 top-full mt-1 z-50 w-full h-[200px] rounded-lg border border-gray-200 bg-white shadow-lg overflow-hidden"
-                        >
-                            <div class="grid grid-cols-3 w-full h-full divide-x divide-gray-200">
-                                <div class="flex flex-col overflow-hidden">
-                                    <h3 class="px-3 py-2 text-xs font-semibold text-gray-500 border-b border-gray-100">Şehirler</h3>
-                                    <div class="p-2 border-b border-gray-100 shrink-0">
-                                        <input
-                                            v-model="fromCitySearch"
-                                            type="text"
-                                            placeholder="Şehir ara..."
-                                            class="w-full h-8 px-2.5 rounded border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
-                                        />
-                                    </div>
-                                    <div class="flex-1 overflow-y-auto p-2">
-                                        <p v-if="citiesLoading" class="text-xs text-gray-400">Yükleniyor...</p>
-                                        <button
-                                            v-else
-                                            v-for="c in fromCitiesForList"
-                                            :key="c.id"
-                                            type="button"
-                                            @click="selectFromCityTemp(c)"
-                                            :class="['w-full text-left px-2 py-1.5 rounded text-sm', fromTempCity?.id === c.id ? 'bg-primary/10 text-primary font-medium' : 'text-gray-700 hover:bg-gray-100']"
-                                        >
-                                            {{ c.name }}
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="flex flex-col overflow-hidden">
-                                    <h3 class="px-3 py-2 text-xs font-semibold text-gray-500 border-b border-gray-100">İlçeler</h3>
-                                    <div class="p-2 border-b border-gray-100 shrink-0">
-                                        <input
-                                            v-model="fromDistrictSearch"
-                                            type="text"
-                                            placeholder="İlçe ara..."
-                                            class="w-full h-8 px-2.5 rounded border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
-                                            :disabled="!fromTempCity"
-                                        />
-                                    </div>
-                                    <div class="flex-1 overflow-y-auto p-2">
-                                        <p v-if="!fromTempCity" class="text-xs text-gray-400">Önce şehir seçin</p>
-                                        <p v-else-if="fromDistrictsLoading" class="text-xs text-gray-400">Yükleniyor...</p>
-                                        <button
-                                            v-else
-                                            v-for="d in fromDistrictsForList"
-                                            :key="d.id == null ? 'her-yer' : d.id"
-                                            type="button"
-                                            @click="applyFromLocation(d)"
-                                            :class="['w-full text-left px-2 py-1.5 rounded text-sm', isFromDistrictSelected(d) ? 'bg-primary/10 text-primary font-medium' : 'text-gray-700 hover:bg-gray-100']"
-                                        >
-                                            {{ d.name }}
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="flex flex-col overflow-hidden">
-                                    <h3 class="px-3 py-2 text-xs font-semibold text-gray-500 border-b border-gray-100">Seçilen</h3>
-                                    <div class="flex-1 overflow-y-auto p-2 flex flex-col gap-2">
-                                        <p v-if="!fromCity && !fromDistrict" class="text-xs text-gray-400">Henüz seçim yok</p>
-                                        <p v-else class="text-sm font-medium text-gray-800">
-                                            {{ fromCity?.name }}{{ fromDistrict ? ' / ' + fromDistrict.name : '' }}
-                                        </p>
-                                        <button
-                                            type="button"
-                                            @click="selectFromLocationByMap"
-                                            class="w-full mt-auto flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-primary text-primary text-sm font-medium hover:bg-primary/5 transition-colors"
-                                        >
-                                            <MapPin class="w-4 h-4 shrink-0" />
-                                            Konum ile seç
-                                        </button>
-                                        <p v-if="locationError && fromDropdownOpen" class="text-xs text-amber-600 mt-1">{{ locationError }}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </Transition>
-                    <!-- Nereye: 3 bölüm (Şehirler | İlçeler | Seçilen) -->
-                    <Transition
-                        enter-active-class="transition duration-200 ease-out"
-                        enter-from-class="opacity-0 -translate-y-2"
-                        enter-to-class="opacity-100 translate-y-0"
-                        leave-active-class="transition duration-200 ease-in"
-                        leave-from-class="opacity-100 translate-y-0"
-                        leave-to-class="opacity-0 -translate-y-2"
-                    >
-                        <div
-                            v-show="toDropdownOpen"
-                            class="absolute left-0 right-0 top-full mt-1 z-50 w-full h-[200px] rounded-lg border border-gray-200 bg-white shadow-lg overflow-hidden"
-                        >
-                            <div class="grid grid-cols-3 w-full h-full divide-x divide-gray-200">
-                                <div class="flex flex-col overflow-hidden">
-                                    <h3 class="px-3 py-2 text-xs font-semibold text-gray-500 border-b border-gray-100">Şehirler</h3>
-                                    <div class="p-2 border-b border-gray-100 shrink-0">
-                                        <input
-                                            v-model="toCitySearch"
-                                            type="text"
-                                            placeholder="Şehir ara..."
-                                            class="w-full h-8 px-2.5 rounded border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
-                                        />
-                                    </div>
-                                    <div class="flex-1 overflow-y-auto p-2">
-                                        <p v-if="citiesLoading" class="text-xs text-gray-400">Yükleniyor...</p>
-                                        <button
-                                            v-else
-                                            v-for="c in toCitiesForList"
-                                            :key="c.id"
-                                            type="button"
-                                            @click="selectToCityTemp(c)"
-                                            :class="['w-full text-left px-2 py-1.5 rounded text-sm', toTempCity?.id === c.id ? 'bg-primary/10 text-primary font-medium' : 'text-gray-700 hover:bg-gray-100']"
-                                        >
-                                            {{ c.name }}
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="flex flex-col overflow-hidden">
-                                    <h3 class="px-3 py-2 text-xs font-semibold text-gray-500 border-b border-gray-100">İlçeler</h3>
-                                    <div class="p-2 border-b border-gray-100 shrink-0">
-                                        <input
-                                            v-model="toDistrictSearch"
-                                            type="text"
-                                            placeholder="İlçe ara..."
-                                            class="w-full h-8 px-2.5 rounded border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
-                                            :disabled="!toTempCity"
-                                        />
-                                    </div>
-                                    <div class="flex-1 overflow-y-auto p-2">
-                                        <p v-if="!toTempCity" class="text-xs text-gray-400">Önce şehir seçin</p>
-                                        <p v-else-if="toDistrictsLoading" class="text-xs text-gray-400">Yükleniyor...</p>
-                                        <button
-                                            v-else
-                                            v-for="d in toDistrictsForList"
-                                            :key="d.id == null ? 'her-yer' : d.id"
-                                            type="button"
-                                            @click="applyToLocation(d)"
-                                            :class="['w-full text-left px-2 py-1.5 rounded text-sm', isToDistrictSelected(d) ? 'bg-primary/10 text-primary font-medium' : 'text-gray-700 hover:bg-gray-100']"
-                                        >
-                                            {{ d.name }}
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="flex flex-col overflow-hidden">
-                                    <h3 class="px-3 py-2 text-xs font-semibold text-gray-500 border-b border-gray-100">Seçilen</h3>
-                                    <div class="flex-1 overflow-y-auto p-2 flex flex-col gap-2">
-                                        <p v-if="!toCity && !toDistrict" class="text-xs text-gray-400">Henüz seçim yok</p>
-                                        <p v-else class="text-sm font-medium text-gray-800">
-                                            {{ toCity?.name }}{{ toDistrict ? ' / ' + toDistrict.name : '' }}
-                                        </p>
-                                        <button
-                                            type="button"
-                                            @click="selectToLocationByMap"
-                                            class="w-full mt-auto flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-primary text-primary text-sm font-medium hover:bg-primary/5 transition-colors"
-                                        >
-                                            <MapPin class="w-4 h-4 shrink-0" />
-                                            Konum ile seç
-                                        </button>
-                                        <p v-if="locationError && toDropdownOpen" class="text-xs text-amber-600 mt-1">{{ locationError }}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </Transition>
+                        Ara
+                    </button>
                 </div>
             </div>
+                <!-- Nereden: 3 bölüm (Şehirler | İlçeler | Seçilen) -->
+                <Transition
+                    enter-active-class="transition duration-200 ease-out"
+                    enter-from-class="opacity-0 -translate-y-2"
+                    enter-to-class="opacity-100 translate-y-0"
+                    leave-active-class="transition duration-200 ease-in"
+                    leave-from-class="opacity-100 translate-y-0"
+                    leave-to-class="opacity-0 -translate-y-2"
+                >
+                    <div
+                        v-show="fromDropdownOpen"
+                        class="absolute left-0 right-0 top-full mt-1 z-50 w-full h-[200px] rounded-lg border border-gray-200 bg-white shadow-lg overflow-hidden"
+                    >
+                        <div class="grid grid-cols-3 w-full h-full divide-x divide-gray-200">
+                            <div class="flex flex-col overflow-hidden">
+                                <h3 class="px-3 py-2 text-xs font-semibold text-gray-500 border-b border-gray-100">Şehirler</h3>
+                                <div class="p-2 border-b border-gray-100 shrink-0">
+                                    <input
+                                        v-model="fromCitySearch"
+                                        type="text"
+                                        placeholder="Şehir ara..."
+                                        class="w-full h-8 px-2.5 rounded border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                                    />
+                                </div>
+                                <div class="flex-1 overflow-y-auto p-2">
+                                    <p v-if="citiesLoading" class="text-xs text-gray-400">Yükleniyor...</p>
+                                    <button
+                                        v-else
+                                        v-for="c in fromCitiesForList"
+                                        :key="c.id"
+                                        type="button"
+                                        @click="selectFromCityTemp(c)"
+                                        :class="['w-full text-left px-2 py-1.5 rounded text-sm', fromTempCity?.id === c.id ? 'bg-primary/10 text-primary font-medium' : 'text-gray-700 hover:bg-gray-100']"
+                                    >
+                                        {{ c.name }}
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="flex flex-col overflow-hidden">
+                                <h3 class="px-3 py-2 text-xs font-semibold text-gray-500 border-b border-gray-100">İlçeler</h3>
+                                <div class="p-2 border-b border-gray-100 shrink-0">
+                                    <input
+                                        v-model="fromDistrictSearch"
+                                        type="text"
+                                        placeholder="İlçe ara..."
+                                        class="w-full h-8 px-2.5 rounded border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                                        :disabled="!fromTempCity"
+                                    />
+                                </div>
+                                <div class="flex-1 overflow-y-auto p-2">
+                                    <p v-if="!fromTempCity" class="text-xs text-gray-400">Önce şehir seçin</p>
+                                    <p v-else-if="fromDistrictsLoading" class="text-xs text-gray-400">Yükleniyor...</p>
+                                    <button
+                                        v-else
+                                        v-for="d in fromDistrictsForList"
+                                        :key="d.id == null ? 'her-yer' : d.id"
+                                        type="button"
+                                        @click="applyFromLocation(d)"
+                                        :class="['w-full text-left px-2 py-1.5 rounded text-sm', isFromDistrictSelected(d) ? 'bg-primary/10 text-primary font-medium' : 'text-gray-700 hover:bg-gray-100']"
+                                    >
+                                        {{ d.name }}
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="flex flex-col overflow-hidden">
+                                <h3 class="px-3 py-2 text-xs font-semibold text-gray-500 border-b border-gray-100">Seçilen</h3>
+                                <div class="flex-1 overflow-y-auto p-2 flex flex-col gap-2">
+                                    <p v-if="!fromCity && !fromDistrict" class="text-xs text-gray-400">Henüz seçim yok</p>
+                                    <p v-else class="text-sm font-medium text-gray-800">
+                                        {{ fromCity?.name }}{{ fromDistrict ? ' / ' + fromDistrict.name : '' }}
+                                    </p>
+                                    <button
+                                        type="button"
+                                        @click="selectFromLocationByMap"
+                                        class="w-full mt-auto flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-primary text-primary text-sm font-medium hover:bg-primary/5 transition-colors"
+                                    >
+                                        <MapPin class="w-4 h-4 shrink-0" />
+                                        Konum ile seç
+                                    </button>
+                                    <p v-if="locationError && fromDropdownOpen" class="text-xs text-amber-600 mt-1">{{ locationError }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </Transition>
+                <!-- Nereye: 3 bölüm (Şehirler | İlçeler | Seçilen) -->
+                <Transition
+                    enter-active-class="transition duration-200 ease-out"
+                    enter-from-class="opacity-0 -translate-y-2"
+                    enter-to-class="opacity-100 translate-y-0"
+                    leave-active-class="transition duration-200 ease-in"
+                    leave-from-class="opacity-100 translate-y-0"
+                    leave-to-class="opacity-0 -translate-y-2"
+                >
+                    <div
+                        v-show="toDropdownOpen"
+                        class="absolute left-0 right-0 top-full mt-1 z-50 w-full h-[200px] rounded-lg border border-gray-200 bg-white shadow-lg overflow-hidden"
+                    >
+                        <div class="grid grid-cols-3 w-full h-full divide-x divide-gray-200">
+                            <div class="flex flex-col overflow-hidden">
+                                <h3 class="px-3 py-2 text-xs font-semibold text-gray-500 border-b border-gray-100">Şehirler</h3>
+                                <div class="p-2 border-b border-gray-100 shrink-0">
+                                    <input
+                                        v-model="toCitySearch"
+                                        type="text"
+                                        placeholder="Şehir ara..."
+                                        class="w-full h-8 px-2.5 rounded border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                                    />
+                                </div>
+                                <div class="flex-1 overflow-y-auto p-2">
+                                    <p v-if="citiesLoading" class="text-xs text-gray-400">Yükleniyor...</p>
+                                    <button
+                                        v-else
+                                        v-for="c in toCitiesForList"
+                                        :key="c.id"
+                                        type="button"
+                                        @click="selectToCityTemp(c)"
+                                        :class="['w-full text-left px-2 py-1.5 rounded text-sm', toTempCity?.id === c.id ? 'bg-primary/10 text-primary font-medium' : 'text-gray-700 hover:bg-gray-100']"
+                                    >
+                                        {{ c.name }}
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="flex flex-col overflow-hidden">
+                                <h3 class="px-3 py-2 text-xs font-semibold text-gray-500 border-b border-gray-100">İlçeler</h3>
+                                <div class="p-2 border-b border-gray-100 shrink-0">
+                                    <input
+                                        v-model="toDistrictSearch"
+                                        type="text"
+                                        placeholder="İlçe ara..."
+                                        class="w-full h-8 px-2.5 rounded border border-gray-200 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                                        :disabled="!toTempCity"
+                                    />
+                                </div>
+                                <div class="flex-1 overflow-y-auto p-2">
+                                    <p v-if="!toTempCity" class="text-xs text-gray-400">Önce şehir seçin</p>
+                                    <p v-else-if="toDistrictsLoading" class="text-xs text-gray-400">Yükleniyor...</p>
+                                    <button
+                                        v-else
+                                        v-for="d in toDistrictsForList"
+                                        :key="d.id == null ? 'her-yer' : d.id"
+                                        type="button"
+                                        @click="applyToLocation(d)"
+                                        :class="['w-full text-left px-2 py-1.5 rounded text-sm', isToDistrictSelected(d) ? 'bg-primary/10 text-primary font-medium' : 'text-gray-700 hover:bg-gray-100']"
+                                    >
+                                        {{ d.name }}
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="flex flex-col overflow-hidden">
+                                <h3 class="px-3 py-2 text-xs font-semibold text-gray-500 border-b border-gray-100">Seçilen</h3>
+                                <div class="flex-1 overflow-y-auto p-2 flex flex-col gap-2">
+                                    <p v-if="!toCity && !toDistrict" class="text-xs text-gray-400">Henüz seçim yok</p>
+                                    <p v-else class="text-sm font-medium text-gray-800">
+                                        {{ toCity?.name }}{{ toDistrict ? ' / ' + toDistrict.name : '' }}
+                                    </p>
+                                    <button
+                                        type="button"
+                                        @click="selectToLocationByMap"
+                                        class="w-full mt-auto flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-primary text-primary text-sm font-medium hover:bg-primary/5 transition-colors"
+                                    >
+                                        <MapPin class="w-4 h-4 shrink-0" />
+                                        Konum ile seç
+                                    </button>
+                                    <p v-if="locationError && toDropdownOpen" class="text-xs text-amber-600 mt-1">{{ locationError }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </Transition>
+            </div>
+        </div>
         
 
         <!-- Konum gerekli uyarısı: modalda "Daha sonra" denmişse (localStorage konum false) göster -->
@@ -285,7 +285,7 @@
         <Content class="mt-5 flex-1 min-h-0 overflow-hidden flex">
             <div class="flex flex-row gap-6 w-full h-full">
                 <!-- Sol: Filtreleme -->
-                <div class="w-[320px] flex flex-col gap-8 overflow-y-auto shrink-0">
+                <div class="md:w-[320px] md:flex md:flex-col md:gap-8 md:overflow-y-auto md:shrink-0 hidden">
                     <div
                         v-for="section in filterSections"
                         :key="section.modelKey"
