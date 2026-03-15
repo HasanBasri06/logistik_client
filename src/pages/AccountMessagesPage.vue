@@ -1,10 +1,10 @@
 <template>
-    <Header />
-    <div class="h-[calc(100vh-64px)]">
-        <Content>
-            <div class="flex flex-row gap-3 w-full h-[calc(100vh-64px)]">
+    <Header class="hidden md:block" />
+    <div class="h-full md:h-[calc(100vh-64px)]">
+        <Content class="h-full !px-0">
+            <div class="flex flex-row md:gap-3 w-full md:h-[calc(100vh-64px)] h-full">
                 <AccountSidebar />
-                <div class="bg-white flex-1 mt-3 border border-gray-200 p-3 rounded-md flex flex-col overflow-hidden">
+                <div class="bg-white flex-1 md:mt-3 border border-gray-200 md:p-3 w-full md:rounded-md flex flex-col overflow-hidden">
                     <p v-if="messagesLoading" class="text-sm text-gray-500 p-4">Mesajlar yükleniyor...</p>
                     <AccountMessages
                         v-else

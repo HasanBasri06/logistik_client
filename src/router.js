@@ -334,7 +334,10 @@ const routes = [
 
 export const router = createRouter({
     history: createWebHistory(),
-    routes
+    routes,
+    scrollBehavior(to, from, savedPosition) {
+        return { top: 0, behavior: 'smooth' }
+    }
 })
 
 // Router guard: Auth kontrolü ve yönlendirmeler
