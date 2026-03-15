@@ -2,52 +2,73 @@
     <div class="flex flex-row gap-4 h-full min-h-0 w-full max-w-full overflow-x-hidden">
         <!-- Sol: Mesaj Listesi (Mesaj seçilmediğinde görünür) -->
         <div v-if="!route.params.id" class="w-full min-w-0 flex flex-col overflow-y-auto overflow-x-hidden min-h-0">
-            <h2 class="text-xl sm:text-2xl font-semibold text-gray-900 mb-4 sm:mb-6">Yük Sahibi Mesajları</h2>
+            <!-- Mobil: üst bar geri butonu + başlık -->
+            <div class="md:hidden flex items-center gap-3 px-1 py-3 pb-4 border-b border-gray-100 shrink-0">
+                <button
+                    type="button"
+                    @click="goBackFromList"
+                    class="flex items-center justify-center min-w-[44px] min-h-[44px] rounded-full hover:bg-gray-100 active:bg-gray-200 transition-colors touch-manipulation text-gray-700"
+                    aria-label="Geri"
+                >
+                    <i class="pi pi-arrow-left text-lg" aria-hidden="true"></i>
+                </button>
+                <h2 class="text-lg font-semibold text-gray-900 truncate flex-1">Mesajlar</h2>
+            </div>
 
-            <div class="flex flex-col gap-3 sm:gap-4">
+            <h2 class="hidden md:block text-xl sm:text-2xl font-semibold text-gray-900 mb-4 sm:mb-6">Yük Sahibi Mesajları</h2>
+
+            <div class="flex flex-col gap-2 sm:gap-3 pt-2 md:pt-0">
                 <div
                     v-for="message in displayMessages"
                     :key="message.id"
                     :class="[
-                        'w-full min-h-[80px] sm:min-h-[100px] rounded-xl sm:rounded-2xl bg-white border border-gray-200 overflow-hidden cursor-pointer transition-all duration-300 shadow-sm hover:border-primary hover:shadow-md active:scale-[0.99] sm:hover:-translate-y-0.5',
-                        message.isRead ? 'opacity-60' : 'opacity-100'
+                        'group w-full rounded-2xl overflow-hidden cursor-pointer transition-all duration-200',
+                        'bg-white border border-gray-100 hover:border-primary/30 hover:shadow-md hover:shadow-primary/5',
+                        'active:scale-[0.99] sm:active:scale-100',
+                        message.isRead ? 'opacity-75' : 'opacity-100'
                     ]"
                     @click="openMessageDetail(message)"
                 >
-                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center px-4 sm:px-6 py-3 sm:py-4 gap-2 sm:gap-6">
-                        <div class="flex items-center gap-3 sm:gap-4 shrink-0 min-w-0">
-                            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full border-[1.5px] border-primary overflow-hidden flex items-center justify-center bg-white shrink-0">
+                    <div class="flex items-center gap-4 p-4 sm:p-5">
+                        <div class="relative shrink-0">
+                            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl overflow-hidden bg-gray-100 flex items-center justify-center ring-2 ring-gray-100 group-hover:ring-primary/20 transition-all">
                                 <img src="@/assets/images/person.png" :alt="message.name" class="w-full h-full object-cover" />
                             </div>
-                            <div class="flex flex-col gap-0.5 min-w-0 flex-1 sm:flex-initial">
+                            <span
+                                v-if="!message.isRead"
+                                class="absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full bg-primary ring-2 ring-white"
+                                aria-hidden="true"
+                            />
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-baseline justify-between gap-2 mb-0.5">
                                 <h3
                                     :class="[
-                                        'text-sm sm:text-base font-semibold leading-tight truncate',
-                                        message.isRead ? 'text-gray-500' : 'text-gray-900'
+                                        'text-sm sm:text-base font-semibold truncate',
+                                        message.isRead ? 'text-gray-600' : 'text-gray-900'
                                     ]"
                                 >
                                     {{ message.name }}
                                 </h3>
-                                <p :class="['text-xs', message.isRead ? 'text-gray-400' : 'text-gray-500']">
+                                <span :class="['text-xs shrink-0', message.isRead ? 'text-gray-400' : 'text-gray-500']">
                                     {{ message.time }}
-                                </p>
+                                </span>
                             </div>
-                        </div>
-                        <div class="flex-1 min-w-0 sm:text-right pl-[3.25rem] sm:pl-0">
                             <p
                                 :class="[
-                                    'text-xs sm:text-sm text-gray-700 leading-relaxed line-clamp-2',
+                                    'text-sm leading-snug line-clamp-2',
                                     message.isRead ? 'text-gray-500' : 'text-gray-700'
                                 ]"
                             >
-                                {{ message.lastMessage }}
+                                {{ message.lastMessage || 'Mesaj yok' }}
                             </p>
                         </div>
+                        <i class="pi pi-chevron-right text-gray-300 group-hover:text-primary text-sm shrink-0 transition-colors" aria-hidden="true"></i>
                     </div>
                 </div>
                 <p
                     v-if="!displayMessages.length"
-                    class="text-sm text-gray-500 py-8 text-center"
+                    class="text-sm text-gray-500 py-12 text-center rounded-2xl bg-gray-50/80 border border-dashed border-gray-200"
                 >
                     Henüz mesaj gönderilmemiş
                 </p>
@@ -55,9 +76,9 @@
         </div>
 
         <!-- Mesaj Detayı ve Yazma Alanı (Mesaj seçildiğinde tam ekran) -->
-        <div v-if="route.params.id && selectedMessage" class="w-full max-w-full flex flex-col min-h-0 h-full overflow-hidden">
+        <div v-if="route.params.id && selectedMessage" class="w-full max-w-full flex flex-col min-h-0 h-full max-h-full overflow-hidden">
             <!-- Üst: Geri Butonu ve Mesaj Gönderen Bilgisi -->
-            <div class="flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-2.5 sm:py-3 border-b border-gray-200 shrink-0 bg-white">
+            <div class="flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-2 sm:py-2.5 border-b border-gray-200 shrink-0 bg-white min-h-0">
                 <button
                     type="button"
                     @click="goBackToMessages"
@@ -76,14 +97,14 @@
                 </div>
             </div>
 
-            <!-- Üst: İlan özeti + Talep (mobilde alt alta) -->
+            <!-- Üst: İlan özeti + Talep (mobilde alt alta, yükseklik sınırlı) -->
             <div
                 v-if="(conversationShipment || conversationTeklif) && !threadLoading"
-                class="mx-3 sm:mx-4 mt-2 mb-2 flex flex-col sm:flex-row gap-2 sm:gap-3 shrink-0"
+                class="mx-3 sm:mx-4 mt-1.5 mb-1.5 flex flex-col sm:flex-row gap-2 sm:gap-3 shrink-0 max-h-[28vh] sm:max-h-none overflow-y-auto overflow-x-hidden"
             >
                 <div
                     v-if="conversationShipment"
-                    class="flex-1 rounded-xl border border-gray-200 bg-white p-3 sm:p-4 shadow-sm min-w-0"
+                    class="flex-1 min-h-0 rounded-xl border border-gray-200 bg-white p-3 sm:p-4 shadow-sm min-w-0"
                 >
                     <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 sm:mb-2">İlan özeti</p>
                     <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap text-xs sm:text-sm">
@@ -98,7 +119,7 @@
                 </div>
                 <div
                     v-if="conversationTeklif"
-                    class="flex-1 rounded-xl border-2 border-primary/30 bg-white p-3 sm:p-4 shadow-sm min-w-0"
+                    class="flex-1 min-h-0 rounded-xl border-2 border-primary/30 bg-white p-3 sm:p-4 shadow-sm min-w-0"
                 >
                     <p class="text-xs font-semibold text-primary uppercase tracking-wide mb-1.5 sm:mb-2">Talep / Teklif</p>
                     <p v-if="conversationTeklif.carName" class="text-xs sm:text-sm font-medium text-gray-900 mb-1">{{ conversationTeklif.carName }}</p>
@@ -118,8 +139,8 @@
                 </div>
             </div>
 
-            <!-- Orta: Mesajlar (Scrollable) - mobilde kutular en sola/en sağa yaslı -->
-            <div ref="messageThreadContainer" class="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-2 sm:px-4 py-3 sm:py-4 bg-gray-50">
+            <!-- Orta: Mesajlar (Scrollable) - mobilde kutular en sola/en sağa yaslı, tek scroll alanı -->
+            <div ref="messageThreadContainer" class="flex-1 min-h-0 min-w-0 overflow-y-auto overflow-x-hidden px-2 sm:px-4 py-3 sm:py-4 bg-gray-50 overscroll-contain">
                 <p v-if="threadLoading" class="text-sm text-gray-500 py-4">Mesajlar yükleniyor...</p>
                 <div v-else class="flex flex-col gap-3 sm:gap-4">
                     <div
@@ -143,7 +164,7 @@
             </div>
 
             <!-- Özel teklif gönder (sadece araç sahibi /vehicle-owner/messages sayfasında) -->
-            <div v-if="conversationShipment?.slug && isVehicleOwnerMessages" class="w-full shrink-0 border-t border-gray-200 p-2.5 sm:p-3 bg-white">
+            <div v-if="conversationShipment?.slug && isVehicleOwnerMessages" class="w-full shrink-0 border-t border-gray-200 p-2 sm:p-3 bg-white min-h-0">
                 <button
                     type="button"
                     class="w-full min-h-[44px] py-2.5 sm:py-2.5 px-3 rounded-lg border-2 border-primary text-primary font-semibold text-sm hover:bg-primary/5 active:bg-primary/10 transition-colors touch-manipulation"
@@ -153,17 +174,17 @@
                 </button>
             </div>
             <!-- Alt: Mesaj Inputu -->
-            <div class="px-3 sm:px-4 py-2.5 sm:py-3 border-t border-gray-200 shrink-0 bg-white">
-                <form @submit.prevent="sendMessage" class="flex gap-2 sm:gap-3 items-end">
+            <div class="px-3 sm:px-4 py-2 sm:py-3 border-t border-gray-200 shrink-0 bg-white min-h-0">
+                <form @submit.prevent="sendMessage" class="flex gap-2 sm:gap-3 items-end min-w-0">
                     <input
                         v-model="newMessageText"
                         type="text"
-                        class="flex-1 min-w-0 h-12 sm:h-14 rounded-xl sm:rounded-md text-base sm:text-sm outline-none px-3 sm:px-4 bg-white border border-gray-200 text-gray-700 focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                        class="flex-1 min-w-0 h-11 sm:h-14 rounded-xl sm:rounded-md text-base sm:text-sm outline-none px-3 sm:px-4 bg-white border border-gray-200 text-gray-700 focus:ring-2 focus:ring-primary/20 focus:border-primary"
                         placeholder="Mesajınızı yazın..."
                     />
                     <button
                         type="submit"
-                        class="shrink-0 min-h-[48px] sm:min-h-[56px] px-4 sm:px-6 py-3 bg-primary text-white font-semibold rounded-xl sm:rounded-lg hover:bg-primary/90 active:bg-primary/80 transition-colors touch-manipulation text-sm sm:text-base"
+                        class="shrink-0 h-11 sm:min-h-[56px] px-4 sm:px-6 py-2.5 sm:py-3 bg-primary text-white font-semibold rounded-xl sm:rounded-lg hover:bg-primary/90 active:bg-primary/80 transition-colors touch-manipulation text-sm sm:text-base"
                     >
                         Gönder
                     </button>
@@ -339,6 +360,12 @@ const openMessageDetail = (message) => {
 
 const goBackToMessages = () => {
     router.push(props.basePath);
+};
+
+/** Mobil liste ekranında geri: ana panele (cargo-owner / vehicle-owner) dön */
+const goBackFromList = () => {
+    const path = (props.basePath || '').replace(/\/messages\/?$/, '') || '/cargo-owner';
+    router.push(path);
 };
 
 function scrollMessagesToBottom() {

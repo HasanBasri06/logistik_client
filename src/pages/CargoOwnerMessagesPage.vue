@@ -1,10 +1,10 @@
 <template>
-    <Header />
-    <div class="h-[calc(100vh-64px)] min-h-0 flex flex-col">
-        <Content class="flex-1 min-h-0 flex flex-col">
+    <Header class="hidden md:block" />
+    <div class="h-[100dvh] md:h-[calc(100vh-4rem)] min-h-0 flex flex-col overflow-hidden">
+        <Content class="flex-1 min-h-0 flex flex-col !p-0 overflow-hidden">
             <div class="flex flex-row gap-3 w-full flex-1 min-h-0 overflow-hidden">
                 <CargoOwner />
-                <div class="bg-white flex-1 min-w-0 min-h-0 mt-3 border border-gray-200 rounded-md flex flex-col overflow-hidden">
+                <div class="bg-white flex-1 min-w-0 min-h-0 md:mt-3 border border-gray-200 rounded-md flex flex-col overflow-hidden max-h-full">
                     <p v-if="messagesLoading" class="text-sm text-gray-500 p-4">Mesajlar yükleniyor...</p>
                     <AccountMessages
                         v-else
