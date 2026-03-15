@@ -525,5 +525,10 @@ onMounted(() => {
         loadMessageDetail(parseInt(route.params.id));
     }
     connectPusher();
+    document.body.style.overflow = 'hidden';
+});
+
+onBeforeUnmount(() => {
+    document.body.style.overflow = '';
 });
 </script>
