@@ -2,11 +2,11 @@
   <component :is="layout">
       <RouterView></RouterView>
   </component>
-  <!-- Konum alınamadı modalı (tüm sayfalarda) -->
+  <!-- Konum alınamadı modalı (sadece giriş yapmış kullanıcı için) -->
   <Teleport to="body">
     <Transition name="modal">
       <div
-        v-show="locationDeniedModalOpen"
+        v-show="authStore.isAuthenticated && locationDeniedModalOpen"
         class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50"
         role="dialog"
         aria-modal="true"
@@ -56,13 +56,16 @@ import Layout from './Layout.vue';
 import konumIzniImg from '@/assets/images/konum_izni.png';
 import { useHead } from '@vueuse/head';
 import { useLocationStore } from './stores/location';
+import { useAuthStore } from './stores/auth';
 
 const route = useRoute();
+const authStore = useAuthStore();
 const locationStore = useLocationStore();
 const { locationDeniedModalOpen, locationError, locationErrorCode, locationRequesting } = storeToRefs(locationStore);
 const { requestUserLocation, closeLocationModal } = locationStore;
 
 onMounted(() => {
+  if (!authStore.isAuthenticated) return;
   const konumIzin = typeof localStorage !== 'undefined' && localStorage.getItem(locationStore.KONUM_IZIN_STORAGE_KEY);
   if (konumIzin !== 'false') {
     locationStore.requestUserLocation();

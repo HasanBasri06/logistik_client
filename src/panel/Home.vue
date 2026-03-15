@@ -2,11 +2,12 @@
     <div class="h-screen overflow-hidden flex flex-col">
         <Header />
         <!-- Arama Alanı (responsive) -->
-        <div class="w-full bg-white border-b border-gray-200 py-2 sm:py-2 flex flex-col items-center shrink-0 relative" ref="searchBarRef">
+        <div class="w-full bg-white border-b border-gray-200 py-2 sm:py-2 flex flex-col items-center shrink-0 relative " ref="searchBarRef">
             <div class="w-full flex flex-col max-w-[1200px] mx-auto px-3 sm:px-4 relative">
                 <!-- Mobil: tek input → tıklanınca filtre modalı açılır -->
                 <div
-                    class="sm:hidden flex items-center gap-2 w-full h-12 px-4 rounded-xl border border-gray-200 bg-gray-50 cursor-pointer"
+                    class="sm:hidden flex items-center gap-2 w-full h-12 px-4 rounded-xl border bg-gray-50 cursor-pointer transition-colors"
+                    :class="(fromCity || fromDistrict) && (toCity || toDistrict) ? 'border-2 border-primary' : 'border-gray-200'"
                     @click="mobileFilterOpen = true"
                 >
                     <span class="text-gray-400 shrink-0">
@@ -166,15 +167,17 @@
                                     <p v-else class="text-sm font-medium text-gray-800">
                                         {{ fromCity?.name }}{{ fromDistrict ? ' / ' + fromDistrict.name : '' }}
                                     </p>
-                                    <button
-                                        type="button"
-                                        @click="selectFromLocationByMap"
-                                        class="w-full mt-auto flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-primary text-primary text-sm font-medium hover:bg-primary/5 transition-colors"
-                                    >
-                                        <MapPin class="w-4 h-4 shrink-0" />
-                                        Konum ile seç
-                                    </button>
-                                    <p v-if="locationError && fromDropdownOpen" class="text-xs text-amber-600 mt-1">{{ locationError }}</p>
+                                    <template v-if="authStore.isAuthenticated">
+                                        <button
+                                            type="button"
+                                            @click="selectFromLocationByMap"
+                                            class="w-full mt-auto flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-primary text-primary text-sm font-medium hover:bg-primary/5 transition-colors"
+                                        >
+                                            <MapPin class="w-4 h-4 shrink-0" />
+                                            Konum ile seç
+                                        </button>
+                                        <p v-if="locationError && fromDropdownOpen" class="text-xs text-amber-600 mt-1">{{ locationError }}</p>
+                                    </template>
                                 </div>
                             </div>
                         </div>
@@ -251,15 +254,17 @@
                                     <p v-else class="text-sm font-medium text-gray-800">
                                         {{ toCity?.name }}{{ toDistrict ? ' / ' + toDistrict.name : '' }}
                                     </p>
-                                    <button
-                                        type="button"
-                                        @click="selectToLocationByMap"
-                                        class="w-full mt-auto flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-primary text-primary text-sm font-medium hover:bg-primary/5 transition-colors"
-                                    >
-                                        <MapPin class="w-4 h-4 shrink-0" />
-                                        Konum ile seç
-                                    </button>
-                                    <p v-if="locationError && toDropdownOpen" class="text-xs text-amber-600 mt-1">{{ locationError }}</p>
+                                    <template v-if="authStore.isAuthenticated">
+                                        <button
+                                            type="button"
+                                            @click="selectToLocationByMap"
+                                            class="w-full mt-auto flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-primary text-primary text-sm font-medium hover:bg-primary/5 transition-colors"
+                                        >
+                                            <MapPin class="w-4 h-4 shrink-0" />
+                                            Konum ile seç
+                                        </button>
+                                        <p v-if="locationError && toDropdownOpen" class="text-xs text-amber-600 mt-1">{{ locationError }}</p>
+                                    </template>
                                 </div>
                             </div>
                         </div>
@@ -268,75 +273,186 @@
             </div>
         </div>
 
-        <!-- Mobil: Filtreleme full modal -->
+        <!-- Mobil: Filtreleme full modal (Nereden → Nereye) -->
         <Teleport to="body">
             <Transition name="modal">
                 <div
                     v-if="mobileFilterOpen"
-                    class="fixed inset-0 z-[100] flex flex-col bg-white sm:hidden"
+                    class="fixed inset-0 z-[100] flex flex-col bg-gradient-to-b from-gray-50 to-white sm:hidden"
                     role="dialog"
                     aria-modal="true"
                     aria-labelledby="mobile-filter-title"
                 >
+                    <!-- Header -->
+                    <div class="flex items-center justify-between shrink-0 px-4 py-4 pb-2">
+                        <h2 id="mobile-filter-title" class="text-xl font-bold text-gray-900 tracking-tight">Arama</h2>
+                        <button
+                            type="button"
+                            class="p-2.5 -mr-2 rounded-full text-gray-500 hover:bg-gray-200/80 hover:text-gray-800 transition-colors"
+                            aria-label="Kapat"
+                            @click="mobileFilterOpen = false; fromDropdownOpen = false; toDropdownOpen = false"
+                        >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                    </div>
+                    <div class="flex-1 overflow-y-auto px-4 pb-4 space-y-5">
+                        <!-- Nereden / Nereye kartları -->
+                        <div class="space-y-3">
+                            <div
+                                class="w-full min-h-[56px] pl-4 pr-4 py-3 rounded-2xl bg-white border border-gray-200/80 shadow-sm flex items-center cursor-pointer active:scale-[0.99] transition-transform hover:border-primary/30 hover:shadow-md"
+                                @click="mobileLocationPickerFor = 'from'; openFromDropdown(); mobileLocationPickerOpen = true"
+                            >
+                                <span class="flex items-center justify-center w-9 h-9 rounded-xl bg-primary/10 text-primary shrink-0 mr-3">
+                                    <MapPin class="w-4 h-4" />
+                                </span>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Nereden</p>
+                                    <p class="text-sm font-semibold text-gray-800 truncate">{{ fromLocationLabel || 'Şehir veya ilçe seçin' }}</p>
+                                </div>
+                                <ChevronDown class="w-5 h-5 text-gray-400 shrink-0" />
+                            </div>
+                            <!-- Swap -->
+                            <div class="flex justify-center -my-1">
+                                <button
+                                    type="button"
+                                    @click="swapCities"
+                                    class="flex items-center justify-center w-11 h-11 rounded-full bg-white border-2 border-gray-200 shadow-sm text-gray-600 hover:border-primary hover:bg-primary/5 hover:text-primary transition-all active:scale-95"
+                                >
+                                    <ArrowLeftRight size="20" />
+                                </button>
+                            </div>
+                            <div
+                                class="w-full min-h-[56px] pl-4 pr-4 py-3 mt-3 rounded-2xl bg-white border border-gray-200/80 shadow-sm flex items-center cursor-pointer active:scale-[0.99] transition-transform hover:border-primary/30 hover:shadow-md"
+                                @click="mobileLocationPickerFor = 'to'; openToDropdown(); mobileLocationPickerOpen = true"
+                            >
+                                <span class="flex items-center justify-center w-9 h-9 rounded-xl bg-primary/10 text-primary shrink-0 mr-3">
+                                    <MapPin class="w-4 h-4" />
+                                </span>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-[11px] font-medium text-gray-400 uppercase tracking-wider">Nereye</p>
+                                    <p class="text-sm font-semibold text-gray-800 truncate">{{ toLocationLabel || 'Şehir veya ilçe seçin' }}</p>
+                                </div>
+                                <ChevronDown class="w-5 h-5 text-gray-400 shrink-0" />
+                            </div>
+                        </div>
+                        <!-- Tarih alanları -->
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-1.5 ml-0.5">Gidiş</label>
+                                <div class="rounded-2xl border border-gray-200/80 p-3 bg-white shadow-sm overflow-hidden" @click="fromDropdownOpen = false; toDropdownOpen = false">
+                                    <DatePicker
+                                        v-model="departureTime"
+                                        :pt="{ root: { class: 'w-full' }, input: { class: 'py-3 text-sm w-full rounded-2xl' }, panel: { class: '!bg-white !border !border-gray-100 shadow-lg !p-3 rounded-xl' } }"
+                                        placeholder="Tarih seçin"
+                                        fluid
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-1.5 ml-0.5">Dönüş</label>
+                                <div class="rounded-2xl border border-gray-200/80 p-3 bg-white shadow-sm overflow-hidden" @click="fromDropdownOpen = false; toDropdownOpen = false">
+                                    <DatePicker
+                                        v-model="returnTime"
+                                        :pt="{ root: { class: 'w-full' }, input: { class: 'py-3 text-sm w-full rounded-2xl' }, panel: { class: '!bg-white !border !border-gray-100 shadow-lg !p-3 rounded-xl' } }"
+                                        placeholder="Tarih seçin"
+                                        fluid
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            class="w-full py-3.5 rounded-2xl border-2 border-dashed border-gray-200 text-gray-600 text-sm font-medium hover:border-gray-300 hover:bg-gray-50 hover:text-gray-800 transition-colors"
+                            @click="clearMobileSearchLocations"
+                        >
+                            Seçilenleri Temizle
+                        </button>
+                    </div>
+                    <div class="shrink-0 p-4 pt-3 bg-white/80 backdrop-blur-sm border-t border-gray-100">
+                        <button
+                            type="button"
+                            @click="handleSearch(); mobileFilterOpen = false"
+                            class="w-full h-14 bg-primary rounded-2xl text-base font-bold text-white shadow-lg shadow-primary/25 hover:bg-primary/90 active:scale-[0.99] transition-all"
+                        >
+                            Ara
+                        </button>
+                    </div>
+                </div>
+            </Transition>
+        </Teleport>
+
+        <!-- Mobil: Sevkiyat filtreleri full modal (web ile aynı seçenekler: Sırala, Gidiş Saati, Hesap) -->
+        <Teleport to="body">
+            <Transition name="modal">
+                <div
+                    v-if="mobileFilterOptionsOpen"
+                    class="fixed inset-0 z-[100] flex flex-col bg-white sm:hidden"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="mobile-filter-options-title"
+                >
                     <div class="flex items-center justify-between shrink-0 px-4 py-3 border-b border-gray-200">
-                        <h2 id="mobile-filter-title" class="text-lg font-semibold text-gray-900">Filtrele</h2>
+                        <h2 id="mobile-filter-options-title" class="text-lg font-semibold text-gray-900">Filtrele</h2>
                         <button
                             type="button"
                             class="p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700"
                             aria-label="Kapat"
-                            @click="mobileFilterOpen = false; fromDropdownOpen = false; toDropdownOpen = false"
+                            @click="mobileFilterOptionsOpen = false"
                         >
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                         </button>
                     </div>
-                    <div class="flex-1 overflow-y-auto p-4 space-y-4">
-                        <!-- Nereden: tıklanınca şehir seçim full modal açılır -->
-                        <div>
-                            <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Nereden</label>
-                            <div
-                                class="w-full min-h-12 px-4 rounded-lg border border-gray-200 bg-white flex items-center cursor-pointer"
-                                @click="mobileLocationPickerFor = 'from'; openFromDropdown(); mobileLocationPickerOpen = true"
-                            >
-                                <span class="text-sm text-gray-700">{{ fromLocationLabel }}</span>
+                    <div class="flex-1 overflow-y-auto p-4 space-y-6">
+                        <div
+                            v-for="section in filterSections"
+                            :key="section.modelKey"
+                            class="flex flex-col gap-3"
+                        >
+                            <h3 class="text-base font-semibold text-gray-900">{{ section.label }}</h3>
+                            <div class="flex flex-col gap-2">
+                                <label
+                                    v-for="opt in section.options"
+                                    :key="opt.value"
+                                    class="flex items-center px-4 py-3 rounded-lg border border-gray-200 cursor-pointer transition-all duration-200 gap-3 hover:border-primary/40 hover:bg-primary/5 has-checked:border-primary has-checked:bg-primary/10 group"
+                                >
+                                    <input
+                                        v-if="section.type === 'radio'"
+                                        type="radio"
+                                        :name="section.name"
+                                        :value="opt.value"
+                                        v-model="filters[section.modelKey]"
+                                        class="w-4 h-4 accent-primary cursor-pointer focus:outline-2 focus:outline-primary focus:outline-offset-2"
+                                        @change="handleFilterChange(section.modelKey, opt.value)"
+                                    />
+                                    <input
+                                        v-else
+                                        type="checkbox"
+                                        v-model="filters[section.modelKey]"
+                                        :true-value="opt.value"
+                                        :false-value="null"
+                                        class="w-4 h-4 accent-primary cursor-pointer focus:outline-2 focus:outline-primary focus:outline-offset-2"
+                                        @change="handleFilterChange(section.modelKey)"
+                                    />
+                                    <span class="text-sm text-gray-700 font-medium flex-1 group-has-checked:text-primary group-has-checked:font-semibold">{{ opt.label }}</span>
+                                </label>
                             </div>
                         </div>
-                        <!-- Swap -->
-                        <div class="flex justify-center">
-                            <button type="button" @click="swapCities" class="flex items-center justify-center w-10 h-10 rounded-lg border border-gray-200 bg-white text-gray-600"> <ArrowLeftRight size="20" /> </button>
-                        </div>
-                        <!-- Nereye: tıklanınca şehir seçim full modal açılır -->
-                        <div>
-                            <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Nereye</label>
-                            <div
-                                class="w-full min-h-12 px-4 rounded-lg border border-gray-200 bg-white flex items-center cursor-pointer"
-                                @click="mobileLocationPickerFor = 'to'; openToDropdown(); mobileLocationPickerOpen = true"
-                            >
-                                <span class="text-sm text-gray-700">{{ toLocationLabel }}</span>
-                            </div>
-                        </div>
-                        <!-- Gidiş / Dönüş -->
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Gidiş</label>
-                                <div class="rounded-lg border border-gray-200 overflow-hidden" @click="fromDropdownOpen = false; toDropdownOpen = false">
-                                    <DatePicker v-model="departureTime" :pt="{ root: { class: 'w-full' }, input: { class: 'py-2.5 text-sm w-full' }, panel: { class: '!bg-white !border !border-gray-100 shadow-lg !p-3 rounded-lg' } }" placeholder="Gidiş" fluid />
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Dönüş</label>
-                                <div class="rounded-lg border border-gray-200 overflow-hidden" @click="fromDropdownOpen = false; toDropdownOpen = false">
-                                    <DatePicker v-model="returnTime" :pt="{ root: { class: 'w-full' }, input: { class: 'py-2.5 text-sm w-full' }, panel: { class: '!bg-white !border !border-gray-100 shadow-lg !p-3 rounded-lg' } }" placeholder="Dönüş" fluid />
-                                </div>
-                            </div>
-                        </div>
+                        <button
+                            type="button"
+                            @click="clearFilters"
+                            :disabled="!hasActiveFiltersValue"
+                            class="w-full px-4 py-3 rounded-lg border border-gray-200 bg-white text-gray-700 text-sm font-medium cursor-pointer transition-all duration-200 hover:border-primary hover:bg-primary/5 hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:border-gray-200 disabled:hover:text-gray-700"
+                        >
+                            Seçilenleri Temizle
+                        </button>
                     </div>
                     <div class="shrink-0 p-4 border-t border-gray-200 bg-gray-50">
                         <button
                             type="button"
-                            @click="handleSearch(); mobileFilterOpen = false"
+                            @click="mobileFilterOptionsOpen = false"
                             class="w-full h-12 bg-primary rounded-xl text-base font-semibold text-white hover:bg-primary/90 transition-colors"
                         >
-                            Ara
+                            Uygula
                         </button>
                     </div>
                 </div>
@@ -470,13 +586,22 @@
                                 <p class="text-sm text-gray-700 py-2 shrink-0">{{ mobileLocationPickerFor === 'from' ? (fromCity || fromDistrict ? fromLocationLabel : 'Henüz seçim yok') : (toCity || toDistrict ? toLocationLabel : 'Henüz seçim yok') }}</p>
                                 <button
                                     type="button"
-                                    class="mt-auto flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg border border-primary text-primary text-sm font-medium hover:bg-primary/5"
-                                    @click="openMapFromLocationPicker"
+                                    class="w-full mt-2 px-3 py-2.5 rounded-lg border border-gray-200 text-gray-700 text-sm font-medium hover:border-primary hover:bg-primary/5 hover:text-primary transition-colors"
+                                    @click="clearMobileLocationPickerSelection"
                                 >
-                                    <MapPin class="w-4 h-4 shrink-0" />
-                                    Konum ile seç
+                                    Seçilenleri Temizle
                                 </button>
-                                <p v-if="locationError" class="text-xs text-amber-600 mt-2">{{ locationError }}</p>
+                                <template v-if="authStore.isAuthenticated">
+                                    <button
+                                        type="button"
+                                        class="mt-auto flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg border border-primary text-primary text-sm font-medium hover:bg-primary/5"
+                                        @click="openMapFromLocationPicker"
+                                    >
+                                        <MapPin class="w-4 h-4 shrink-0" />
+                                        Konum ile seç
+                                    </button>
+                                    <p v-if="locationError" class="text-xs text-amber-600 mt-2">{{ locationError }}</p>
+                                </template>
                             </div>
                         </div>
                     </div>
@@ -484,26 +609,26 @@
             </Transition>
         </Teleport>
 
-        <!-- Konum gerekli uyarısı: modalda "Daha sonra" denmişse (localStorage konum false) göster -->
-        <Content v-if="showKonumBanner" class="my-5 flex">
-            <div class="w-full max-w-[1200px] mx-auto px-4">
-                <div class="flex flex-wrap items-center gap-4 rounded-xl border border-amber-200 bg-amber-50/80 px-5 py-4">
-                    <span class="flex items-center justify-center w-11 h-11 rounded-full bg-amber-100 text-amber-600 shrink-0">
-                        <MapPin class="w-5 h-5" />
+        <!-- Konum gerekli uyarısı: mobilde kompakt, masaüstünde geniş -->
+        <Content v-if="authStore.isAuthenticated && showKonumBanner" class="my-2 sm:my-5 flex">
+            <div class="w-full max-w-[1200px] mx-auto px-3 sm:px-4">
+                <div class="flex flex-wrap items-center gap-2 sm:gap-4 rounded-lg sm:rounded-xl border border-amber-200 bg-amber-50/80 px-3 py-2.5 sm:px-5 sm:py-4">
+                    <span class="flex items-center justify-center w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-amber-100 text-amber-600 shrink-0">
+                        <MapPin class="w-4 h-4 sm:w-5 sm:h-5" />
                     </span>
                     <div class="flex-1 min-w-0">
-                        <p class="text-sm font-semibold text-amber-800">Konum izni gerekli</p>
-                        <p class="text-sm text-amber-700/90 mt-0.5">
+                        <p class="text-xs sm:text-sm font-semibold text-amber-800">Konum izni gerekli</p>
+                        <p class="text-xs sm:text-sm text-amber-700/90 mt-0.5 line-clamp-2 sm:line-clamp-none">
                             {{ locationError || 'Arama sonuçlarını iyileştirmek için konum erişimine izin verin.' }}
                         </p>
                     </div>
                     <button
                         type="button"
                         :disabled="locationRequesting"
-                        class="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-amber-600 text-white text-sm font-medium hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-70 transition-colors"
+                        class="shrink-0 inline-flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg bg-amber-600 text-white text-xs sm:text-sm font-medium hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-70 transition-colors"
                         @click="requestUserLocation"
                     >
-                        <span v-if="locationRequesting" class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span v-if="locationRequesting" class="inline-block w-3.5 h-3.5 sm:w-4 sm:h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                         {{ locationRequesting ? 'Alınıyor...' : 'Konum izni ver' }}
                     </button>
                 </div>
@@ -560,7 +685,7 @@
 
 
                 <!-- Sağ: İlanlar (Benim İlanlarım + Diğer İlanlar) -->
-                <div class="flex-1 flex flex-col gap-5 py-4 overflow-y-auto pb-6 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+                <div class="flex-1 flex flex-col gap-5  overflow-y-auto pb-10 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                     <p v-if="shipmentsError" class="text-sm text-red-600">{{ shipmentsError }}</p>
                     <template v-else-if="shipmentsLoading">
                         <p class="text-sm text-gray-500">Yükleniyor...</p>
@@ -568,12 +693,22 @@
                     <template v-else>
                         <div
                             v-if="shipmentsList.length === 0"
-                            class="inline-flex items-center justify-center min-w-[280px] min-h-[72px] px-8 py-5 rounded-xl bg-gray-100 text-gray-600 text-base font-medium"
+                            class="inline-flex items-center justify-center min-w-[280px] min-h-[72px] px-8 pb-5 rounded-xl bg-gray-100 text-gray-600 text-base font-medium"
                         >
                             Henüz ilan verilmemiş
                         </div>
                         <template v-else>
-                            <div class="text-sm text-gray-500">{{ shipmentsStore.total }} sevkiyat</div>
+                            <!-- Sevkiyat başlığı: mobilde justify-between + Filtrele butonu -->
+                            <div class="flex items-center justify-between w-full md:justify-start">
+                                <span class="text-sm text-gray-500">{{ shipmentsStore.total }} sevkiyat</span>
+                                <button
+                                    type="button"
+                                    class="md:hidden flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 text-sm font-medium hover:border-primary hover:bg-primary/5 hover:text-primary transition-colors"
+                                    @click="mobileFilterOptionsOpen = true"
+                                >
+                                    Filtrele
+                                </button>
+                            </div>
 
                             <section v-if="myPostList.length" class="flex flex-col gap-3">
                                 <Product
@@ -587,7 +722,7 @@
                             </section>
 
                             <!-- Diğer İlanlar -->
-                            <section v-if="otherPostList.length" class="flex flex-col gap-3">
+                            <section v-if="otherPostList.length" class="flex flex-col space-y-8">
                                 <Product
                                     v-for="item in otherPostList"
                                     :key="'other-' + item.id"
@@ -713,6 +848,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useShipmentsStore } from '@/stores/shipments';
 import { useLocationStore } from '@/stores/location';
+import { useAuthStore } from '@/stores/auth';
 
 // Lokasyon: API'den şehir/ilçe
 const apiCities = ref([]);
@@ -849,6 +985,7 @@ const fromDropdownOpen = ref(false);
 const toDropdownOpen = ref(false);
 const searchBarRef = ref(null);
 const mobileFilterOpen = ref(false);
+const mobileFilterOptionsOpen = ref(false); // Mobil: sevkiyat listesi filtreleri (Sırala, Gidiş Saati, Hesap)
 const mobileLocationPickerOpen = ref(false);
 const mobileLocationPickerFor = ref('from'); // 'from' | 'to'
 
@@ -861,8 +998,8 @@ const filterSections = [
         modelKey: 'order',
         options: [
             { label: 'En erken kalkan', value: 'earliest' },
-            { label: 'En ucuz', value: 'cheapest' },
-            { label: 'Varış yeri en yakın', value: 'nearest' },
+            // { label: 'En ucuz', value: 'cheapest' },
+            // { label: 'Varış yeri en yakın', value: 'nearest' },
         ],
     },
     {
@@ -1209,6 +1346,33 @@ const applyToLocationAndCloseMobilePicker = (district) => {
     mobileLocationPickerOpen.value = false;
 };
 
+/** Mobil Nereden/Nereye modalında seçilenleri temizle; arama input değerlerini (ilgili tarafı) siler */
+const clearMobileLocationPickerSelection = () => {
+    if (mobileLocationPickerFor.value === 'from') {
+        fromCity.value = null;
+        fromDistrict.value = null;
+        fromLocationDisplayName.value = null;
+        fromTempCity.value = null;
+    } else {
+        toCity.value = null;
+        toDistrict.value = null;
+        toLocationDisplayName.value = null;
+        toTempCity.value = null;
+    }
+};
+
+/** Mobil arama modalında (Nereden → Nereye inputuna tıklanınca açılan) tüm nereden/nereye değerlerini temizler */
+const clearMobileSearchLocations = () => {
+    fromCity.value = null;
+    fromDistrict.value = null;
+    fromLocationDisplayName.value = null;
+    fromTempCity.value = null;
+    toCity.value = null;
+    toDistrict.value = null;
+    toLocationDisplayName.value = null;
+    toTempCity.value = null;
+};
+
 const selectToLocationByMap = () => {
     locationStore.clearLocationError();
     toDropdownOpen.value = false;
@@ -1237,6 +1401,7 @@ const handleClickOutside = (event) => {
 
 // İlan listesi tek store'dan (shipments)
 const panelRouter = useRouter();
+const authStore = useAuthStore();
 const shipmentsStore = useShipmentsStore();
 const { list: shipmentsList, myPostList, otherPostList, loading: shipmentsLoading, loadingMore, error: shipmentsError, hasMore } = storeToRefs(shipmentsStore);
 const locationStore = useLocationStore();
@@ -1270,6 +1435,7 @@ onMounted(() => {
     const initialPage = parseInt(route.query.page) || 1;
     shipmentsStore.fetchShipments({ initialPage });
     fetchCities().then(setDefaultLocations);
+    if (!authStore.isAuthenticated) return;
     if (userCoords.value && typeof localStorage !== 'undefined') {
         try {
             localStorage.setItem(locationStore.KONUM_IZIN_STORAGE_KEY, 'true');

@@ -82,6 +82,18 @@
             <ul class="w-full h-auto flex flex-col gap-2 px-2 pt-2 text-xs">
                 <li>
                     <router-link 
+                        to="/cargo-owner/verify"
+                        :class="[
+                            'h-8 flex items-center px-3 rounded-md cursor-pointer',
+                            $route.path === '/cargo-owner/verify' ? 'bg-primary/10 font-medium' : 'text-gray-800'
+                        ]"
+                    >
+                        <i class="pi pi-verified mr-2 text-primary" style="font-size: 14px;"></i>
+                        <span>Hesap Doğrula</span>
+                    </router-link>
+                </li>
+                <li>
+                    <router-link 
                         to="/cargo-owner/change-password"
                         :class="[
                             'h-8 flex items-center px-3 rounded-md cursor-pointer',

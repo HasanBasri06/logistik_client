@@ -91,8 +91,8 @@
                             </div>
                         </section>
 
-                        <!-- En yakın kullanıcılar -->
-                        <section class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+                        <!-- En yakın kullanıcılar (sadece giriş yapmış kullanıcıya gösterilir) -->
+                        <section v-if="authStore.isAuthenticated" class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
                             <div class="px-5 py-4 border-b border-gray-100 bg-gray-50/80">
                                 <h2 class="text-base font-semibold text-gray-900">Yakındaki taşıyıcılar</h2>
                                 <p class="text-xs text-gray-500 mt-0.5">Konum paylaştığınızda size yakın kullanıcılar listelenir.</p>
@@ -518,11 +518,11 @@ usePusherMessages(computed(() => authStore.user?.id), {
 
 onMounted(async () => {
     await loadShipment();
-    fetchCloseUsers();
+    if (authStore.isAuthenticated) fetchCloseUsers();
 });
 
 watch(slug, async () => {
     await loadShipment();
-    fetchCloseUsers();
+    if (authStore.isAuthenticated) fetchCloseUsers();
 });
 </script>

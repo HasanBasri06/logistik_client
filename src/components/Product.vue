@@ -24,7 +24,7 @@
           <ArrowDown class="w-3.5 h-3.5 text-primary/30 shrink-0  -mt-2 relative" />
         </div>
         <!-- İçerik: mobilde sadece yerler; masaüstünde nereden + saat, çizgi, nereye + saat -->
-        <div class="flex flex-col sm:flex-row gap-2 sm:gap-4 flex-1 min-w-0 text-sm">
+        <div class="flex flex-col sm:flex-row gap-2 sm:gap-4 flex-1 min-w-0 text-sm relative">
           <div class="flex flex-col gap-1.5 sm:gap-2 items-start w-auto min-w-0">
             <div class="font-semibold text-gray-900 leading-tight truncate max-w-full">{{ fromPlaceText }}</div>
             <div class="hidden sm:inline-flex items-center py-0.5 px-2 sm:py-1 sm:px-3 rounded-full bg-primary/10">
@@ -37,7 +37,7 @@
             <div class="text-[10px] sm:text-xs font-medium text-gray-500 whitespace-nowrap">{{ shipment?.hours ?? '—' }}</div>
             <ArrowRight class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary shrink-0" />
           </div>
-          <div class="flex flex-col gap-1.5 sm:gap-2 items-start min-w-0 sm:flex-1">
+          <div class="flex flex-col gap-1.5 sm:gap-2 items-start min-w-0 sm:flex-1 absolute bottom-0 md:relative">
             <div class=" font-semibold text-gray-900 leading-tight truncate max-w-full">{{ toPlaceText }}</div>
             <div class="hidden sm:inline-flex items-center py-0.5 px-2 sm:py-1 sm:px-3 rounded-full bg-primary/10">
               <span class="text-xs font-semibold text-primary">{{ shipment?.time_arrival ?? '—' }}</span>
@@ -53,24 +53,9 @@
       </div>
     </div>
 
-    <!-- Mobil: Detay aç/kapa satırı (ortada teklif bilgisi, aşağı ok) -->
-    <div
-      class="sm:hidden flex items-center py-3 px-4 border-t border-gray-100 cursor-pointer select-none gap-2"
-      @click.stop="mobileDetailOpen = !mobileDetailOpen"
-      aria-expanded="mobileDetailOpen"
-    >
-      <span class="text-sm font-semibold text-gray-700 shrink-0">Detay</span>
-      <span class="flex-1 text-center text-sm text-gray-500 truncate px-2">{{ requestText }}</span>
-      <ChevronDown
-        class="w-5 h-5 text-primary shrink-0 transition-transform duration-200"
-        :class="{ 'rotate-180': mobileDetailOpen }"
-      />
-    </div>
-
-    <!-- Alt Bölüm: Masaüstünde eski yatay düzen, mobilde grid + profil -->
+    <!-- Alt Bölüm: Masaüstünde eski yatay düzen, mobilde grid + profil (mobilde her zaman açık) -->
     <div
       class="border-t border-gray-100 py-3 px-4 sm:px-6 sm:py-0 sm:h-20 min-h-0 sm:min-h-[72px] flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3"
-      :class="mobileDetailOpen ? 'flex' : 'hidden sm:flex'"
     >
       <!-- Masaüstü: yatay satır (avatar, puan, ağırlık, tip, teklif, iptal) -->
       <div class="hidden sm:flex flex-wrap items-center gap-x-4 gap-y-0 flex-1 min-w-0">
@@ -100,19 +85,19 @@
         <span class="text-sm font-medium text-gray-600 truncate">{{ shipment.car?.name }}{{ carDetailValue }}</span>
       </div>
 
-      <!-- Mobil: grid-cols-2 detay listesi -->
+      <!-- Mobil: grid-cols-2 detay listesi (sağ sütun yazıları align-end) -->
       <div class="grid grid-cols-2 gap-x-3 gap-y-2 order-1 min-w-0 sm:hidden">
         <div class="text-sm text-gray-600">
           <span class="text-gray-400 font-medium">Ağırlık</span>
           <span class="ml-1 font-medium text-gray-800">{{ formatWeight(shipment.weight) }}</span>
         </div>
-        <div class="inline-flex items-center w-fit">
+        <div class="inline-flex items-center justify-end w-full text-end">
           <span class="inline-flex px-2.5 py-1 rounded-full bg-gray-100 text-gray-700 text-sm font-medium">{{ shipment.post_type?.value }}</span>
         </div>
         <p class="text-sm text-gray-500 min-w-0">{{ requestText }}</p>
-        <p class="text-sm font-medium text-gray-700 truncate min-w-0">{{ shipment.car?.name }}{{ carDetailValue }}</p>
+        <p class="text-sm font-medium text-gray-700 truncate min-w-0 text-end">{{ shipment.car?.name }}{{ carDetailValue }}</p>
         <template v-if="user.id == shipment.creater_id">
-          <div>
+          <div class="flex justify-end text-end">
             <button class="bg-red-100 hover:bg-red-200 text-red-700 text-sm font-medium px-3 py-1.5 rounded-lg transition-colors cursor-pointer" @click.stop="handleCanceledBtn($event, shipment)">İptal Et</button>
           </div>
         </template>
@@ -138,8 +123,8 @@
 
 <script setup>
 import { useRouter } from 'vue-router';
-import { computed, ref } from 'vue';
-import { Star, ArrowRight, ArrowDown, ChevronDown } from 'lucide-vue-next';
+import { computed } from 'vue';
+import { Star, ArrowRight, ArrowDown } from 'lucide-vue-next';
 import { useAuthStore } from '@/stores/auth';
 import { storeToRefs } from 'pinia';
 
@@ -158,7 +143,6 @@ const props = defineProps({
 });
 
 const router = useRouter();
-const mobileDetailOpen = ref(false);
 
 // UserSection.vue ile aynı: resim yoksa ui-avatars.com API'sinden avatar
 const fromPlaceText = computed(() => {

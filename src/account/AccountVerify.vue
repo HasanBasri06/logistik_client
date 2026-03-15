@@ -50,7 +50,9 @@
                             ></i>
                             <div>
                                 <p class="text-sm font-medium text-gray-900">E-posta Doğrulaması</p>
-                                <p class="text-xs text-gray-500">{{ verificationStatus.email ? 'Doğrulandı' : 'Doğrulanmadı' }}</p>
+                                <p :class="['text-xs', verificationStatus.email ? 'text-green-600 font-medium' : 'text-gray-500']">
+                                    {{ verificationStatus.email ? 'Doğrulandı' : 'Doğrulanmadı' }}
+                                </p>
                             </div>
                         </div>
                         <div v-if="!verificationStatus.email" class="flex flex-col gap-3">
@@ -99,7 +101,9 @@
                             ></i>
                             <div>
                                 <p class="text-sm font-medium text-gray-900">Profil Fotoğrafı</p>
-                                <p class="text-xs text-gray-500">{{ verificationStatus.profilePhoto ? 'Yüklendi' : 'Yüklenmedi' }}</p>
+                                <p :class="['text-xs', verificationStatus.profilePhoto ? 'text-green-600 font-medium' : 'text-gray-500']">
+                                    {{ verificationStatus.profilePhoto ? 'Doğrulandı' : 'Yüklenmedi' }}
+                                </p>
                             </div>
                         </div>
                         <div v-if="!verificationStatus.profilePhoto" class="flex flex-col gap-2">
@@ -156,7 +160,9 @@
                             ></i>
                             <div>
                                 <p class="text-sm font-medium text-gray-900">Kimlik Doğrulaması</p>
-                                <p class="text-xs text-gray-500">{{ verificationStatus.identity ? 'Doğrulandı' : 'Doğrulanmadı' }}</p>
+                                <p :class="['text-xs', verificationStatus.identity ? 'text-green-600 font-medium' : 'text-gray-500']">
+                                    {{ verificationStatus.identity ? 'Doğrulandı' : 'Doğrulanmadı' }}
+                                </p>
                             </div>
                         </div>
                         <div v-if="!verificationStatus.identity" class="flex flex-col gap-2">
@@ -209,7 +215,9 @@
                             ></i>
                             <div>
                                 <p class="text-sm font-medium text-gray-900">SRC Doğrulaması</p>
-                                <p class="text-xs text-gray-500">{{ verificationStatus.src ? 'Doğrulandı' : 'Doğrulanmadı' }}</p>
+                                <p :class="['text-xs', verificationStatus.src ? 'text-green-600 font-medium' : 'text-gray-500']">
+                                    {{ verificationStatus.src ? 'Doğrulandı' : 'Doğrulanmadı' }}
+                                </p>
                             </div>
                         </div>
                         <div v-if="!verificationStatus.src" class="flex flex-col gap-2">
@@ -262,7 +270,9 @@
                             ></i>
                             <div>
                                 <p class="text-sm font-medium text-gray-900">Psikoteknik Doğrulaması</p>
-                                <p class="text-xs text-gray-500">{{ verificationStatus.psychotechnical ? 'Doğrulandı' : 'Doğrulanmadı' }}</p>
+                                <p :class="['text-xs', verificationStatus.psychotechnical ? 'text-green-600 font-medium' : 'text-gray-500']">
+                                    {{ verificationStatus.psychotechnical ? 'Doğrulandı' : 'Doğrulanmadı' }}
+                                </p>
                             </div>
                         </div>
                         <div v-if="!verificationStatus.psychotechnical" class="flex flex-col gap-2">
@@ -315,7 +325,9 @@
                             ></i>
                             <div>
                                 <p class="text-sm font-medium text-gray-900">Ehliyet Bilgisi</p>
-                                <p class="text-xs text-gray-500">{{ verificationStatus.license ? 'Doğrulandı' : 'Doğrulanmadı' }}</p>
+                                <p :class="['text-xs', verificationStatus.license ? 'text-green-600 font-medium' : 'text-gray-500']">
+                                    {{ verificationStatus.license ? 'Doğrulandı' : 'Doğrulanmadı' }}
+                                </p>
                             </div>
                         </div>
                         <div v-if="!verificationStatus.license" class="flex flex-col gap-2">
@@ -362,7 +374,9 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import { toast } from 'vue-sonner';
+import api from '@/api';
 
 const verificationStatus = ref({
     email: false,
@@ -374,6 +388,22 @@ const verificationStatus = ref({
 });
 
 const totalCount = 6;
+
+async function fetchVerificationStatus() {
+    try {
+        const res = await api.get('/confirm-account/home');
+        const data = res.data?.content;
+        if (data?.verification) {
+            verificationStatus.value = { ...verificationStatus.value, ...data.verification };
+        }
+    } catch (_) {
+        // Oturum yoksa veya hata olursa mevcut state kalır
+    }
+}
+
+onMounted(() => {
+    fetchVerificationStatus();
+});
 
 const completedCount = computed(() => {
     return Object.values(verificationStatus.value).filter(status => status === true).length;
@@ -396,23 +426,34 @@ const emailVerificationCode = ref('');
 const sendCodeLoading = ref(false);
 const verifyEmailLoading = ref(false);
 
-const sendEmailVerificationCode = () => {
+const sendEmailVerificationCode = async () => {
     sendCodeLoading.value = true;
-    // TODO: API - e-posta doğrulama kodu gönder
-    setTimeout(() => {
+    try {
+        const res = await api.post('/confirm-account/send-email-code');
+        const msg = res.data?.message ?? 'Doğrulama kodu e-posta adresinize gönderildi.';
+        toast.success(msg, { description: 'E-posta kutunuzu kontrol edin.' });
+    } catch (err) {
+        const msg = err.response?.data?.message ?? err.message ?? 'Kod gönderilemedi.';
+        toast.error('Hata', { description: msg });
+    } finally {
         sendCodeLoading.value = false;
-    }, 1000);
+    }
 };
 
-const verifyEmailCode = () => {
+const verifyEmailCode = async () => {
     if (!emailVerificationCode.value?.trim()) return;
     verifyEmailLoading.value = true;
-    // TODO: API - kodu doğrula
-    setTimeout(() => {
-        verificationStatus.value.email = true;
-        verifyEmailLoading.value = false;
+    try {
+        await api.post('/confirm-account/verify-email', { code: emailVerificationCode.value.trim() });
+        await fetchVerificationStatus();
         emailVerificationCode.value = '';
-    }, 800);
+        toast.success('E-posta adresiniz doğrulandı.');
+    } catch (err) {
+        const msg = err.response?.data?.message ?? err.message ?? 'Doğrulama başarısız.';
+        toast.error('Hata', { description: msg });
+    } finally {
+        verifyEmailLoading.value = false;
+    }
 };
 
 const identityProgress = ref(0);
@@ -421,124 +462,100 @@ const psychotechnicalProgress = ref(0);
 const licenseProgress = ref(0);
 
 const MAX_PROFILE_PHOTO_MB = 5;
+const MAX_DOC_MB = 10;
 
-const handleProfilePhotoFile = (event) => {
+/** Belge yükleme: API'ye gönderir, başarıda progress bar ilerler ve "Doğrulandı" gösterilir */
+async function uploadDocument(type, file, progressRef) {
+    if (!file) return;
+    const form = new FormData();
+    form.append('type', type);
+    form.append('file', file);
+    try {
+        if (progressRef) progressRef.value = 20;
+        const res = await api.post('/confirm-account/upload-document', form, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+            onUploadProgress: (e) => {
+                if (progressRef && e.total) progressRef.value = Math.min(99, Math.round((e.loaded / e.total) * 100));
+            }
+        });
+        if (progressRef) progressRef.value = 100;
+        if (res.data?.content?.verification) {
+            Object.assign(verificationStatus.value, res.data.content.verification);
+        }
+        await fetchVerificationStatus();
+        toast.success('Belge yüklendi.', { description: 'Doğrulama durumunuz güncellendi.' });
+    } catch (err) {
+        const msg = err.response?.data?.message ?? err.message ?? 'Yükleme başarısız.';
+        toast.error('Hata', { description: msg });
+    } finally {
+        if (progressRef) progressRef.value = 0;
+    }
+}
+
+const handleProfilePhotoFile = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
     const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
     if (!validTypes.includes(file.type)) {
+        toast.error('Geçersiz dosya türü. Sadece JPG, PNG veya WEBP yükleyebilirsiniz.');
         return;
     }
     if (file.size > MAX_PROFILE_PHOTO_MB * 1024 * 1024) {
+        toast.error(`Profil fotoğrafı en fazla ${MAX_PROFILE_PHOTO_MB}MB olabilir.`);
         return;
     }
     profilePhotoFileName.value = file.name;
     profilePhotoPreview.value = URL.createObjectURL(file);
-    profilePhotoProgress.value = 0;
-
-    const interval = setInterval(() => {
-        profilePhotoProgress.value += 10;
-        if (profilePhotoProgress.value >= 100) {
-            clearInterval(interval);
-            setTimeout(() => {
-                verificationStatus.value.profilePhoto = true;
-                profilePhotoProgress.value = 0;
-            }, 500);
-        }
-    }, 200);
-
-    // TODO: API'ye profil fotoğrafı yükleme
+    await uploadDocument('profile_image', file, profilePhotoProgress);
+    profilePhotoFileName.value = '';
+    profilePhotoPreview.value = '';
 };
 
-const handleIdentityFile = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-        identityFileName.value = file.name;
-        identityProgress.value = 0;
-        
-        // Simüle edilmiş progress
-        const interval = setInterval(() => {
-            identityProgress.value += 10;
-            if (identityProgress.value >= 100) {
-                clearInterval(interval);
-                setTimeout(() => {
-                    verificationStatus.value.identity = true;
-                    identityProgress.value = 0;
-                }, 500);
-            }
-        }, 200);
-        
-        console.log('Kimlik belgesi yüklendi:', file.name);
-        // TODO: API'ye dosya yükleme
+const handleIdentityFile = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (file.size > MAX_DOC_MB * 1024 * 1024) {
+        toast.error(`Dosya en fazla ${MAX_DOC_MB}MB olabilir.`);
+        return;
     }
+    identityFileName.value = file.name;
+    await uploadDocument('id_image', file, identityProgress);
+    identityFileName.value = '';
 };
 
-const handleSrcFile = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-        srcFileName.value = file.name;
-        srcProgress.value = 0;
-        
-        // Simüle edilmiş progress
-        const interval = setInterval(() => {
-            srcProgress.value += 10;
-            if (srcProgress.value >= 100) {
-                clearInterval(interval);
-                setTimeout(() => {
-                    verificationStatus.value.src = true;
-                    srcProgress.value = 0;
-                }, 500);
-            }
-        }, 200);
-        
-        console.log('SRC belgesi yüklendi:', file.name);
-        // TODO: API'ye dosya yükleme
+const handleSrcFile = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (file.size > MAX_DOC_MB * 1024 * 1024) {
+        toast.error(`Dosya en fazla ${MAX_DOC_MB}MB olabilir.`);
+        return;
     }
+    srcFileName.value = file.name;
+    await uploadDocument('src_doc', file, srcProgress);
+    srcFileName.value = '';
 };
 
-const handlePsychotechnicalFile = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-        psychotechnicalFileName.value = file.name;
-        psychotechnicalProgress.value = 0;
-        
-        // Simüle edilmiş progress
-        const interval = setInterval(() => {
-            psychotechnicalProgress.value += 10;
-            if (psychotechnicalProgress.value >= 100) {
-                clearInterval(interval);
-                setTimeout(() => {
-                    verificationStatus.value.psychotechnical = true;
-                    psychotechnicalProgress.value = 0;
-                }, 500);
-            }
-        }, 200);
-        
-        console.log('Psikoteknik belgesi yüklendi:', file.name);
-        // TODO: API'ye dosya yükleme
+const handlePsychotechnicalFile = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (file.size > MAX_DOC_MB * 1024 * 1024) {
+        toast.error(`Dosya en fazla ${MAX_DOC_MB}MB olabilir.`);
+        return;
     }
+    psychotechnicalFileName.value = file.name;
+    await uploadDocument('psikoteknik_doc', file, psychotechnicalProgress);
+    psychotechnicalFileName.value = '';
 };
 
-const handleLicenseFile = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-        licenseFileName.value = file.name;
-        licenseProgress.value = 0;
-        
-        // Simüle edilmiş progress
-        const interval = setInterval(() => {
-            licenseProgress.value += 10;
-            if (licenseProgress.value >= 100) {
-                clearInterval(interval);
-                setTimeout(() => {
-                    verificationStatus.value.license = true;
-                    licenseProgress.value = 0;
-                }, 500);
-            }
-        }, 200);
-        
-        console.log('Ehliyet belgesi yüklendi:', file.name);
-        // TODO: API'ye dosya yükleme
+const handleLicenseFile = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (file.size > MAX_DOC_MB * 1024 * 1024) {
+        toast.error(`Dosya en fazla ${MAX_DOC_MB}MB olabilir.`);
+        return;
     }
+    licenseFileName.value = file.name;
+    await uploadDocument('driving_licance_doc', file, licenseProgress);
+    licenseFileName.value = '';
 };
 </script>

@@ -125,7 +125,20 @@
                         </router-link>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <router-link
+                            to="/cargo-owner/verify"
+                            class="bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4 hover:border-primary/50 hover:bg-primary/5 transition-all"
+                        >
+                            <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                                <i class="pi pi-verified text-primary" style="font-size: 18px;"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-semibold text-gray-900">Hesap Doğrula</h3>
+                                <p class="text-xs text-gray-500 mt-0.5">Hesabını doğrula</p>
+                            </div>
+                        </router-link>
+
                         <router-link
                             to="/cargo-owner/cards"
                             class="bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4 hover:border-primary/50 hover:bg-primary/5 transition-all"
