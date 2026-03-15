@@ -1,7 +1,7 @@
 <template>
-    <div class="flex flex-row gap-4 h-full min-h-0 w-full">
+    <div class="flex flex-row gap-4 h-full min-h-0 w-full max-w-full overflow-x-hidden">
         <!-- Sol: Mesaj Listesi (Mesaj seçilmediğinde görünür) -->
-        <div v-if="!route.params.id" class="w-full flex flex-col overflow-y-auto min-h-0">
+        <div v-if="!route.params.id" class="w-full min-w-0 flex flex-col overflow-y-auto overflow-x-hidden min-h-0">
             <h2 class="text-xl sm:text-2xl font-semibold text-gray-900 mb-4 sm:mb-6">Yük Sahibi Mesajları</h2>
 
             <div class="flex flex-col gap-3 sm:gap-4">
@@ -55,7 +55,7 @@
         </div>
 
         <!-- Mesaj Detayı ve Yazma Alanı (Mesaj seçildiğinde tam ekran) -->
-        <div v-if="route.params.id && selectedMessage" class="w-full flex flex-col min-h-0 h-full">
+        <div v-if="route.params.id && selectedMessage" class="w-full max-w-full flex flex-col min-h-0 h-full overflow-hidden">
             <!-- Üst: Geri Butonu ve Mesaj Gönderen Bilgisi -->
             <div class="flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-2.5 sm:py-3 border-b border-gray-200 shrink-0 bg-white">
                 <button
@@ -158,7 +158,7 @@
                     <input
                         v-model="newMessageText"
                         type="text"
-                        class="flex-1 min-w-0 h-12 sm:h-14 rounded-xl sm:rounded-md text-sm outline-none px-3 sm:px-4 bg-white border border-gray-200 text-gray-700 focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                        class="flex-1 min-w-0 h-12 sm:h-14 rounded-xl sm:rounded-md text-base sm:text-sm outline-none px-3 sm:px-4 bg-white border border-gray-200 text-gray-700 focus:ring-2 focus:ring-primary/20 focus:border-primary"
                         placeholder="Mesajınızı yazın..."
                     />
                     <button
