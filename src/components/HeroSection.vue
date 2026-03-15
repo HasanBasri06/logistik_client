@@ -161,7 +161,7 @@ const handleSearch = () => {
                         placeholder="Nereden"
                         autocomplete="off"
                         @focus="fromQuery.length >= 3 && (showFromDropdown = true)"
-                        class="w-full md:w-auto border border-gray-300 md:border-l md:border-t md:border-b md:border-r-0 rounded-t-none md:rounded-t-none md:rounded-l-xl px-4 py-4 outline-none bg-white"
+                        class=" w-full md:w-auto border border-gray-300 md:border-l md:border-t md:border-b md:border-r-0 rounded-lg md:rounded-none md:rounded-t-none md:rounded-l-xl px-4 py-4 outline-none bg-white"
                     />
                     <div v-if="showFromDropdown" class="absolute top-full left-0 mt-2 w-full md:w-72 bg-white rounded-xl border border-gray-200 shadow-xl z-50 overflow-hidden">
                         <div v-if="fromLoading" class="flex items-center justify-center py-4">
@@ -200,7 +200,7 @@ const handleSearch = () => {
                         placeholder="Nereye"
                         autocomplete="off"
                         @focus="toQuery.length >= 3 && (showToDropdown = true)"
-                        class="w-full md:w-auto border border-gray-300 md:border-r md:border-t md:border-b md:border-l-0 px-4 py-4 outline-none bg-white"
+                        class="rounded-lg md:rounded-none w-full md:w-auto border border-gray-300 md:border-r md:border-t md:border-b md:border-l-0 px-4 py-4 outline-none bg-white"
                     />
                     <div v-if="showToDropdown" class="absolute top-full left-0 mt-2 w-full md:w-72 bg-white rounded-xl border border-gray-200 shadow-xl z-50 overflow-hidden">
                         <div v-if="toLoading" class="flex items-center justify-center py-4">
@@ -229,7 +229,7 @@ const handleSearch = () => {
                     <div ref="carRef" class="relative flex-1 md:flex-none mt-4 md:mt-0">
                         <div
                             @click="toggleCarDropdown"
-                            class="border border-gray-300 md:border-r md:border-t md:border-b md:border-l-0 w-full md:w-28 px-4 py-[19px] bg-white cursor-pointer flex items-center gap-2 select-none"
+                            class="border border-gray-300 md:border-r md:border-t md:border-b md:border-l-0 w-full md:w-28 px-4 py-[19px] bg-white cursor-pointer flex items-center gap-2 select-none rounded-lg md:rounded-none"
                         >
                             <span :class="selectedCar ? 'text-gray-900' : 'text-gray-400'" class="text-sm truncate">
                                 {{ selectedCar ? selectedCar.name : 'Taşıt' }}

@@ -253,7 +253,7 @@
         <div v-if="showLogin"
             class="fixed inset-0 z-50 flex items-center justify-center bg-primary/20 backdrop-blur-[1px]"
             @click.self="showLogin = false">
-            <div class="w-[90%] max-w-[1300px] h-[80vh] bg-white shadow-2xl rounded-md p-4 overflow-hidden">
+            <div class="w-full md:w-[90%] max-w-[1300px] md:h-[80vh] h-full bg-white shadow-2xl rounded-md p-4 overflow-hidden">
                 <div class="flex flex-col md:flex-row h-full">
                     <!-- Sol: Wallpaper -->
                     <div class="hidden md:block md:w-[50%] bg-white relative overflow-hidden p-16">
@@ -760,6 +760,10 @@ watch(requestShowLoginModal, (v) => {
     }
 });
 
+watch(showLogin, (isOpen) => {
+    document.body.style.overflow = isOpen ? 'hidden' : 'auto';
+});
+
 const handleLogout = () => {
     accountDropdownOpen.value = false;
     authStore.logout();
@@ -810,6 +814,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
     document.removeEventListener('click', handleClickOutside);
     window.removeEventListener('open-login', handleOpenLoginEvent);
+    document.body.style.overflow = 'auto';
 });
 
 const handleGotoAccountClick = () => {
