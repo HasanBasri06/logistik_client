@@ -48,7 +48,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue';
+import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { MapPin } from 'lucide-vue-next';
@@ -64,13 +64,7 @@ const locationStore = useLocationStore();
 const { locationDeniedModalOpen, locationError, locationErrorCode, locationRequesting } = storeToRefs(locationStore);
 const { requestUserLocation, closeLocationModal } = locationStore;
 
-onMounted(() => {
-  if (!authStore.isAuthenticated) return;
-  const konumIzin = typeof localStorage !== 'undefined' && localStorage.getItem(locationStore.KONUM_IZIN_STORAGE_KEY);
-  if (konumIzin !== 'false') {
-    locationStore.requestUserLocation();
-  }
-});
+// Konum isteği sadece panel sayfasında (Home.vue) yapılıyor; modal sadece reddedildiğinde açılır, yenilemede tekrar açılmaz.
 
 const layout = computed(() => route.meta.layout || Layout);
 

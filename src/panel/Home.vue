@@ -1440,8 +1440,11 @@ onMounted(() => {
         try {
             localStorage.setItem(locationStore.KONUM_IZIN_STORAGE_KEY, 'true');
         } catch (_) {}
-    } else if (!userCoords.value) {
-        requestUserLocation();
+    } else {
+        const konumIzin = typeof localStorage !== 'undefined' && localStorage.getItem(locationStore.KONUM_IZIN_STORAGE_KEY);
+        if (konumIzin !== 'false') {
+            requestUserLocation();
+        }
     }
 });
 
