@@ -193,8 +193,9 @@ async function fetchVehicleOwnerData() {
         vehicleCount.value = content?.vehicles?.length ?? 0;
 
         const orders = content?.shipmentOrders ?? [];
-        pendingJobs.value = orders.filter(o => o.status === 'pending' || !o.status).length;
-        totalEarnings.value = orders.reduce((sum, o) => sum + (parseFloat(o.total_price) || 0), 0);
+        const shipmentStatus = (o) => o.shipment?.status ?? o.status;
+        pendingJobs.value = orders.filter(o => shipmentStatus(o) === 'accepted' || shipmentStatus(o) === 'pending').length;
+        totalEarnings.value = orders.reduce((sum, o) => sum + (parseFloat(o.shipment?.price) || parseFloat(o.total_price) || 0), 0);
     } catch {
         vehicleCount.value = 0;
     }

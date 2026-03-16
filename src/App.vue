@@ -1,7 +1,17 @@
 <template>
-  <component :is="layout">
+  <div class="min-h-full">
+    <!-- İnternet durumu barı: diğer tüm içeriğin üstünde, boşluk bırakmadan overlay -->
+    <div
+      v-show="showConnectionBar"
+      class="fixed top-0 left-0 right-0 z-[200] py-1.5 px-3 text-center text-xs font-medium transition-colors"
+      :class="isOnline ? 'bg-emerald-500/95 text-white' : 'bg-red-500/95 text-white'"
+    >
+      {{ isOnline ? 'Şu anda internete bağlısınız' : 'İnternete bağlı değilsiniz' }}
+    </div>
+    <component :is="layout">
       <RouterView></RouterView>
-  </component>
+    </component>
+  </div>
   <!-- Konum alınamadı modalı (sadece giriş yapmış kullanıcı için) -->
   <Teleport to="body">
     <Transition name="modal">
@@ -48,7 +58,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { MapPin } from 'lucide-vue-next';
@@ -63,6 +73,39 @@ const authStore = useAuthStore();
 const locationStore = useLocationStore();
 const { locationDeniedModalOpen, locationError, locationErrorCode, locationRequesting } = storeToRefs(locationStore);
 const { requestUserLocation, closeLocationModal } = locationStore;
+
+const isOnline = ref(typeof navigator !== 'undefined' ? navigator.onLine : true);
+// Sadece çevrimdışıyken veya çevrimdışıyken bağlanınca bar göster; ilk yüklemede çevrimiçiysen gösterme
+const showConnectionBar = ref(typeof navigator !== 'undefined' ? !navigator.onLine : false);
+let onlineHideTimeout = null;
+
+const setOnline = () => {
+  isOnline.value = true;
+  showConnectionBar.value = true;
+  if (onlineHideTimeout) clearTimeout(onlineHideTimeout);
+  onlineHideTimeout = setTimeout(() => {
+    showConnectionBar.value = false;
+    onlineHideTimeout = null;
+  }, 3000);
+};
+const setOffline = () => {
+  isOnline.value = false;
+  showConnectionBar.value = true;
+  if (onlineHideTimeout) {
+    clearTimeout(onlineHideTimeout);
+    onlineHideTimeout = null;
+  }
+};
+
+onMounted(() => {
+  window.addEventListener('online', setOnline);
+  window.addEventListener('offline', setOffline);
+});
+onBeforeUnmount(() => {
+  if (onlineHideTimeout) clearTimeout(onlineHideTimeout);
+  window.removeEventListener('online', setOnline);
+  window.removeEventListener('offline', setOffline);
+});
 
 // Konum isteği sadece panel sayfasında (Home.vue) yapılıyor; modal sadece reddedildiğinde açılır, yenilemede tekrar açılmaz.
 

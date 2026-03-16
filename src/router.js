@@ -30,6 +30,11 @@ import NotFound from "./pages/NotFound.vue";
 import CreatePostPage from "./pages/CreatePostPage.vue";
 import BlogPage from "./pages/BlogPage.vue";
 import BlogDetailPage from "./pages/BlogDetailPage.vue";
+import MesafeliSatisSozlesmesiPage from "./pages/MesafeliSatisSozlesmesiPage.vue";
+import GizlilikSozlesmesiPage from "./pages/GizlilikSozlesmesiPage.vue";
+import UyelikSozlesmesiPage from "./pages/UyelikSozlesmesiPage.vue";
+import KvkkPage from "./pages/KvkkPage.vue";
+import IptalVeIadeKosullariPage from "./pages/IptalVeIadeKosullariPage.vue";
 
 const routes = [
     {
@@ -63,6 +68,51 @@ const routes = [
         meta: {
             layout: Layout,
             title: 'Fiyatlandırma | TaşıBul',
+            requiresAuth: false
+        }
+    },
+    {
+        path: '/mesafeli-satis-sozlesmesi',
+        component: MesafeliSatisSozlesmesiPage,
+        meta: {
+            layout: Layout,
+            title: 'Mesafeli Satış Sözleşmesi | TaşıBul',
+            requiresAuth: false
+        }
+    },
+    {
+        path: '/gizlilik-sozlesmesi',
+        component: GizlilikSozlesmesiPage,
+        meta: {
+            layout: Layout,
+            title: 'Gizlilik Sözleşmesi | TaşıBul',
+            requiresAuth: false
+        }
+    },
+    {
+        path: '/uyelik-sozlesmesi',
+        component: UyelikSozlesmesiPage,
+        meta: {
+            layout: Layout,
+            title: 'Üyelik Sözleşmesi | TaşıBul',
+            requiresAuth: false
+        }
+    },
+    {
+        path: '/kvkk',
+        component: KvkkPage,
+        meta: {
+            layout: Layout,
+            title: 'KVKK Aydınlatma Metni | TaşıBul',
+            requiresAuth: false
+        }
+    },
+    {
+        path: '/iptal-ve-iade-kosullari',
+        component: IptalVeIadeKosullariPage,
+        meta: {
+            layout: Layout,
+            title: 'İptal ve İade Koşulları | TaşıBul',
             requiresAuth: false
         }
     },

@@ -20,11 +20,11 @@
                     <div class="w-full md:w-auto">
                         <h3 class="text-white font-semibold text-sm uppercase tracking-wider mb-5">Yasal Yükümlülük</h3>
                         <ul class="space-y-3 flex flex-col items-center md:items-stretch">
-                            <li><a href="#" class="footer-link">Mesafeli Satış Sözleşmesi</a></li>
-                            <li><a href="#" class="footer-link">Gizlilik Sözleşmesi</a></li>
-                            <li><a href="#" class="footer-link">Üyelik Sözleşmesi</a></li>
-                            <li><a href="#" class="footer-link">İptal ve İade Koşulları</a></li>
-                            <li><a href="#" class="footer-link">KVKK</a></li>
+                            <li><RouterLink to="/mesafeli-satis-sozlesmesi" class="footer-link">Mesafeli Satış Sözleşmesi</RouterLink></li>
+                            <li><RouterLink to="/gizlilik-sozlesmesi" class="footer-link">Gizlilik Sözleşmesi</RouterLink></li>
+                            <li><RouterLink to="/uyelik-sozlesmesi" class="footer-link">Üyelik Sözleşmesi</RouterLink></li>
+                            <li><RouterLink to="/iptal-ve-iade-kosullari" class="footer-link">İptal ve İade Koşulları</RouterLink></li>
+                            <li><RouterLink to="/kvkk" class="footer-link">KVKK</RouterLink></li>
                         </ul>
                     </div>
 
@@ -96,13 +96,11 @@
 
                 </div>
 
-                <div class="mt-10 md:mt-12 pt-8 border-t border-gray-700/60 flex flex-col items-center text-center md:flex-row md:justify-between md:text-left gap-3">
+                <div class="mt-10 md:mt-12 pt-8 border-t border-gray-700/60 flex flex-col items-center text-center md:flex-row md:justify-between md:items-center gap-3">
                     <p class="text-xs text-gray-500">
                         © {{ currentYear }} TaşıBul. Tüm hakları saklıdır.
                     </p>
-                    <p class="text-xs text-gray-500">
-                        Türkiye'nin yük taşımacılığı platformu
-                    </p>
+                    <img src="@/assets/images/visa_master.png" alt="Visa ve Mastercard" class="h-6 md:h-7 object-contain opacity-90" />
                 </div>
             </div>
         </Content>

@@ -39,7 +39,7 @@
                         v-for="item in orders"
                         :key="item.id"
                         :shipment="item.shipment"
-                        :slug="item.slug ?? String(item.id)"
+                        :slug="item.shipment?.slug ?? item.slug ?? String(item.id)"
                     />
                 </template>
             </div>

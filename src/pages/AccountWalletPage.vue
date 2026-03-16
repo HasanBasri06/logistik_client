@@ -1,10 +1,10 @@
 <template>
     <Header />
     <div class="h-[calc(100vh-64px)]">
-        <Content>
+        <div class="w-full max-w-[1400px] mx-auto px-4 md:px-6">
             <div class="flex flex-row gap-3 w-full h-[calc(100vh-64px)]">
                 <AccountSidebar />
-                <div class="flex-1 p-3 h-auto">
+                <div class="flex-1 min-w-0 p-3 h-auto">
                     <div class="w-full h-auto p-3 rounded-md border border-gray-200 flex justify-between items-center">
                         <div class="py-3 px-5 gap-3 items-center text-primary rounded-2xl font-semibold bg-primary/10 inline-flex">
                             <i class="pi pi-wallet"></i>
@@ -42,14 +42,13 @@
                     </div>
                 </div>
             </div>
-        </Content>
+        </div>
     </div>
 </template>
 
 <script setup>
 import { ref } from 'vue';
 import Header from '@/components/Header.vue';
-import Content from '@/components/Content.vue';
 import AccountSidebar from '@/components/AccountSidebar.vue';
 
 const liste = ref([
