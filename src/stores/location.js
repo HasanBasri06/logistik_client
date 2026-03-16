@@ -2,8 +2,6 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import api from '@/api';
 
-const KONUM_IZIN_STORAGE_KEY = 'tasibul_konum_izin';
-
 const geolocationOptions = {
     enableHighAccuracy: false,
     timeout: 15000,
@@ -79,11 +77,13 @@ export const useLocationStore = defineStore('location', () => {
         }
     }
 
-    function requestUserLocation() {
+    function requestUserLocation(showModalOnError = false) {
         if (!navigator.geolocation) {
             locationError.value = 'Tarayıcınız konum bilgisini desteklemiyor.';
             locationErrorCode.value = null;
-            locationDeniedModalOpen.value = true;
+            if (showModalOnError) {
+                locationDeniedModalOpen.value = true;
+            }
             return;
         }
         locationRequesting.value = true;
@@ -95,9 +95,6 @@ export const useLocationStore = defineStore('location', () => {
                 const coords = { lat: position.coords.latitude, lng: position.coords.longitude };
                 userCoords.value = coords;
                 locationDeniedModalOpen.value = false;
-                try {
-                    localStorage.setItem(KONUM_IZIN_STORAGE_KEY, 'true');
-                } catch (_) {}
                 let city = null;
                 let district = null;
                 let openAddress = null;
@@ -147,16 +144,15 @@ export const useLocationStore = defineStore('location', () => {
             (err) => {
                 locationRequesting.value = false;
                 setLocationErrorMessage(err);
-                locationDeniedModalOpen.value = true;
+                if (showModalOnError) {
+                    locationDeniedModalOpen.value = true;
+                }
             },
             geolocationOptions
         );
     }
 
     function closeLocationModal() {
-        try {
-            localStorage.setItem(KONUM_IZIN_STORAGE_KEY, 'false');
-        } catch (_) {}
         locationDeniedModalOpen.value = false;
         locationErrorCode.value = null;
     }
@@ -166,7 +162,6 @@ export const useLocationStore = defineStore('location', () => {
     }
 
     return {
-        KONUM_IZIN_STORAGE_KEY,
         userCoords,
         userOpenAddress,
         userCity,

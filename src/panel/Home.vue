@@ -611,7 +611,7 @@
 
         <!-- Konum gerekli uyarısı: mobilde kompakt, masaüstünde geniş -->
         <Content v-if="authStore.isAuthenticated && showKonumBanner" class="my-2 sm:my-5 flex">
-            <div class="w-full max-w-[1200px] mx-auto px-3 sm:px-4">
+            <div class="w-full max-w-[1200px] mx-auto px-0 sm:px-4">
                 <div class="flex flex-wrap items-center gap-2 sm:gap-4 rounded-lg sm:rounded-xl border border-amber-200 bg-amber-50/80 px-3 py-2.5 sm:px-5 sm:py-4">
                     <span class="flex items-center justify-center w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-amber-100 text-amber-600 shrink-0">
                         <MapPin class="w-4 h-4 sm:w-5 sm:h-5" />
@@ -626,7 +626,7 @@
                         type="button"
                         :disabled="locationRequesting"
                         class="shrink-0 inline-flex items-center gap-1.5 sm:gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg bg-amber-600 text-white text-xs sm:text-sm font-medium hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 disabled:opacity-70 transition-colors"
-                        @click="requestUserLocation"
+                        @click="() => requestUserLocation(true)"
                     >
                         <span v-if="locationRequesting" class="inline-block w-3.5 h-3.5 sm:w-4 sm:h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                         {{ locationRequesting ? 'Alınıyor...' : 'Konum izni ver' }}
@@ -693,14 +693,23 @@
                     <template v-else>
                         <div
                             v-if="shipmentsList.length === 0"
-                            class="inline-flex items-center justify-center min-w-[280px] min-h-[72px] px-8 pb-5 rounded-xl bg-gray-100 text-gray-600 text-base font-medium"
+                            class="w-full flex items-center justify-center py-10 sm:py-16"
                         >
-                            Henüz ilan verilmemiş
+                            <div class="w-full max-w-md mx-auto flex flex-col items-center text-center px-4">
+                                <p class="text-lg sm:text-xl font-semibold text-primary mb-1">
+                                    Henüz ilan bulunamadı
+                                </p>
+                                <p class="text-sm sm:text-base text-gray-500 max-w-sm">
+                                    Şu anda gösterilecek bir sevkiyat yok.
+                                    <span class="text-primary font-medium"> Filtreleri güncelleyerek</span>
+                                    veya daha sonra tekrar kontrol ederek yeni ilanları görebilirsin.
+                                </p>
+                            </div>
                         </div>
                         <template v-else>
                             <!-- Sevkiyat başlığı: mobilde justify-between + Filtrele butonu -->
                             <div class="flex items-center justify-between w-full md:justify-start">
-                                <span class="text-sm text-gray-500">{{ shipmentsStore.total }} sevkiyat</span>
+                                <span class="text-sm text-gray-500"><!-- {{ shipmentsStore.total }} sevkiyat -->Sevkiyatlar</span>
                                 <button
                                     type="button"
                                     class="md:hidden flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 text-sm font-medium hover:border-primary hover:bg-primary/5 hover:text-primary transition-colors"
@@ -716,6 +725,7 @@
                                     :key="'my-' + item.id"
                                     :slug="item.slug"
                                     :shipment="item"
+                                    @canceled="handleShipmentCanceled"
                                 />
 
                                 <div class="bg-gray-200 w-full h-px mt-1"></div>
@@ -728,6 +738,7 @@
                                     :key="'other-' + item.id"
                                     :slug="item.slug"
                                     :shipment="item"
+                                    @canceled="handleShipmentCanceled"
                                 />
                             </section>
 
@@ -1409,11 +1420,19 @@ const { locationError, userCoords, locationRequesting } = storeToRefs(locationSt
 const { requestUserLocation } = locationStore;
 
 const showKonumBanner = computed(() => {
-    if (userCoords.value) return false;
-    if (typeof localStorage === 'undefined') return false;
-    const konumIzin = localStorage.getItem(locationStore.KONUM_IZIN_STORAGE_KEY);
-    return konumIzin === 'false';
+    // Kullanıcı giriş yapmış ve henüz koordinat alınmamışsa banner göster
+    return authStore.isAuthenticated && !userCoords.value;
 });
+
+const handleShipmentCanceled = (id) => {
+    if (!id) return;
+    if (myPostList.value?.length) {
+        myPostList.value = myPostList.value.filter((s) => s.id !== id);
+    }
+    if (otherPostList.value?.length) {
+        otherPostList.value = otherPostList.value.filter((s) => s.id !== id);
+    }
+};
 
 const updatePageQuery = (page) => {
     const query = { ...route.query };
@@ -1436,15 +1455,9 @@ onMounted(() => {
     shipmentsStore.fetchShipments({ initialPage });
     fetchCities().then(setDefaultLocations);
     if (!authStore.isAuthenticated) return;
-    if (userCoords.value && typeof localStorage !== 'undefined') {
-        try {
-            localStorage.setItem(locationStore.KONUM_IZIN_STORAGE_KEY, 'true');
-        } catch (_) {}
-    } else {
-        const konumIzin = typeof localStorage !== 'undefined' && localStorage.getItem(locationStore.KONUM_IZIN_STORAGE_KEY);
-        if (konumIzin !== 'false') {
-            requestUserLocation();
-        }
+    if (!userCoords.value) {
+        // Her girişte panel sayfasında konum iste
+        requestUserLocation();
     }
 });
 
