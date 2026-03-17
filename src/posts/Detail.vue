@@ -315,16 +315,18 @@
 
         <!-- Mobil: sabit alt bar (Teklif Ver / Mesaj ile Teklif / Ara) -->
         <div
-            v-if="!shipmentLoading && !is_me && shipment?.call_access !== 1"
+            v-if="!shipmentLoading && !is_me"
             class="fixed bottom-0 left-0 right-0 z-40 flex md:hidden bg-white border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] pb-[env(safe-area-inset-bottom)]"
         >
             <button
+                v-if="shipment?.call_access !== 1"
                 @click="handleOfferClick"
                 class="flex-1 h-14 py-3 px-3 bg-primary text-white font-semibold text-sm"
             >
                 Teklif Ver
             </button>
             <button
+                v-if="shipment?.call_access !== 1"
                 @click="openMessageOfferPanel"
                 class="flex-1 h-14 py-3 px-3 border-t border-l border-gray-200 text-primary font-semibold text-sm bg-white"
             >
@@ -334,9 +336,11 @@
                 v-if="shipment?.call_access == 1"
                 type="button"
                 @click="openCallModal"
-                class="flex-1 h-14 py-3 px-3 border-t border-l border-gray-200 text-primary font-semibold text-sm bg-white"
+                class="flex-1 h-14 py-3 px-3 md:border-t md:border-l md:border-gray-200 md:text-primary md:font-semibold md:text-sm md:bg-white bg-primary text-white font-semibold text-md flex items-center justify-center gap-4"
             >
-                Ara
+                <i class="pi pi-phone text-xl"></i>
+                <span v-text="shipment?.call_access == 1 ? formatPhoneTR(shipment?.creator?.phone) : ''"></span>
+                <span>Ara</span>
             </button>
         </div>
         <div
@@ -1287,6 +1291,16 @@ const creatorPhone = computed(() => {
     if (!phone || typeof phone !== 'string') return '';
     return phone.replace(/\s/g, '');
 });
+
+/** Türkiye telefon gösterimi: 0XXX XXX XX XX */
+function formatPhoneTR(phone) {
+    if (!phone || typeof phone !== 'string') return '';
+    let d = phone.replace(/\D/g, '');
+    if (d.startsWith('90') && d.length >= 12) d = '0' + d.slice(2);
+    else if (d.length === 10 && !d.startsWith('0')) d = '0' + d;
+    if (d.length !== 11 || d[0] !== '0') return phone.trim();
+    return `${d.slice(0, 4)} ${d.slice(4, 7)} ${d.slice(7, 9)} ${d.slice(9, 11)}`;
+}
 function openCallModal() {
     showCallModal.value = true;
 }
