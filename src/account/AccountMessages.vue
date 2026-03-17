@@ -1,7 +1,7 @@
 <template>
     <div class="flex flex-row gap-4 h-full min-h-0 w-full max-w-full overflow-x-hidden">
         <!-- Sol: Mesaj Listesi (Mesaj seçilmediğinde görünür) -->
-        <div v-if="!route.params.id" class="w-full min-w-0 flex flex-col overflow-y-auto overflow-x-hidden min-h-0">
+        <div v-if="!route.params.id" class="w-full min-w-0 flex flex-col overflow-y-auto overflow-x-hidden min-h-0 md:p-4">
             <!-- Mobil: üst bar geri butonu + başlık -->
             <div class="md:hidden flex items-center gap-3 px-1 py-3 pb-4 border-b border-gray-100 shrink-0">
                 <button
@@ -31,8 +31,8 @@
                 >
                     <div class="flex items-center gap-4 p-4 sm:p-5">
                         <div class="relative shrink-0">
-                            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl overflow-hidden bg-gray-100 flex items-center justify-center ring-2 ring-gray-100 group-hover:ring-primary/20 transition-all">
-                                <img src="@/assets/images/person.png" :alt="message.name" class="w-full h-full object-cover" />
+                            <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl overflow-hidden bg-primary/10 text-primary flex items-center justify-center ring-2 ring-gray-100 group-hover:ring-primary/20 transition-all font-semibold text-sm sm:text-base">
+                                {{ getInitials(message.name) }}
                             </div>
                             <span
                                 v-if="!message.isRead"
@@ -88,8 +88,8 @@
                 >
                     <i class="pi pi-arrow-left text-gray-700 text-lg" aria-hidden="true"></i>
                 </button>
-                <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full border-[1.5px] border-primary overflow-hidden flex items-center justify-center bg-white shrink-0">
-                    <img src="@/assets/images/person.png" :alt="selectedMessage?.name" class="w-full h-full object-cover" />
+                <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full border-[1.5px] border-primary overflow-hidden flex items-center justify-center bg-primary/10 text-primary shrink-0 font-semibold text-sm sm:text-base">
+                    {{ getInitials(selectedMessage?.name) }}
                 </div>
                 <div class="flex-1 min-w-0">
                     <h3 class="text-base sm:text-lg font-semibold text-gray-900 truncate">{{ selectedMessage?.name }}</h3>
@@ -104,7 +104,11 @@
             >
                 <div
                     v-if="conversationShipment"
-                    class="flex-1 min-h-0 rounded-xl border border-gray-200 bg-white p-3 sm:p-4 shadow-sm min-w-0"
+                    role="button"
+                    tabindex="0"
+                    class="flex-1 min-h-0 rounded-xl border border-gray-200 bg-white p-3 sm:p-4 shadow-sm min-w-0 cursor-pointer hover:border-primary/40 hover:shadow-md transition-all active:scale-[0.99]"
+                    @click="conversationShipment?.slug && goToShipment(conversationShipment.slug)"
+                    @keydown.enter="conversationShipment?.slug && goToShipment(conversationShipment.slug)"
                 >
                     <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 sm:mb-2">İlan özeti</p>
                     <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap text-xs sm:text-sm">
@@ -299,6 +303,15 @@ const isShipmentOwner = computed(() => {
 
 const isVehicleOwnerMessages = computed(() => String(props.basePath || '').includes('vehicle-owner'));
 
+function getInitials(name) {
+    if (!name || typeof name !== 'string') return '?';
+    const words = name.trim().split(/\s+/).filter(Boolean);
+    if (!words.length) return '?';
+    const first = words[0][0] ?? '';
+    const last = words.length > 1 ? (words[words.length - 1][0] ?? '') : (words[0][1] ?? words[0][0] ?? '');
+    return (first + last).toUpperCase();
+}
+
 /** Sohbette gönderilmiş talep/teklif – en üstte ilan özetinin yanında (en son teklif) */
 const conversationTeklif = computed(() => {
     const list = messageThread.value || [];
@@ -360,6 +373,10 @@ const openMessageDetail = (message) => {
 
 const goBackToMessages = () => {
     router.push(props.basePath);
+};
+
+const goToShipment = (slug) => {
+    if (slug) router.push({ path: `/posts/${slug}` });
 };
 
 /** Mobil liste ekranında geri: ana panele (cargo-owner / vehicle-owner) dön */

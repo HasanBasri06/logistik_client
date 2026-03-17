@@ -123,6 +123,8 @@ import { Carousel, Slide } from 'vue3-carousel';
 import 'vue3-carousel/carousel.css';
 import api from '@/api';
 import { useAuthStore } from '@/stores/auth';
+import { useMessageStore } from '@/stores/message';
+import { toast } from 'vue-sonner';
 
 const props = defineProps({
     slug: { type: String, default: '' },
@@ -132,6 +134,7 @@ const props = defineProps({
 const emit = defineEmits(['close', 'success']);
 
 const authStore = useAuthStore();
+const messageStore = useMessageStore();
 const teklifCars = ref([]);
 const teklifCarsLoading = ref(false);
 const teklifCarsError = ref(null);
@@ -245,6 +248,15 @@ async function onTeklifVerClick() {
         });
         teklifMessage.value = '';
         teklifFiyatRaw.value = '';
+        toast.success('Teklifiniz başarıyla gönderildi.', { description: 'Teklif Verildi', duration: 3000 });
+        const receiverId = props.shipment?.creater_id ?? props.shipment?.creator?.id;
+        if (receiverId && Number(receiverId) !== Number(userId)) {
+            await messageStore.createMessage({
+                shipment_id: shipmentId,
+                receiver_id: receiverId,
+                message: 'Bu ilan ile ilgileniyorum',
+            });
+        }
         emit('close');
         emit('success');
     } catch (err) {

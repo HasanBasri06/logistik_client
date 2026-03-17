@@ -9,38 +9,38 @@
       <div class="flex flex-row items-stretch gap-0 sm:gap-4 flex-1 min-w-0">
         <!-- Mobil: saatler okun solunda -->
         <div class="flex flex-col justify-between gap-2 shrink-0 sm:hidden py-0.5 text-xs">
-          <div class="inline-flex items-center py-0.5 px-2 rounded-full bg-primary/10">
-            <span class=" font-semibold text-primary">{{ shipment?.departure_time ?? '—' }}</span>
+          <div class="inline-flex items-center h-5 px-2 rounded-full bg-primary/10" v-if="shipment?.departure_time">
+            <span class=" font-semibold text-primary">{{ shipment?.departure_time ?? '' }}</span>
           </div>
-          <div class="inline-flex items-center py-0.5 px-2 rounded-full bg-primary/10">
-            <span class=" font-semibold text-primary">{{ shipment?.time_arrival ?? '—' }}</span>
+          <div class="inline-flex items-center h-5 px-2 rounded-full bg-primary/10" v-if="shipment?.time_arrival">
+            <span class=" font-semibold text-primary">{{ shipment?.time_arrival ?? '' }}</span>
           </div>
         </div>
         <!-- Mobil: dikey çizgi ve aşağı ok -->
         <div class="flex flex-col  items-center shrink-0 w-5 sm:hidden">
           <div class="flex-1 min-h-5 flex justify-center">
-            <div class="w-0.5 h-full rounded-full bg-primary/40"></div>
+            <div class="w-0.5 h-full rounded-full bg-primary/60"></div>
           </div>
-          <ArrowDown class="w-3.5 h-3.5 text-primary/30 shrink-0  -mt-2 relative" />
+          <ArrowDown class="w-3.5 h-3.5 text-primary/60 shrink-0  -mt-2 relative" />
         </div>
         <!-- İçerik: mobilde sadece yerler; masaüstünde nereden + saat, çizgi, nereye + saat -->
-        <div class="flex flex-col sm:flex-row gap-2 sm:gap-4 flex-1 min-w-0 text-sm relative">
+        <div class="flex flex-col sm:flex-row gap-2 sm:gap-4 flex-1 min-w-0 text-sm relative h-12 md:h-auto">
           <div class="flex flex-col gap-1.5 sm:gap-2 items-start w-auto min-w-0">
             <div class="font-semibold text-gray-900 leading-tight truncate max-w-full">{{ fromPlaceText }}</div>
             <div class="hidden sm:inline-flex items-center py-0.5 px-2 sm:py-1 sm:px-3 rounded-full bg-primary/10">
-              <span class="text-xs font-semibold text-primary">{{ shipment?.departure_time ?? '—' }}</span>
+              <span class="text-xs font-semibold text-primary">{{ shipment?.departure_time ?? 'belirtilmemiş' }}</span>
             </div>
           </div>
           <!-- Masaüstü: yatay çizgi + süre + sağ ok -->
           <div class="hidden sm:flex flex-col items-center justify-center gap-0.5 sm:gap-1.5 shrink-0 sm:max-w-[100px] sm:flex-1">
             <div class="w-full h-0.5 rounded-full bg-linear-to-r from-primary to-primary/30"></div>
-            <div class="text-[10px] sm:text-xs font-medium text-gray-500 whitespace-nowrap">{{ shipment?.hours ?? '—' }}</div>
+            <div class="text-[10px] sm:text-xs font-medium text-gray-500 whitespace-nowrap">{{ shipment?.hours ?? 'belirtilmemiş' }}</div>
             <ArrowRight class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary shrink-0" />
           </div>
           <div class="flex flex-col gap-1.5 sm:gap-2 items-start min-w-0 sm:flex-1 absolute bottom-0 md:relative">
             <div class=" font-semibold text-gray-900 leading-tight truncate max-w-full">{{ toPlaceText }}</div>
             <div class="hidden sm:inline-flex items-center py-0.5 px-2 sm:py-1 sm:px-3 rounded-full bg-primary/10">
-              <span class="text-xs font-semibold text-primary">{{ shipment?.time_arrival ?? '—' }}</span>
+              <span class="text-xs font-semibold text-primary">{{ shipment?.time_arrival ?? 'belirtilmemiş' }}</span>
             </div>
           </div>
         </div>
@@ -60,9 +60,13 @@
       <!-- Masaüstü: yatay satır (avatar, puan, ağırlık, tip, teklif, iptal) -->
       <div class="hidden sm:flex flex-wrap items-center gap-x-4 gap-y-0 flex-1 min-w-0">
         <div class="flex items-center gap-2 min-w-0">
-          <div class="w-8 h-8 rounded-full border-[1.5px] border-primary overflow-hidden flex items-center justify-center bg-white shrink-0">
-            <img :src="creatorAvatarUrl" :alt="shipment.creator?.full_name" class="w-full h-full object-cover" />
+          <div class="w-8 h-8 rounded-full border-[1.5px] relative border-primary flex items-center justify-center bg-white shrink-0">
+            <div v-if="shipment.creator?.verified == 1" class="w-5 h-5 bg-white absolute -top-2 -right-2 rounded-full flex items-center justify-center">
+              <i class="pi pi-verified text-blue-500"></i>
+            </div>
+            <img :src="creatorAvatarUrl" :alt="shipment.creator?.full_name" class="w-full rounded-full h-full object-cover" />
           </div>
+
           <span class="text-sm font-medium text-gray-600 truncate">{{ shipment.creator?.full_name }}</span>
         </div>
         <div class="w-px h-5 bg-gray-200 shrink-0"></div>
@@ -76,7 +80,7 @@
         <div class="text-sm font-medium text-gray-600 shrink-0">{{ shipment.post_type?.value }}</div>
         <div class="w-px h-5 bg-gray-200 shrink-0"></div>
         <span class="text-sm text-gray-500 shrink-0">{{ requestText }}</span>
-        <div v-if="user.id == shipment.creater_id" class="flex items-center shrink-0">
+        <div v-if="(user.id == shipment.creater_id && shipment.status == 'active')" class="flex items-center shrink-0">
           <div class="w-px h-5 bg-gray-200 mr-4"></div>
           <button class="bg-red-200 text-red-700 text-sm px-4 py-1 rounded-md cursor-pointer" @click.stop="handleCanceledBtn($event, shipment)">İptal Et</button>
         </div>
@@ -234,6 +238,7 @@ const creatorAvatarUrl = computed(() => {
 });
 
 const handleClick = (e, shipment) => {
+    if (shipment?.creator?.verified !== 1) return;
     if (user.value.id == shipment.creater_id) {
         router.push(`/product/${props.slug}`);
     } else {

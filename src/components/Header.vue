@@ -46,7 +46,7 @@
                             <span>Giriş Yap</span>
                         </button>
                     </li>
-                    <li class="hidden md:block relative" v-else data-account-dropdown>
+                    <li id="tour-hesap" class="hidden md:block relative" v-else data-account-dropdown>
                         <button type="button" @click.stop="accountDropdownOpen = !accountDropdownOpen"
                             class="flex items-center gap-2 rounded-full border cursor-pointer border-gray-200 px-4 py-2 text-sm font-semibold hover:border-primary hover:text-primary transition-colors">
                             <span>{{ user.full_name }}</span>

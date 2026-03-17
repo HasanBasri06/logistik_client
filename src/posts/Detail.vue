@@ -1,19 +1,19 @@
 
 <template>
-    <div class="h-screen">
+    <div class="min-h-screen flex flex-col">
         <Header />
-        <Content class="mt-5 flex-1 overflow-y-auto flex gap-4 relative">
-            <!-- Sol kolon: aynı divler, loading'de gri + pulse -->
+        <Content class="mt-4 sm:mt-5 flex-1 overflow-y-auto px-3 sm:px-4 flex flex-col md:flex-row md:gap-4 gap-6 relative pb-24 md:pb-8">
+            <!-- Sol kolon: mobilde tam genişlik, masaüstünde sabit genişlik -->
             <div
-                class="w-[800px] flex flex-col gap-4 no_scrool pb-[300px] transition-all duration-200"
+                class="w-full md:w-[800px] md:max-w-[800px] md:shrink-0 flex flex-col gap-4 no_scrool transition-all duration-200"
                 :class="shipmentLoading ? 'opacity-60 pointer-events-none' : ''"
             >
-                <h2 class="text-2xl font-semibold text-gray-900 h-9">Taşıma Bilgileri</h2>
+                <h2 class="text-xl sm:text-2xl font-semibold text-gray-900 h-9 hidden md:block">Taşıma Bilgileri</h2>
                 <div
-                    class="bg-white h-[350px] rounded-md relative transition-colors duration-200"
+                    class="bg-white h-[240px] sm:h-[320px] md:h-[350px] rounded-md relative transition-colors duration-200"
                     :class="shipmentLoading ? 'bg-gray-200 animate-pulse' : ''"
                 >
-                    <div v-if="mapError" class="w-full h-[350px] flex items-center justify-center bg-red-50 border border-red-200 rounded-md">
+                    <div v-if="mapError" class="w-full h-[240px] sm:h-[320px] md:h-[350px] flex items-center justify-center bg-red-50 border border-red-200 rounded-md">
                         <div class="text-center p-4">
                             <p class="text-red-600 font-semibold mb-2">Harita Yüklenemedi</p>
                             <p class="text-sm text-red-500">{{ mapError }}</p>
@@ -25,12 +25,12 @@
                             </button>
                         </div>
                     </div>
-                    <div v-else ref="mapContainer" id="map" class="w-full h-[350px] rounded-md"></div>
+                    <div v-else ref="mapContainer" id="map" class="w-full h-[240px] sm:h-[320px] md:h-[350px] rounded-md"></div>
                     <!-- Rotayı Göster Butonu -->
                     <button
                         v-if="!mapError && map"
                         @click="showRoute"
-                        class="absolute top-4 left-4 z-10 flex items-center gap-2 px-4 py-2 bg-white text-gray-700 rounded-lg shadow-lg hover:shadow-xl border border-gray-200 hover:border-primary transition-all duration-200 font-medium text-sm"
+                        class="absolute top-2 left-2 sm:top-4 sm:left-4 z-10 flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-white text-gray-700 rounded-lg shadow-lg hover:shadow-xl border border-gray-200 hover:border-primary transition-all duration-200 font-medium text-xs sm:text-sm"
                     >
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
@@ -43,18 +43,18 @@
                     class="rounded-md p-4 border border-gray-200 transition-colors duration-200"
                     :class="shipmentLoading ? 'bg-gray-200 animate-pulse' : 'bg-white'"
                 >
-                    <div class="flex items-center justify-between gap-4">
-                        <div class="flex items-center gap-4">
+                    <div class="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
+                        <div class="flex flex-wrap items-center gap-3 sm:gap-4">
                             <div>
-                                <span class="text-sm text-gray-500">Mesafe:</span>
-                                <span class="ml-2 text-lg font-semibold text-gray-900">{{ distance }}</span>
+                                <span class="text-xs sm:text-sm text-gray-500">Mesafe:</span>
+                                <span class="ml-1 sm:ml-2 text-base sm:text-lg font-semibold text-gray-900">{{ distance }}</span>
                             </div>
                             <div>
-                                <span class="text-sm text-gray-500">Süre:</span>
-                                <span class="ml-2 text-lg font-semibold text-gray-900">{{ duration }}</span>
+                                <span class="text-xs sm:text-sm text-gray-500">Süre:</span>
+                                <span class="ml-1 sm:ml-2 text-base sm:text-lg font-semibold text-gray-900">{{ duration }}</span>
                             </div>
                         </div>
-                        <span class="text-sm text-primary font-semibold">{{ shipment?.price }}</span>
+                        <span class="text-sm text-primary font-semibold shrink-0">{{ shipment?.price }}</span>
                     </div>
                 </div>
 
@@ -93,10 +93,10 @@
 
                 <!-- Yol Üzerindeki İlanlar -->
                 <div
-                    class="rounded-md border border-gray-200 shadow-sm p-6 transition-colors duration-200"
+                    class="rounded-md border border-gray-200 shadow-sm p-4 sm:p-6 transition-colors duration-200"
                     :class="shipmentLoading ? 'bg-gray-200 animate-pulse' : 'bg-white'"
                 >
-                    <h3 class="text-lg font-semibold text-gray-900 mb-3">Yol Üzerindeki İlanlar</h3>
+                    <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-3">Yol Üzerindeki İlanlar</h3>
                     <p v-if="routeCities.length" class="text-sm text-gray-500 mb-4">
                         <span class="font-medium text-gray-700">Yol üzerindeki şehirler:</span>
                         {{ routeCities.join(', ') }}
@@ -139,10 +139,10 @@
 
                 <!-- İlan Açıklaması -->
                 <div
-                    class="rounded-md p-6 border border-gray-200 shadow-sm transition-colors duration-200"
+                    class="rounded-md p-4 sm:p-6 border border-gray-200 shadow-sm transition-colors duration-200"
                     :class="shipmentLoading ? 'bg-gray-200 animate-pulse' : 'bg-white'"
                 >
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">İlan Açıklaması</h3>
+                    <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-4">İlan Açıklaması</h3>
                     
                     <!-- Açıklama Metni -->
                     <div class="mb-6">
@@ -151,31 +151,31 @@
                         </p>
                     </div>
 
-                    <!-- Tablo -->
-                    <div class="overflow-x-auto">
-                        <table class="w-full border-collapse">
+                    <!-- Tablo: mobilde yatay kaydırma -->
+                    <div class="overflow-x-auto -mx-1">
+                        <table class="w-full min-w-[280px] border-collapse">
                             <thead>
                                 <tr class="bg-gray-50">
-                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b border-gray-200">Özellik</th>
-                                    <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b border-gray-200">Değer</th>
+                                    <th class="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-gray-700 border-b border-gray-200">Özellik</th>
+                                    <th class="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-gray-700 border-b border-gray-200">Değer</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr class="border-b border-gray-100">
-                                    <td class="px-4 py-3 text-sm text-gray-600">Araç Tipi</td>
-                                    <td class="px-4 py-3 text-sm text-gray-900 font-medium">{{ ilanAracTipi }}</td>
+                                    <td class="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-600">Araç Tipi</td>
+                                    <td class="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 font-medium">{{ ilanAracTipi }}</td>
                                 </tr>
                                 <tr class="border-b border-gray-100">
-                                    <td class="px-4 py-3 text-sm text-gray-600">Kapasite</td>
-                                    <td class="px-4 py-3 text-sm text-gray-900 font-medium">{{ ilanKapasite }}</td>
+                                    <td class="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-600">Kapasite</td>
+                                    <td class="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 font-medium">{{ ilanKapasite }}</td>
                                 </tr>
                                 <tr class="border-b border-gray-100">
-                                    <td class="px-4 py-3 text-sm text-gray-600">Yük Tipi</td>
-                                    <td class="px-4 py-3 text-sm text-gray-900 font-medium">{{ ilanYukTipi }}</td>
+                                    <td class="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-600">Yük Tipi</td>
+                                    <td class="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 font-medium">{{ ilanYukTipi }}</td>
                                 </tr>
                                 <tr class="border-b border-gray-100">
-                                    <td class="px-4 py-3 text-sm text-gray-600">Özel İstek</td>
-                                    <td class="px-4 py-3 text-sm text-gray-900 font-medium">{{ ilanOzelIstek }}</td>
+                                    <td class="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-600">Özel İstek</td>
+                                    <td class="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 font-medium">{{ ilanOzelIstek }}</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -183,101 +183,84 @@
                 </div>
             </div>
             <div
-                class="flex-1 flex flex-col gap-4 transition-all duration-200"
+                class="w-full md:flex-1 flex flex-col gap-4 transition-all duration-200 min-w-0"
                 :class="shipmentLoading ? 'opacity-60 pointer-events-none' : ''"
             >
-                <h2 class="text-2xl font-semibold text-gray-900 h-9">Rota Bilgileri</h2>
+                <h2 class="text-xl sm:text-2xl font-semibold text-gray-900 h-9">Rota Bilgileri</h2>
                 
-                <!-- Kalkış ve Varış Yeni Tasarım -->
+                <!-- Kalkış ve Varış -->
                 <div
-                    class="rounded-lg border border-gray-200 shadow-sm overflow-visible md:overflow-hidden transition-colors duration-200 relative"
+                    class="rounded-lg border border-gray-200 shadow-sm overflow-hidden transition-colors duration-200"
                     :class="shipmentLoading ? 'bg-gray-200 animate-pulse' : 'bg-white'"
                 >
-                    <!-- Mobil: teklif verme sağ üstte (top-2/4, right-2/4) -->
-                    <div
-                        v-if="!is_me"
-                        class="md:hidden absolute top-2/4 right-2/4 z-10 flex flex-col gap-2 -translate-y-1/2 translate-x-1/2"
-                    >
-                        <button
-                            @click="handleOfferClick"
-                            class="h-11 px-4 rounded-full bg-primary text-white font-semibold text-sm shadow-lg whitespace-nowrap"
-                        >
-                            Teklif Ver
-                        </button>
-                        <button
-                            @click="openMessageOfferPanel"
-                            class="h-11 px-4 rounded-full border-2 border-primary text-primary bg-white font-semibold text-sm shadow-lg whitespace-nowrap"
-                        >
-                            Mesaj ile Teklif
-                        </button>
-                    </div>
-                    <div class="p-5">
+                    <div class="p-4 sm:p-5">
                         <div class="flex items-start gap-4">
                             <!-- Sol: Yuvarlaklar ve Çizgi -->
-                            <div class="flex flex-col items-center">
-                                <!-- Üst Yuvarlak (Kalkış) -->
+                            <div class="flex flex-col items-center shrink-0">
                                 <div class="w-[5px] h-[5px] rounded-full bg-primary"></div>
-                                <!-- Çizgi -->
-                                <div class="w-px h-28 bg-gradient-to-b from-primary to-primary/30 my-2"></div>
-                                <!-- Alt Yuvarlak (Varış) -->
+                                <div class="w-px h-16 sm:h-28 bg-gradient-to-b from-primary to-primary/30 my-1.5 sm:my-2"></div>
                                 <div class="w-[5px] h-[5px] rounded-full bg-primary"></div>
                             </div>
                             
                             <!-- Sağ: İçerik -->
-                            <div class="flex-1 flex flex-col gap-6">
+                            <div class="flex-1 flex flex-col gap-4 sm:gap-6 min-w-0">
                                 <!-- Kalkış -->
-                                <div>
-                                    <div class="flex items-center gap-2 mb-1">
+                                <div class="min-w-0">
+                                    <div class="flex flex-wrap items-center gap-2 mb-1">
                                         <span class="text-xs font-semibold text-primary uppercase tracking-wide">Kalkış</span>
                                         <span v-if="originDateTime" class="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
                                             {{ formatDateTime(originDateTime) }}
                                         </span>
                                     </div>
-                                    <h3 class="text-base font-semibold text-gray-900 mb-1 leading-tight">
-                                        {{ selectedOrigin?.name || 'Ankara' }}
-                                    </h3>
-                                    <p class="text-sm text-gray-600"> 
-                                        {{ shipment?.departure_time ?? 'belirlenecek' }}
-                                    </p>
+                                    <h3 class="text-sm sm:text-base font-semibold text-gray-900 mb-1 leading-tight truncate">{{ selectedOrigin?.name || 'Ankara' }}</h3>
+                                    <p class="text-xs sm:text-sm text-gray-600">{{ shipment?.departure_time ?? 'belirlenecek' }}</p>
                                 </div>
-                                
                                 <!-- Varış -->
-                                <div>
-                                    <div class="flex items-center gap-2 mb-1">
+                                <div class="min-w-0">
+                                    <div class="flex flex-wrap items-center gap-2 mb-1">
                                         <span class="text-xs font-semibold text-primary uppercase tracking-wide">Varış</span>
                                         <span v-if="destinationDateTime" class="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
                                             {{ formatDateTime(destinationDateTime) }}
                                         </span>
                                     </div>
-                                    <h3 class="text-base font-semibold text-gray-900 mb-1 leading-tight">
-                                        {{ selectedDestination?.name || 'İzmir' }}
-                                    </h3>
-                                    <p class="text-sm text-gray-600">
-                                        {{ shipment?.time_arrival ?? 'belirlenecek' }}
-                                    </p>
+                                    <h3 class="text-sm sm:text-base font-semibold text-gray-900 mb-1 leading-tight truncate">{{ selectedDestination?.name || 'İzmir' }}</h3>
+                                    <p class="text-xs sm:text-sm text-gray-600">{{ shipment?.time_arrival ?? 'belirlenecek' }}</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div v-if="!is_me" class="hidden md:flex bg-gray-50 border-t border-gray-100 w-full">
+                    <!-- Teklif / İlanım butonları: sadece masaüstünde (mobilde altta fixed bar kullanılıyor) -->
+                    <div
+                        v-if="!is_me"
+                        class="hidden md:flex bg-gray-50 border-t border-gray-100 w-full px-4 py-3 gap-3"
+                    >
                         <button
+                            v-if="shipment?.call_access !== 1"
                             @click="handleOfferClick"
-                            class="flex-1 h-12 bg-primary text-white font-semibold transition-all duration-200 text-base"
+                            class="flex-1 h-11 sm:h-12 rounded-xl bg-primary text-white font-semibold transition-all duration-200 text-sm sm:text-base shadow-sm hover:bg-primary/90 hover:shadow-md"
                         >
                             Teklif Ver
                         </button>
-
                         <button
+                            v-if="shipment?.call_access !== 1"
                             @click="openMessageOfferPanel"
-                            class="flex-1 h-12 border-primary text-primary font-semibold transition-all duration-200 text-base"
+                            class="flex-1 h-11 sm:h-12 rounded-xl border-2 border-primary text-primary bg-white font-semibold transition-all duration-200 text-sm sm:text-base hover:bg-primary/5"
                         >
-                            Mesaj İle Teklif Ver
+                            Mesaj ile Teklif
+                        </button>
+                        <button
+                            v-if="shipment?.call_access == 1"
+                            type="button"
+                            @click="openCallModal"
+                            class="h-11 sm:h-12 px-5 rounded-xl border-2 border-primary text-primary bg-white font-semibold transition-all duration-200 text-sm sm:text-base hover:bg-primary/5 shrink-0"
+                        >
+                            Ara
                         </button>
                     </div>
                     <div v-else class="hidden md:flex bg-gray-50 border-t border-gray-100 w-full">
                         <button
-                            class="flex-1 h-12 border-primary text-primary font-semibold transition-all duration-200 text-base"
+                            class="flex-1 h-11 sm:h-12 border border-primary text-primary font-semibold transition-all duration-200 text-sm sm:text-base py-2.5"
                         >
                             İlanım
                         </button>
@@ -286,12 +269,12 @@
 
                 <!-- İlan Oluşturan Kişi Bilgileri -->
                 <div
-                    class="rounded-md p-6 border border-gray-200 shadow-sm h-auto transition-colors duration-200"
+                    class="rounded-md p-4 sm:p-6 border border-gray-200 shadow-sm h-auto transition-colors duration-200"
                     :class="shipmentLoading ? 'bg-gray-200 animate-pulse' : 'bg-white'"
                 >
-                    <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-3 sm:gap-4">
                         <!-- Profil Resmi -->
-                        <div class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+                        <div class="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
                             <div class="w-full h-full bg-primary/20 flex items-center justify-center">
                                 <span class="text-xl text-primary font-semibold">
                                     {{ shipment?.creator?.full_name?.charAt(0)?.toUpperCase() || 'U' }}
@@ -299,14 +282,14 @@
                             </div>
                         </div>
                         <!-- İsim ve Puan -->
-                        <div class="flex flex-col gap-2">
-                            <h4 class="text-md font-semibold text-gray-900">
+                        <div class="flex flex-col gap-1 sm:gap-2 min-w-0">
+                            <h4 class="text-sm sm:text-base font-semibold text-gray-900 truncate">
                                 {{ shipment?.creator?.full_name }}
                             </h4>
                             <div class="flex items-center gap-2">
-                                <span class="text-sm text-gray-600">Puan:</span>
+                                <span class="text-xs sm:text-sm text-gray-600">Puan:</span>
                                 <div class="flex items-center gap-1">
-                                    <span class="text-md font-semibold text-gray-900">
+                                    <span class="text-sm sm:text-base font-semibold text-gray-900">
                                         {{ creatorScoreText }}
                                     </span>
                                     <span class="text-yellow-500">★</span>
@@ -330,6 +313,42 @@
             </div>
         </Content>
 
+        <!-- Mobil: sabit alt bar (Teklif Ver / Mesaj ile Teklif / Ara) -->
+        <div
+            v-if="!shipmentLoading && !is_me && shipment?.call_access !== 1"
+            class="fixed bottom-0 left-0 right-0 z-40 flex md:hidden bg-white border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] pb-[env(safe-area-inset-bottom)]"
+        >
+            <button
+                @click="handleOfferClick"
+                class="flex-1 h-14 py-3 px-3 bg-primary text-white font-semibold text-sm"
+            >
+                Teklif Ver
+            </button>
+            <button
+                @click="openMessageOfferPanel"
+                class="flex-1 h-14 py-3 px-3 border-t border-l border-gray-200 text-primary font-semibold text-sm bg-white"
+            >
+                Mesaj ile Teklif
+            </button>
+            <button
+                type="button"
+                @click="openCallModal"
+                class="flex-1 h-14 py-3 px-3 border-t border-l border-gray-200 text-primary font-semibold text-sm bg-white"
+            >
+                Ara
+            </button>
+        </div>
+        <div
+            v-else-if="!shipmentLoading && is_me"
+            class="fixed bottom-0 left-0 right-0 z-40 flex md:hidden bg-white border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] pb-[env(safe-area-inset-bottom)]"
+        >
+            <button
+                class="flex-1 h-14 py-3 px-3 border-t border-primary text-primary font-semibold text-sm"
+            >
+                İlanım
+            </button>
+        </div>
+
         <!-- Ortak overlay + Mesaj paneli + Teklif modal (overlay tıklanınca ikisi de kapanır) -->
         <Teleport to="body">
             <div
@@ -349,10 +368,10 @@
                     @close="showTeklifModal = false"
                     @success="onTeklifModalSuccess"
                 />
-                <!-- Mesaj ile Teklif Ver – sağdan kayan panel -->
+                <!-- Mesaj ile Teklif Ver – sağdan kayan panel (mobilde tam genişlik) -->
                 <div
                     v-if="showMessageOfferPanel"
-                    class="relative h-screen w-96 bg-white border-l border-gray-200 shadow-xl flex flex-col transition-transform duration-300 ease-out z-10 ml-auto"
+                    class="relative h-screen w-full max-w-[24rem] sm:max-w-none sm:w-96 bg-white border-l border-gray-200 shadow-xl flex flex-col transition-transform duration-300 ease-out z-10 ml-auto"
                     :class="messageOfferPanelVisible ? 'translate-x-0' : 'translate-x-full'"
                     aria-hidden="true"
                 >
@@ -466,6 +485,55 @@
                     </div>
                 </div>
             </div>
+        </Teleport>
+
+        <!-- Ara modalı: İlan sahibini arıyorsunuz + önizleme + Ara / Vazgeç -->
+        <Teleport to="body">
+            <Transition name="modal">
+                <div
+                    v-if="showCallModal"
+                    class="fixed inset-0 z-[100] flex items-center justify-center p-4"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="call-modal-title"
+                >
+                    <div class="absolute inset-0 bg-black/50" @click="showCallModal = false" />
+                    <div class="relative bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+                        <h2 id="call-modal-title" class="text-lg font-semibold text-gray-900 mb-2">
+                            İlan sahibini arıyorsunuz
+                        </h2>
+                        <p class="text-sm text-gray-600 mb-4">
+                            Aşağıdaki ilan için iletişime geçmek üzeresiniz. Masaüstünde WhatsApp ile, mobilde arama ile yönlendirileceksiniz.
+                        </p>
+                        <!-- Önizleme -->
+                        <div class="rounded-xl border border-gray-200 bg-gray-50/80 p-4 mb-5">
+                            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">İlan önizlemesi</p>
+                            <p class="text-sm font-medium text-gray-900 mb-1">
+                                {{ selectedOrigin?.name || '—' }} → {{ selectedDestination?.name || '—' }}
+                            </p>
+                            <p class="text-sm text-gray-600">{{ ilanAracTipi }} · {{ ilanKapasite }}</p>
+                            <p class="text-sm font-semibold text-primary mt-2">{{ displayPrice }}</p>
+                        </div>
+                        <div class="flex gap-3 justify-end">
+                            <button
+                                type="button"
+                                class="px-4 py-2.5 rounded-lg border border-gray-200 text-gray-700 font-medium text-sm hover:bg-gray-50 transition-colors"
+                                @click="showCallModal = false"
+                            >
+                                Vazgeç
+                            </button>
+                            <button
+                                type="button"
+                                class="px-4 py-2.5 rounded-lg bg-primary text-white font-semibold text-sm hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                                :disabled="!creatorPhone"
+                                @click="confirmCall"
+                            >
+                                Ara
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </Transition>
         </Teleport>
     </div>
 
@@ -1212,6 +1280,34 @@ const handleOfferClick = () => {
     showTeklifModal.value = true;
 };
 
+const showCallModal = ref(false);
+const creatorPhone = computed(() => {
+    const phone = shipment.value?.creator?.phone;
+    if (!phone || typeof phone !== 'string') return '';
+    return phone.replace(/\s/g, '');
+});
+function openCallModal() {
+    showCallModal.value = true;
+}
+function confirmCall() {
+    const phone = creatorPhone.value;
+    if (!phone) return;
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+        || window.matchMedia('(max-width: 768px)').matches;
+    showCallModal.value = false;
+    if (isMobile) {
+        const digits = phone.replace(/\D/g, '');
+        const tel = digits.startsWith('90') ? '+' + digits : (digits.startsWith('0') ? '+90' + digits.slice(1) : '+90' + digits);
+        window.location.href = 'tel:' + tel;
+    } else {
+        const from = selectedOrigin.value?.name || '—';
+        const to = selectedDestination.value?.name || '—';
+        const text = encodeURIComponent(`Merhaba, ${from} - ${to} ilanınız hakkında iletişime geçmek istiyorum.`);
+        const num = phone.replace(/\D/g, '').replace(/^0/, '90');
+        const waNum = num.startsWith('90') ? num : '90' + num;
+        window.open(`https://wa.me/${waNum}?text=${text}`, '_blank');
+    }
+}
 
 // Carousel’daki seçili araç: "Araç ismi" + varsa " detay ismi"
 const showRoute = () => {

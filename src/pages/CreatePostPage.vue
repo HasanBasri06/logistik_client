@@ -315,6 +315,25 @@
                 </div>
               </div>
 
+              <!-- Arama ile iletişime geçilebilir switch -->
+              <div class="flex items-center justify-between w-full mt-4 pt-4 border-t border-gray-100">
+                <div class="flex flex-col gap-0.5">
+                  <span class="text-sm font-medium text-gray-800">Arama ile iletişime geçilebilir</span>
+                  <span class="text-xs text-gray-500">Taşıyıcıların sizi telefonla aramasına izin verin.</span>
+                </div>
+                <button
+                  type="button"
+                  class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                  :class="canContactByCall ? 'bg-primary' : 'bg-gray-300'"
+                  @click="canContactByCall = !canContactByCall"
+                >
+                  <span
+                    class="inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200"
+                    :class="canContactByCall ? 'translate-x-5' : 'translate-x-1'"
+                  />
+                </button>
+              </div>
+
               <!-- Mesafe ve süre (her iki yer seçildiğinde) -->
               <div
                 v-if="routeInfo"
@@ -487,6 +506,7 @@ const bosaltilanDistrictsLoading = ref(false);
 const routeInfo = ref(null); // { distance: '123 km', duration: '2 saat 15 dk' }
 const routeLoading = ref(false);
 const selectedPriceType = ref('sabit');
+const canContactByCall = ref(true);
 
 /** Adreslerim modalı: yüklenecek/boşaltılacak yer için aktif adreslerden seçim */
 const addressesModalOpen = ref(false);
@@ -880,6 +900,7 @@ function getShipmentFormData() {
     routeInfo: routeInfo.value,
     selectedPriceType: selectedPriceType.value,
     calculatedPrice: price,
+    call_verify: canContactByCall.value,
   };
 }
 

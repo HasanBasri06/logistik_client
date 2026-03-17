@@ -21,6 +21,7 @@
                 <div class="hidden sm:flex flex-wrap items-stretch gap-2 sm:gap-3 min-h-12 sm:h-14 py-2">
                     <!-- Nereden -->
                     <div
+                        id="tour-nereden"
                         class="flex-1 min-w-0 sm:min-w-0 sm:w-[334px] bg-white border border-gray-200 px-3 rounded-lg cursor-pointer shrink-0 sm:shrink-0 flex items-center h-10 sm:h-full order-1"
                         @click="toDropdownOpen = false; fromDropdownOpen = !fromDropdownOpen; fromDropdownOpen && openFromDropdown()"
                     >
@@ -38,6 +39,7 @@
 
                     <!-- Nereye -->
                     <div
+                        id="tour-nereye"
                         class="flex-1 min-w-0 sm:min-w-0 sm:w-[334px] bg-white border border-gray-200 px-3 rounded-lg cursor-pointer shrink-0 sm:shrink-0 flex items-center h-10 sm:h-full order-3"
                         @click="fromDropdownOpen = false; toDropdownOpen = !toDropdownOpen; toDropdownOpen && openToDropdown()"
                     >
@@ -45,7 +47,7 @@
                     </div>
 
                     <!-- Gidiş ve Dönüş Saati -->
-                    <div class="flex gap-2 sm:gap-3 flex-1 min-w-0 order-4 sm:order-4 basis-full sm:basis-auto sm:flex-initial">
+                    <div id="tour-gidis-donus" class="flex gap-2 sm:gap-3 flex-1 min-w-0 order-4 sm:order-4 basis-full sm:basis-auto sm:flex-initial">
                         <div
                             class="flex-1 min-w-0 sm:w-[130px] bg-white px-2 sm:px-3 rounded-lg border border-gray-200 min-h-10 sm:min-h-0"
                             @click="fromDropdownOpen = false; toDropdownOpen = false"
@@ -841,12 +843,20 @@
             </Transition>
         </Teleport>
 
+        <!-- İlk giriş yönlendirme turu (vue3-tour) -->
+        <v-tour
+            name="panelTour"
+            :steps="panelTourSteps"
+            :callbacks="panelTourCallbacks"
+            :options="panelTourOptions"
+        />
+
     </div>
     </template>
 
 
 <script setup>
-import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue';
+import { ref, reactive, computed, onMounted, onBeforeUnmount, watch, nextTick, getCurrentInstance } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import Content from '@/components/Content.vue';
@@ -1419,6 +1429,55 @@ const locationStore = useLocationStore();
 const { locationError, userCoords, locationRequesting } = storeToRefs(locationStore);
 const { requestUserLocation } = locationStore;
 
+// İlk giriş panel turu (vue3-tour) – hesap bazlı, her hesap için bir kez
+const panelTourSteps = [
+    {
+        target: '#tour-nereden',
+        header: { title: 'Nereden' },
+        content: 'Sevkiyatın başlayacağı şehir ve ilçeyi buradan seçebilirsiniz.',
+        params: { placement: 'bottom' },
+    },
+    {
+        target: '#tour-nereye',
+        header: { title: 'Nereye' },
+        content: 'Sevkiyatın varacağı şehir ve ilçeyi buradan seçin.',
+        params: { placement: 'bottom' },
+    },
+    {
+        target: '#tour-gidis-donus',
+        header: { title: 'Gidiş ve Dönüş Saati' },
+        content: 'Gidiş ve dönüş tarihlerini bu alanlardan seçerek ilanları filtreleyebilirsiniz.',
+        params: { placement: 'bottom' },
+    },
+    {
+        target: '#tour-hesap',
+        header: { title: 'Hesap' },
+        content: 'Hesabınıza, ilanlarınıza ve ayarlarınıza bu menüden ulaşabilirsiniz.',
+        params: { placement: 'bottom' },
+    },
+];
+const markPanelTourCompleted = async () => {
+    try {
+        const res = await api.post('/auth/panel-tour-complete');
+        const user = res?.data?.content?.user;
+        if (user) authStore.setUser(user);
+    } catch (_) {}
+};
+const panelTourCallbacks = {
+    onFinish: markPanelTourCompleted,
+    onSkip: markPanelTourCompleted,
+    onStop: markPanelTourCompleted,
+};
+const panelTourOptions = {
+    highlight: true,
+    labels: {
+        buttonSkip: 'Atla',
+        buttonPrevious: 'Önceki',
+        buttonNext: 'İleri',
+        buttonStop: 'Bitir',
+    },
+};
+
 const showKonumBanner = computed(() => {
     // Kullanıcı giriş yapmış ve henüz koordinat alınmamışsa banner göster
     return authStore.isAuthenticated && !userCoords.value;
@@ -1449,16 +1508,31 @@ const handleFilterChange = (modelKey) => {
     shipmentsStore.fetchShipments({ filters: { [modelKey]: filters[modelKey] } });    
 };
 
-onMounted(() => {
+onMounted(async () => {
     document.addEventListener('click', handleClickOutside);
     const initialPage = parseInt(route.query.page) || 1;
     shipmentsStore.fetchShipments({ initialPage });
     fetchCities().then(setDefaultLocations);
     if (!authStore.isAuthenticated) return;
+    // Tur kararı her zaman backend'den: panele her girişte güncel kullanıcı alınıyor (localStorage'a güvenilmez)
+    await authStore.checkToken();
     if (!userCoords.value) {
         // Her girişte panel sayfasında konum iste
         requestUserLocation();
     }
+    // DB'de panel_tour_completed_at dolu değilse turu göster
+    try {
+        const tourDone = authStore.user?.panel_tour_completed === true;
+        if (!tourDone && document.querySelector('#tour-nereden')) {
+            fromDropdownOpen.value = false;
+            toDropdownOpen.value = false;
+            nextTick(() => {
+                const instance = getCurrentInstance();
+                const tours = instance?.appContext?.config?.globalProperties?.$tours;
+                if (tours?.panelTour) tours.panelTour.start();
+            });
+        }
+    } catch (_) {}
 });
 
 onBeforeUnmount(() => {

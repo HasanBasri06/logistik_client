@@ -7,6 +7,8 @@ import { router } from './router'
 import PrimeVue from 'primevue/config';
 import 'primeicons/primeicons.css';
 import { createHead } from '@vueuse/head'
+import Vue3Tour from 'vue3-tour'
+import 'vue3-tour/dist/vue3-tour.css'
 
 const app = createApp(App)
 const pinia = createPinia()
@@ -15,6 +17,7 @@ const head = createHead()
 app.use(head)
 app.use(pinia)
 app.use(router)
+app.use(Vue3Tour)
 app.use(PrimeVue, {
   locale: {
     firstDayOfWeek: 1,

@@ -114,7 +114,7 @@
             class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
             @click.self="closeAddVehicleModal"
         >
-            <div class="bg-white shadow-xl overflow-hidden flex flex-col rounded-lg transition-all duration-300 w-[60vw] max-w-[40vw] h-[70vh] max-h-[70vh]">
+            <div class="bg-white shadow-xl overflow-hidden flex flex-col rounded-lg transition-all duration-300 md:w-[60vw] md:max-w-[40vw] md:h-[70vh] md:max-h-[70vh] w-full h-full">
                 <!-- Modal Header -->
                 <div class="flex items-center justify-between p-6 border-b border-gray-200 shrink-0">
                     <h3 class="text-xl font-semibold text-gray-900">Yeni Araç Ekle</h3>
@@ -547,6 +547,7 @@ onMounted(fetchMyCars);
     cursor: pointer;
     background: #f9fafb;
     position: relative;
+    padding: 25px;
 }
 
 .vehicle-slide-image {

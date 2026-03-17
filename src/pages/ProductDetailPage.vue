@@ -42,6 +42,15 @@
                                     {{ postTypeLabel }}
                                 </span>
                             </div>
+                            <div v-if="isCreator" class="mt-4 pt-4 border-t border-gray-100">
+                                <button
+                                    type="button"
+                                    class="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 text-sm font-semibold transition-colors"
+                                    @click="openCancelModal"
+                                >
+                                    İptal Et
+                                </button>
+                            </div>
                         </div>
                     </section>
 
@@ -259,6 +268,60 @@
             </div>
         </div>
     </Teleport>
+
+    <!-- İptal Onay Modali -->
+    <Teleport to="body">
+        <Transition name="modal">
+            <div
+                v-if="cancelModalOpen"
+                class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 px-4"
+                role="dialog"
+                aria-modal="true"
+            >
+                <div class="w-full max-w-md bg-white rounded-2xl shadow-xl p-5 sm:p-6">
+                    <h2 class="text-lg font-semibold text-gray-900 mb-1">İlanı iptal et</h2>
+                    <p class="text-sm text-gray-600 mb-4">
+                        Lütfen iptal nedenini seçin. Bu bilgi hizmet kalitesini artırmak için kullanılacaktır.
+                    </p>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Nedeni</label>
+                    <select
+                        v-model="cancelReason"
+                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary mb-3"
+                    >
+                        <option value="" disabled>Bir neden seçin</option>
+                        <option v-for="r in cancelReasons" :key="r" :value="r">{{ r }}</option>
+                    </select>
+                    <div v-if="cancelReason === 'Diğer'" class="mb-3">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Diğer neden</label>
+                        <textarea
+                            v-model="cancelOtherReason"
+                            rows="3"
+                            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
+                            placeholder="Kısaca açıklayın..."
+                        />
+                    </div>
+                    <div class="flex justify-end gap-2 mt-4">
+                        <button
+                            type="button"
+                            class="px-4 py-2 rounded-lg border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors"
+                            :disabled="cancelSubmitting"
+                            @click="cancelModalOpen = false"
+                        >
+                            Vazgeç
+                        </button>
+                        <button
+                            type="button"
+                            class="px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                            :disabled="cancelSubmitting || !cancelReason || (cancelReason === 'Diğer' && !cancelOtherReason.trim())"
+                            @click="submitCancel"
+                        >
+                            {{ cancelSubmitting ? 'İptal ediliyor...' : 'İptal et' }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </Transition>
+    </Teleport>
 </template>
 
 <script setup>
@@ -266,7 +329,7 @@ import Header from '@/components/Header.vue';
 import Content from '@/components/Content.vue';
 import RequestCard from '@/components/RequestCard.vue';
 import { onMounted, ref, computed, watch, nextTick } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import api from '@/api';
 import { useMessageStore, formatMessageTime } from '@/stores/message';
 import { useAuthStore } from '@/stores/auth';
@@ -275,7 +338,57 @@ import { useLocationStore } from '@/stores/location';
 import { storeToRefs } from 'pinia';
 
 const route = useRoute();
+const router = useRouter();
 const slug = computed(() => route.params.slug);
+
+const isCreator = computed(() => {
+    const u = authStore.user?.id;
+    const s = shipment.value;
+    if (!u || !s) return false;
+    return Number(s.creater_id) === Number(u) || Number(s.creator?.id) === Number(u);
+});
+
+const cancelModalOpen = ref(false);
+const cancelReason = ref('');
+const cancelOtherReason = ref('');
+const cancelSubmitting = ref(false);
+const cancelReasons = [
+    'Yük artık taşınmayacak',
+    'Yanlış bilgi ile ilan açtım',
+    'Farklı bir firma ile anlaştım',
+    'Fiyat / şartlar değişti',
+    'Diğer'
+];
+
+function openCancelModal() {
+    cancelReason.value = '';
+    cancelOtherReason.value = '';
+    cancelModalOpen.value = true;
+}
+
+const selectedReasonText = computed(() => {
+    if (!cancelReason.value) return '';
+    if (cancelReason.value === 'Diğer') return cancelOtherReason.value?.trim() || 'Diğer';
+    return cancelReason.value;
+});
+
+async function submitCancel() {
+    const id = shipment.value?.id;
+    if (!id || cancelSubmitting.value) return;
+    if (!cancelReason.value) return;
+    if (cancelReason.value === 'Diğer' && !cancelOtherReason.value.trim()) return;
+    try {
+        cancelSubmitting.value = true;
+        await api.post(`/shipments/${id}/cancel`, { reason: selectedReasonText.value });
+        cancelModalOpen.value = false;
+        router.push('/panel');
+    } catch (err) {
+        console.error(err);
+        error.value = err?.response?.data?.message ?? 'İptal işlemi başarısız.';
+    } finally {
+        cancelSubmitting.value = false;
+    }
+}
 const messageStore = useMessageStore();
 const authStore = useAuthStore();
 const locationStore = useLocationStore();
