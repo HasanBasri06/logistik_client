@@ -9,8 +9,12 @@
 }
 
 @layer components {
+    html {
+        touch-action: manipulation;
+    }
     body {
-        @apply font-display leading-relaxed text-gray-900
+        @apply font-display leading-relaxed text-gray-900;
+        touch-action: manipulation;
     }
 
     .input {
