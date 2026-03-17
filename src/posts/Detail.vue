@@ -331,6 +331,7 @@
                 Mesaj ile Teklif
             </button>
             <button
+                v-if="shipment?.call_access == 1"
                 type="button"
                 @click="openCallModal"
                 class="flex-1 h-14 py-3 px-3 border-t border-l border-gray-200 text-primary font-semibold text-sm bg-white"
@@ -368,10 +369,10 @@
                     @close="showTeklifModal = false"
                     @success="onTeklifModalSuccess"
                 />
-                <!-- Mesaj ile Teklif Ver – sağdan kayan panel (mobilde tam genişlik) -->
+                <!-- Mesaj ile Teklif Ver – mobilde tam ekran, masaüstünde sağdan kayan panel -->
                 <div
                     v-if="showMessageOfferPanel"
-                    class="relative h-screen w-full max-w-[24rem] sm:max-w-none sm:w-96 bg-white border-l border-gray-200 shadow-xl flex flex-col transition-transform duration-300 ease-out z-10 ml-auto"
+                    class="relative h-screen w-full sm:w-96 sm:max-w-none bg-white sm:border-l border-gray-200 shadow-xl flex flex-col transition-transform duration-300 ease-out z-10 sm:ml-auto"
                     :class="messageOfferPanelVisible ? 'translate-x-0' : 'translate-x-full'"
                     aria-hidden="true"
                 >

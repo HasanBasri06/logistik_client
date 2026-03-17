@@ -238,8 +238,9 @@ const creatorAvatarUrl = computed(() => {
 });
 
 const handleClick = (e, shipment) => {
-    if (shipment?.creator?.verified !== 1) return;
-    if (user.value.id == shipment.creater_id) {
+    const isOwner = user.value?.id == shipment?.creater_id;
+    if (!isOwner && shipment?.creator?.verified !== 1) return;
+    if (isOwner) {
         router.push(`/product/${props.slug}`);
     } else {
         router.push(`/posts/${props.slug}`);
