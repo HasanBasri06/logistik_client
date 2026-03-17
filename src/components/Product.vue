@@ -240,7 +240,6 @@ const creatorAvatarUrl = computed(() => {
 const handleClick = (e, shipment) => {
     console.log("tıklanıdı");
     const isOwner = user.value?.id == shipment?.creater_id;
-    if (!isOwner && shipment?.creator?.verified !== 1) return;
     if (isOwner) {
         router.push(`/product/${props.slug}`);
     } else {
