@@ -103,11 +103,11 @@ async function submit() {
     loading.value = true;
     try {
         await api.post('/contact', { konu, icerik });
-        toast.success('Mesajınız gönderildi.', { description: 'En kısa sürede size dönüş yapacağız.' });
+        toast.success('Mesajınız gönderildi.', { description: 'En kısa sürede size dönüş yapacağız.', duration: 5000 });
         close();
     } catch (err) {
         const msg = err.response?.data?.message || err.response?.data?.error || 'Gönderilemedi.';
-        toast.error('Hata', { description: msg });
+        toast.error('Hata', { description: msg, duration: 5000 });
         const errs = err.response?.data?.errors || err.response?.data?.content?.errors;
         if (errs) {
             if (errs.konu) errors.value.konu = Array.isArray(errs.konu) ? errs.konu[0] : errs.konu;

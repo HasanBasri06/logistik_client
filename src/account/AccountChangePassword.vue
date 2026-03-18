@@ -186,10 +186,10 @@ async function sendCode() {
         const content = res.data?.content ?? res.data;
         emailMasked.value = content?.email_masked ?? '';
         codeSent.value = true;
-        toast.success('Doğrulama kodu gönderildi.', { description: 'E-posta adresinizi kontrol edin.' });
+        toast.success('Doğrulama kodu gönderildi.', { description: 'E-posta adresinizi kontrol edin.', duration: 5000 });
     } catch (err) {
         const msg = err.response?.data?.message || err.response?.data?.error || 'Kod gönderilemedi.';
-        toast.error('Hata', { description: msg });
+        toast.error('Hata', { description: msg, duration: 5000 });
     } finally {
         codeSending.value = false;
     }
@@ -205,7 +205,7 @@ const handlePasswordChange = async () => {
             new_password: passwordForm.value.newPassword,
             new_password_confirmation: passwordForm.value.confirmPassword,
         });
-        toast.success('Şifreniz güncellendi.', { description: 'Bir sonraki girişte yeni şifrenizi kullanın.' });
+        toast.success('Şifreniz güncellendi.', { description: 'Bir sonraki girişte yeni şifrenizi kullanın.', duration: 5000 });
         passwordForm.value = { code: '', newPassword: '', confirmPassword: '' };
         codeSent.value = false;
         emailMasked.value = '';
@@ -219,7 +219,7 @@ const handlePasswordChange = async () => {
         } else {
             const data = err.response?.data;
             const msg = data?.message || data?.error || 'Şifre güncellenemedi.';
-            toast.error('Hata', { description: msg });
+            toast.error('Hata', { description: msg, duration: 5000 });
             const errs = data?.errors || data?.content?.errors;
             if (errs && typeof errs === 'object') {
                 if (errs.code) passwordErrors.value.code = Array.isArray(errs.code) ? errs.code[0] : errs.code;

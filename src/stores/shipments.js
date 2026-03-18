@@ -114,7 +114,7 @@ export const useShipmentsStore = defineStore('shipments', () => {
     async function logShipmentFormData(formData) {
         try {
             const res = await api.post('/shipments/create', formData)
-            toast.success('İlan başarıyla oluşturuldu')
+            toast.success('İlan başarıyla oluşturuldu', { duration: 5000 })
             postStore.selectResetStates()
             const slug = res?.data?.content?.shipment?.slug ?? res?.data?.shipment?.slug
             if (slug) {
@@ -124,7 +124,7 @@ export const useShipmentsStore = defineStore('shipments', () => {
             }
         } catch (error) {
             console.log(error)
-            toast.error('İlan oluşturulurken bir hata oluştu')
+            toast.error('İlan oluşturulurken bir hata oluştu', { duration: 5000 })
         }
     }
 

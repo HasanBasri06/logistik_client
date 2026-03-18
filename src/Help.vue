@@ -121,12 +121,12 @@ function handleSubmit() {
     loading.value = true;
     api.post('/contact', { email, konu, icerik })
         .then(() => {
-            toast.success('Mesajınız gönderildi.', { description: 'En kısa sürede size dönüş yapacağız.' });
+            toast.success('Mesajınız gönderildi.', { description: 'En kısa sürede size dönüş yapacağız.', duration: 5000 });
             form.value = { email: '', konu: '', icerik: '' };
         })
         .catch((err) => {
             const msg = err.response?.data?.message || err.response?.data?.error || 'Gönderilemedi.';
-            toast.error('Hata', { description: msg });
+            toast.error('Hata', { description: msg, duration: 5000 });
             const errs = err.response?.data?.errors || err.response?.data?.content?.errors;
             if (errs) {
                 if (errs.email) errors.value.email = Array.isArray(errs.email) ? errs.email[0] : errs.email;

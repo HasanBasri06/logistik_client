@@ -55,6 +55,8 @@
       </div>
     </Transition>
   </Teleport>
+  <!-- Premium'a geç modalı (payment_confirm === 0 iken ilan oluşturmaya tıklanınca) -->
+  <PremiumModal />
 </template>
 
 <script setup>
@@ -63,6 +65,7 @@ import { useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { MapPin } from 'lucide-vue-next';
 import Layout from './Layout.vue';
+import PremiumModal from './components/PremiumModal.vue';
 import konumIzniImg from '@/assets/images/konum_izni.png';
 import { useHead } from '@vueuse/head';
 import { useLocationStore } from './stores/location';

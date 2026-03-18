@@ -5,6 +5,7 @@ import Layout from "./Layout.vue";
 import HomePanel from "./panel/Home.vue";
 import Help from "./Help.vue";
 import Pricing from "./Pricing.vue";
+import AboutPage from "./pages/AboutPage.vue";
 import Account from "./Account.vue";
 import AccountOrdersPage from "./pages/AccountOrdersPage.vue";
 import AccountReviewsPage from "./pages/AccountReviewsPage.vue";
@@ -59,6 +60,15 @@ const routes = [
         meta: {
             layout: Layout,
             title: 'Yardım | TaşıBul',
+            requiresAuth: false
+        }
+    },
+    {
+        path: '/hakkimizda',
+        component: AboutPage,
+        meta: {
+            layout: Layout,
+            title: 'Hakkımızda | TaşıBul',
             requiresAuth: false
         }
     },
@@ -427,10 +437,21 @@ router.beforeEach(async (to, from, next) => {
         }
     }
 
-    if (token && to.meta.authorization && to.meta.authorization !== authStore.user.type) {
+    if (token && to.meta.authorization && to.meta.authorization !== authStore.user?.type) {
         next('/')
         return
     }
-    
+
+    // İlan detayına giriş: payment_confirm 0/false ise /panel'e at ve Premium modalı göster
+    if (
+        token &&
+        (to.path.startsWith('/posts/') || to.path.startsWith('/product/')) &&
+        (authStore.user?.payment_confirm === 0 || authStore.user?.payment_confirm === false)
+    ) {
+        authStore.showPremiumModal = true
+        next('/panel')
+        return
+    }
+
     next()
 })

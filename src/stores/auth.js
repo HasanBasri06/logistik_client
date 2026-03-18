@@ -129,6 +129,14 @@ export const useAuthStore = defineStore('auth', () => {
     /** Giriş modalını açmak isteyen bileşenler bunu true yapar; Header izleyip modalı açar. */
     const requestShowLoginModal = ref(false)
 
+    /** payment_confirm === 0 ise ilan yayınlama vb. işlemlere izin verilmez; Premium modalı gösterilir. */
+    const showPremiumModal = ref(false)
+    const canPublishListing = computed(() => {
+        const u = user.value
+        if (!u) return false
+        return u.payment_confirm !== 0 && u.payment_confirm !== false
+    })
+
     const openLoginModal = () => {
         requestShowLoginModal.value = true
     }
@@ -170,6 +178,8 @@ export const useAuthStore = defineStore('auth', () => {
         token,
         user,
         isAuthenticated,
+        showPremiumModal,
+        canPublishListing,
         requestShowLoginModal,
         openLoginModal,
         setToken,

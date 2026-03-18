@@ -248,7 +248,7 @@ async function onTeklifVerClick() {
         });
         teklifMessage.value = '';
         teklifFiyatRaw.value = '';
-        toast.success('Teklifiniz başarıyla gönderildi.', { description: 'Teklif Verildi', duration: 3000 });
+        toast.success('Teklifiniz başarıyla gönderildi.', { description: 'Teklif Verildi', duration: 5000 });
         const receiverId = props.shipment?.creater_id ?? props.shipment?.creator?.id;
         if (receiverId && Number(receiverId) !== Number(userId)) {
             await messageStore.createMessage({

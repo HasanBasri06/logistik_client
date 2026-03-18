@@ -431,10 +431,10 @@ const sendEmailVerificationCode = async () => {
     try {
         const res = await api.post('/confirm-account/send-email-code');
         const msg = res.data?.message ?? 'Doğrulama kodu e-posta adresinize gönderildi.';
-        toast.success(msg, { description: 'E-posta kutunuzu kontrol edin.' });
+        toast.success(msg, { description: 'E-posta kutunuzu kontrol edin.', duration: 5000 });
     } catch (err) {
         const msg = err.response?.data?.message ?? err.message ?? 'Kod gönderilemedi.';
-        toast.error('Hata', { description: msg });
+        toast.error('Hata', { description: msg, duration: 5000 });
     } finally {
         sendCodeLoading.value = false;
     }
@@ -447,10 +447,10 @@ const verifyEmailCode = async () => {
         await api.post('/confirm-account/verify-email', { code: emailVerificationCode.value.trim() });
         await fetchVerificationStatus();
         emailVerificationCode.value = '';
-        toast.success('E-posta adresiniz doğrulandı.');
+        toast.success('E-posta adresiniz doğrulandı.', { duration: 5000 });
     } catch (err) {
         const msg = err.response?.data?.message ?? err.message ?? 'Doğrulama başarısız.';
-        toast.error('Hata', { description: msg });
+        toast.error('Hata', { description: msg, duration: 5000 });
     } finally {
         verifyEmailLoading.value = false;
     }
@@ -483,10 +483,10 @@ async function uploadDocument(type, file, progressRef) {
             Object.assign(verificationStatus.value, res.data.content.verification);
         }
         await fetchVerificationStatus();
-        toast.success('Belge yüklendi.', { description: 'Doğrulama durumunuz güncellendi.' });
+        toast.success('Belge yüklendi.', { description: 'Doğrulama durumunuz güncellendi.', duration: 5000 });
     } catch (err) {
         const msg = err.response?.data?.message ?? err.message ?? 'Yükleme başarısız.';
-        toast.error('Hata', { description: msg });
+        toast.error('Hata', { description: msg, duration: 5000 });
     } finally {
         if (progressRef) progressRef.value = 0;
     }
@@ -497,11 +497,11 @@ const handleProfilePhotoFile = async (event) => {
     if (!file) return;
     const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
     if (!validTypes.includes(file.type)) {
-        toast.error('Geçersiz dosya türü. Sadece JPG, PNG veya WEBP yükleyebilirsiniz.');
+        toast.error('Geçersiz dosya türü. Sadece JPG, PNG veya WEBP yükleyebilirsiniz.', { duration: 5000 });
         return;
     }
     if (file.size > MAX_PROFILE_PHOTO_MB * 1024 * 1024) {
-        toast.error(`Profil fotoğrafı en fazla ${MAX_PROFILE_PHOTO_MB}MB olabilir.`);
+        toast.error(`Profil fotoğrafı en fazla ${MAX_PROFILE_PHOTO_MB}MB olabilir.`, { duration: 5000 });
         return;
     }
     profilePhotoFileName.value = file.name;
@@ -515,7 +515,7 @@ const handleIdentityFile = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
     if (file.size > MAX_DOC_MB * 1024 * 1024) {
-        toast.error(`Dosya en fazla ${MAX_DOC_MB}MB olabilir.`);
+        toast.error(`Dosya en fazla ${MAX_DOC_MB}MB olabilir.`, { duration: 5000 });
         return;
     }
     identityFileName.value = file.name;
@@ -527,7 +527,7 @@ const handleSrcFile = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
     if (file.size > MAX_DOC_MB * 1024 * 1024) {
-        toast.error(`Dosya en fazla ${MAX_DOC_MB}MB olabilir.`);
+        toast.error(`Dosya en fazla ${MAX_DOC_MB}MB olabilir.`, { duration: 5000 });
         return;
     }
     srcFileName.value = file.name;
@@ -539,7 +539,7 @@ const handlePsychotechnicalFile = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
     if (file.size > MAX_DOC_MB * 1024 * 1024) {
-        toast.error(`Dosya en fazla ${MAX_DOC_MB}MB olabilir.`);
+        toast.error(`Dosya en fazla ${MAX_DOC_MB}MB olabilir.`, { duration: 5000 });
         return;
     }
     psychotechnicalFileName.value = file.name;
@@ -551,7 +551,7 @@ const handleLicenseFile = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
     if (file.size > MAX_DOC_MB * 1024 * 1024) {
-        toast.error(`Dosya en fazla ${MAX_DOC_MB}MB olabilir.`);
+        toast.error(`Dosya en fazla ${MAX_DOC_MB}MB olabilir.`, { duration: 5000 });
         return;
     }
     licenseFileName.value = file.name;

@@ -463,7 +463,7 @@ const postStore = usePostStore();
 const shipmentsStore = useShipmentsStore();
 const authStore = useAuthStore();
 const { page, limit } = storeToRefs(postStore);
-const { user: authUser } = storeToRefs(authStore);
+const { user: authUser, canPublishListing } = storeToRefs(authStore);
 
 /** Sadece aktif adresler (modal listesi) */
 const activeAddresses = computed(() => {
@@ -906,6 +906,10 @@ function getShipmentFormData() {
 
 async function handlePublishOrNext() {
   if (page.value === limit.value) {
+    if (!canPublishListing.value) {
+      authStore.showPremiumModal = true;
+      return;
+    }
     publishLoading.value = true;
     const formData = getShipmentFormData();
     await shipmentsStore.logShipmentFormData(formData);
