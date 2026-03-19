@@ -1,10 +1,17 @@
 <template>
-  <div class="w-full bg-white border border-gray-200 rounded-xl shadow-sm ">
-    <div class="px-6 py-4 border-b border-gray-100">
-      <h3 class="text-lg font-semibold text-gray-800">Araçlar</h3>
-      <p class="text-sm text-gray-500 mt-0.5">Yükünüzü taşıyacak araç seçiniz</p>
+  <div class="w-full bg-linear-to-b from-white to-gray-50/70 rounded-2xl md:border md:border-gray-100 md:shadow-sm">
+    <div class="px-4 sm:px-6 py-4 border-b border-gray-100/80">
+      <div class="flex items-start gap-3">
+        <div class="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+          <i class="pi pi-truck text-sm"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold text-gray-800">Araçlar</h3>
+          <p class="text-sm text-gray-500 mt-0.5">Yükünüzü taşıyacak aracı seçin</p>
+        </div>
+      </div>
     </div>
-    <div class="p-6">
+    <div class="p-4 sm:p-6">
       <p v-if="carsError" class="text-sm text-red-600">{{ carsError }}</p>
       <div v-else-if="carsLoading" class="flex items-center justify-center py-12">
         <i class="pi pi-spin pi-spinner text-2xl text-primary"></i>
@@ -18,17 +25,17 @@
         <p class="text-base font-medium">Araç bulunamadı</p>
       </div>
       <template v-else>
-        <div class="flex flex-wrap gap-2 mb-4">
+        <div class="flex flex-wrap gap-2 mb-5">
           <button
             v-for="(car, index) in cars"
             :key="car.id"
             type="button"
             @click="selectCar(car, index)"
-            class="shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
+            class="shrink-0 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 border"
             :class="
               selectedCar?.id === car.id
-                ? 'bg-primary text-white shadow-md shadow-primary/25 ring-2 ring-primary/40'
-                : 'bg-gray-100 border border-primary text-primary  hover:bg-primary/20 hover:text-gray-800 cursor-pointer'
+                ? 'bg-primary text-white border-primary shadow-md shadow-primary/25 ring-2 ring-primary/30'
+                : 'bg-white border-gray-200 text-gray-700 hover:border-primary/40 hover:bg-primary/5 hover:text-primary cursor-pointer'
             "
           >
             {{ car.name }}
@@ -53,11 +60,11 @@
             <div
               role="button"
               tabindex="0"
-              class="flex flex-col items-center justify-center w-72 p-4 rounded-xl border-2 cursor-pointer transition-all select-none"
+              class="flex flex-col items-center justify-center w-full sm:max-w-80 sm:mx-auto p-5 rounded-2xl border cursor-pointer transition-all select-none bg-white"
               :class="
                 selectedCar?.id === car.id
-                  ? 'border-primary bg-primary/5 shadow-md shadow-primary/10'
-                  : 'border-gray-200 hover:border-primary/50 hover:bg-gray-50'
+                  ? 'border-primary/60 bg-primary/5 shadow-lg shadow-primary/10'
+                  : 'border-gray-200 hover:border-primary/40 hover:bg-primary/5/40'
               "
               @click="selectCar(car)"
               @keydown.enter="selectCar(car)"
@@ -65,19 +72,19 @@
               <img
                 :src="getDisplayImage(car)"
                 :alt="car.name"
-                class="h-16 w-full object-contain"
+                class="h-20 w-full object-contain"
               />
               <span
-                class="mt-2 text-sm font-medium"
+                class="mt-3 text-sm font-medium"
                 :class="selectedCar?.id === car.id ? 'text-primary font-semibold' : 'text-gray-700'"
               >
                 {{ car.name }}
               </span>
               <span
                 v-if="selectedCar?.id === car.id"
-                class="mt-1 text-xs text-primary font-medium"
+                class="mt-1 text-xs text-primary font-semibold"
               >
-                ✓ Seçildi
+                <i class="pi pi-check-circle mr-1"></i>Seçildi
               </span>
             </div>
           </Slide>
@@ -85,22 +92,43 @@
 
         <!-- Seçili araç önizlemesi -->
         <div v-if="selectedCar" class="mt-6 pt-6 border-t border-gray-100">
-          <div class="flex flex-col items-center justify-center p-10 rounded-xl bg-gray-50 border border-gray-200 relative">
-            <div class="absolute top-5 left-5 text-primary font-medium">{{ selectedCar.price }} TL 'den başlar</div>
-            <div class="w-auto h-auto px-5 py-2 relative">
-              <div v-if="selectedCar.width" class="absolute -top-6 flex items-center border-dotted justify-center border-b border-primary/40 left-2/4 -translate-x-2/4 w-[90%] h-6 text-sm text-primary pb-2">
-                {{ selectedCar.width }} metre
+          <div class="rounded-2xl border border-primary/15 bg-linear-to-br from-white via-primary/5 to-indigo-50 p-4 sm:p-6 shadow-sm">
+            <div class="flex items-center justify-between gap-2 mb-4">
+              <div class="flex items-center gap-2">
+                <span class="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
+                  <i class="pi pi-car text-xs"></i>
+                </span>
+                <span class="text-sm font-semibold text-gray-800">{{ selectedCar.name }}</span>
               </div>
-              <div v-if="selectedCar.height" class="w-full h-full border-r border-dotted text-primary border-primary/40 absolute">
-                <div class="absolute top-2/4 -translate-y-2/4 -right-15 text-sm">{{ selectedCar.height }} metre</div>
-              </div>
-              <img
-                :src="getDisplayImage(selectedCar)"
-                :alt="selectedCar.name"
-                class="h-32 w-full max-w-xs object-contain"
-              />
+              <span class="px-3 py-1 rounded-full bg-primary text-white font-semibold text-xs">
+                {{ selectedCar.price }} TL 'den başlar
+              </span>
             </div>
-            <span class="mt-2 text-sm font-semibold text-gray-700">{{ selectedCar.name }}</span>
+
+            <div class="w-full rounded-xl border border-white/80 bg-white/90 p-3 sm:p-5">
+              <div class="grid grid-cols-2 gap-2 mb-3">
+                <div class="rounded-lg bg-gray-50 border border-gray-100 px-3 py-2">
+                  <div class="text-[11px] text-gray-500">Genişlik</div>
+                  <div class="text-sm font-semibold text-gray-800">
+                    {{ selectedCar.width ? `${selectedCar.width} metre` : '-' }}
+                  </div>
+                </div>
+                <div class="rounded-lg bg-gray-50 border border-gray-100 px-3 py-2">
+                  <div class="text-[11px] text-gray-500">Yükseklik</div>
+                  <div class="text-sm font-semibold text-gray-800">
+                    {{ selectedCar.height ? `${selectedCar.height} metre` : '-' }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-center rounded-xl bg-linear-to-b from-white to-gray-50 border border-gray-100 py-3">
+                <img
+                  :src="getDisplayImage(selectedCar)"
+                  :alt="selectedCar.name"
+                  class="h-24 sm:h-32 w-full max-w-xs object-contain"
+                />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -110,7 +138,7 @@
     </div>
   </div>
 
-  <div class="w-full bg-white border border-gray-200 rounded-xl shadow-sm p-6" v-if="selectedCar && selectedCar.details?.length">
+  <div class="w-full bg-white border border-gray-100 rounded-2xl shadow-sm p-4 sm:p-6" v-if="selectedCar && selectedCar.details?.length">
     <div
           v-if="selectedCar && selectedCar.details?.length"
           
@@ -118,8 +146,9 @@
           <div
             v-for="(group, groupName) in detailsByType"
             :key="groupName"
-            class=""
+            class="mb-4 last:mb-0"
           >
+            <div class="text-sm font-semibold text-gray-700 mb-2">{{ groupName }}</div>
             <div class="flex flex-wrap gap-2">
               <label
                 v-for="item in group"
@@ -135,7 +164,7 @@
                   @change="setDetailValue(group, groupName, item)"
                 />
                 <div
-                  class="px-4 py-2.5 rounded-lg border-2 text-sm font-medium transition-all duration-200 peer-checked:border-primary peer-checked:bg-primary peer-checked:text-white border-primary/70 text-primary/70 hover:border-primary/50 hover:text-primary"
+                  class="px-4 py-2.5 rounded-xl border text-sm font-medium transition-all duration-200 peer-checked:border-primary peer-checked:bg-primary peer-checked:text-white border-gray-200 text-gray-700 hover:border-primary/50 hover:text-primary hover:bg-primary/5"
                 >
                   {{ item.value }}
                 </div>

@@ -1,31 +1,31 @@
 <template>
   <Header />
 
-  <div class="h-[calc(100vh-64px)]">
-    <Content>
-      <div class="flex flex-row gap-3 w-full h-auto">
+  <div class="min-h-[calc(100vh-64px)]">
+    <Content class="p-0!">
+      <div class="flex flex-col md:flex-row gap-3 w-full h-auto">
         <CargoOwner />
 
         <div
-          class="flex-1 mt-3 rounded-md flex flex-col overflow-y-scroll no_scrool pb-4 gap-4"
+          class="flex-1 md:mt-3 rounded-md flex flex-col gap-4 pb-32 md:pb-28 min-w-0"
         >
           <!-- 1. Ekran: Araç Seçimi -->
           <VehicleSelection v-if="page === 1" ref="vehicleSelectionRef" />
 
           <!-- 2. Ekran: İlan Tipi Seçimi -->
-          <div v-else-if="page === 2" class="w-full bg-white border border-gray-200 rounded-xl shadow-sm p-6">
+          <div v-else-if="page === 2" class="w-full bg-white border border-gray-200 rounded-xl shadow-sm p-4 sm:p-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-2">Yük Tipi</h3>
             <h3 class="text-md font-medium text-gray-500 mb-4">Taşıtmak istediğiniz yükün tipini belirtiniz.</h3>
             <p v-if="postTypesLoading" class="text-sm text-gray-500">Yükleniyor...</p>
             <p v-else-if="postTypesError" class="text-sm text-red-600">{{ postTypesError }}</p>
             <div v-else class="flex flex-col gap-4">
-              <div class="flex-wrap gap-3 grid grid-cols-3 grid-flow-row">
+              <div class="flex-wrap gap-3 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 grid-flow-row">
                 <button
                   v-for="pt in postTypes"
                   :key="pt.id"
                   type="button"
-                  @click="postStore.setSelectedPostType(pt)"
-                  class="h-32 text-left border-2 rounded-lg p-4 transition-all reltive duration-200 hover:border-primary/60 hover:bg-primary/5 overflow-hidden"
+                  @click="onPostTypeSelect(pt)"
+                  class="h-32 text-left border-2 rounded-lg p-4 transition-all relative duration-200 hover:border-primary/60 hover:bg-primary/5 overflow-hidden"
                   :class="postStore.selectedPostType?.id === pt.id
                     ? 'border-primary bg-primary/10 ring-2 ring-primary/30 relative overflow-hidden'
                     : 'border-gray-200 bg-white relative overflow-hidden'"
@@ -40,28 +40,29 @@
                     :src="getPostTypeImageUrl(pt.image)"
                     :alt="pt.value"
                     :class="{'opacity-100': postStore.selectedPostType?.id === pt.id}"
-                    class="w-full h-full object-contain max-h-20 absolute -right-24 opacity-60 -bottom-3"
+                    class="w-full h-full object-contain max-h-20 absolute -right-16 sm:-right-24 opacity-60 -bottom-3"
                   />
                 </button>
               </div>
               <!-- Ağırlık input + kg/ton toggle -->
-              <div class="flex items-center gap-2 w-full">
+              <div ref="weightSectionRef" class="flex items-stretch w-full">
                 <input
+                  ref="weightInputRef"
                   :value="weightValue"
                   type="text"
                   :maxlength="weightUnit === 'kg' ? 6 : 2"
                   inputmode="decimal"
                   :placeholder="weightUnit === 'kg' ? '0 - 25.000 kg aralığında girin' : '0 - 25 ton aralığında girin'"
-                  class="flex-1 h-12 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
+                  class="flex-1 h-12 py-3 px-4 rounded-l-lg rounded-r-none border border-gray-200 border-r-0 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
                   @keydown="onWeightKeydown($event)"
                   @input="onWeightInput($event)"
                   @blur="onWeightBlur"
                 />
-                <div class="flex rounded-lg border border-gray-200 overflow-hidden shrink-0">
+                <div class="flex rounded-r-lg border border-gray-200 overflow-hidden shrink-0">
                   <button
                     type="button"
                     @click="onWeightUnitChange('kg')"
-                    class="px-4 py-2.5 text-sm font-medium transition-colors"
+                    class="px-4 py-3 text-sm font-medium transition-colors"
                     :class="weightUnit === 'kg'
                       ? 'bg-primary text-white'
                       : 'bg-white text-gray-600 hover:bg-gray-50'"
@@ -71,7 +72,7 @@
                   <button
                     type="button"
                     @click="onWeightUnitChange('ton')"
-                    class="px-4 py-2.5 text-sm font-medium border-l border-gray-200 transition-colors"
+                    class="px-4 py-3 text-sm font-medium border-l border-gray-200 transition-colors"
                     :class="weightUnit === 'ton'
                       ? 'bg-primary text-white'
                       : 'bg-white text-gray-600 hover:bg-gray-50'"
@@ -84,19 +85,22 @@
           </div>
 
           <!-- 3. Ekran: İlan Detayları (Yüklenecek/Boşaltılan Yer, Fiyatlar) -->
-          <div v-else-if="page === 3" class="w-full bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden p-6">
+          <div v-else-if="page === 3" class="w-full bg-white md:border md:border-gray-200 rounded-xl md:shadow-sm overflow-hidden p-4 sm:p-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-4">İlan Detayları</h3>
             <div class="flex flex-col gap-4 w-full">
               <!-- Yüklenecek Yer: Şehir + İlçe + Adreslerim -->
-              <div class="flex items-center gap-2 w-full">
-                <div class="w-full">
-                  <label class="block text-sm font-medium text-gray-700 mb-2 pl-6">Yüklenecek Yer</label>
-                  <div class="flex items-center gap-2 w-full">
-                    <div class="w-4 h-4 rounded-full bg-amber-200 inline-block shrink-0"></div>
-                    <div class="flex-1 grid grid-cols-[1fr_1fr_auto] gap-2 items-center">
+              <div class="w-full rounded-xl border border-amber-100 bg-amber-50/40 p-3 sm:p-4">
+                <div class="flex items-start gap-3 w-full">
+                  <div class="w-8 h-8 rounded-full bg-amber-100 text-amber-700  items-center justify-center shrink-0 mt-0.5 hidden md:flex">
+                    <i class="pi pi-arrow-up-right" style="font-size: 13px;"></i>
+                  </div>
+                  <div class="w-full">
+                    <label class="block text-sm font-semibold text-gray-800 mb-0.5">Yüklenecek Yer</label>
+                    <p class="text-xs text-gray-500 mb-2">Yükün alınacağı şehir ve ilçe bilgisini seçin.</p>
+                    <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_auto] gap-2 items-center">
                       <select
                         v-model="yuklenecekYer.city"
-                        class="h-12 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
+                        class="h-12 px-4 rounded-xl border border-white bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
                         @change="onYuklenecekCityChange"
                       >
                         <option value="">Şehir seçin</option>
@@ -104,7 +108,7 @@
                       </select>
                       <select
                         v-model="yuklenecekYer.district"
-                        class="h-12 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm disabled:opacity-60"
+                        class="h-12 px-4 rounded-xl border border-white bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm disabled:opacity-60"
                         :disabled="!yuklenecekYer.city || yuklenecekDistrictsLoading"
                       >
                         <option value="">İlçe seçin</option>
@@ -112,7 +116,7 @@
                       </select>
                       <button
                         type="button"
-                        class="h-12 px-4 rounded-lg border border-primary text-primary font-medium text-sm whitespace-nowrap hover:bg-primary/5 transition-colors flex items-center gap-2 shrink-0"
+                        class="h-12 px-4 rounded-xl border border-primary/30 bg-white text-primary font-medium text-sm whitespace-nowrap hover:bg-primary/5 transition-colors flex items-center justify-center gap-2 shrink-0"
                         @click="openAddressesModal('yuklenecek')"
                       >
                         <i class="pi pi-map-marker" style="font-size: 14px;"></i>
@@ -123,15 +127,18 @@
                 </div>
               </div>
               <!-- Boşaltılacak Yer: Şehir + İlçe + Adreslerim -->
-              <div class="flex items-center gap-2 w-full">
-                <div class="w-full">
-                  <label class="block text-sm font-medium text-gray-700 mb-2 pl-6">Boşaltılacak Yer</label>
-                  <div class="flex items-center gap-2 w-full">
-                    <div class="w-4 h-4 rounded-full bg-green-200 inline-block shrink-0"></div>
-                    <div class="flex-1 grid grid-cols-[1fr_1fr_auto] gap-2 items-center">
+              <div class="w-full rounded-xl border border-green-100 bg-green-50/40 p-3 sm:p-4">
+                <div class="flex items-start gap-3 w-full">
+                  <div class="w-8 h-8 rounded-full bg-green-100 text-green-700 md:flex items-center justify-center shrink-0 mt-0.5 hidden">
+                    <i class="pi pi-arrow-down-left" style="font-size: 13px;"></i>
+                  </div>
+                  <div class="w-full">
+                    <label class="block text-sm font-semibold text-gray-800 mb-0.5">Boşaltılacak Yer</label>
+                    <p class="text-xs text-gray-500 mb-2">Yükün bırakılacağı şehir ve ilçe bilgisini seçin.</p>
+                    <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_auto] gap-2 items-center">
                       <select
                         v-model="bosaltilanYer.city"
-                        class="h-12 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
+                        class="h-12 px-4 rounded-xl border border-white bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
                         @change="onBosaltilanCityChange"
                       >
                         <option value="">Şehir seçin</option>
@@ -139,7 +146,7 @@
                       </select>
                       <select
                         v-model="bosaltilanYer.district"
-                        class="h-12 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm disabled:opacity-60"
+                        class="h-12 px-4 rounded-xl border border-white bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm disabled:opacity-60"
                         :disabled="!bosaltilanYer.city || bosaltilanDistrictsLoading"
                       >
                         <option value="">İlçe seçin</option>
@@ -147,7 +154,7 @@
                       </select>
                       <button
                         type="button"
-                        class="h-12 px-4 rounded-lg border border-primary text-primary font-medium text-sm whitespace-nowrap hover:bg-primary/5 transition-colors flex items-center gap-2 shrink-0"
+                        class="h-12 px-4 rounded-xl border border-primary/30 bg-white text-primary font-medium text-sm whitespace-nowrap hover:bg-primary/5 transition-colors flex items-center justify-center gap-2 shrink-0"
                         @click="openAddressesModal('bosaltilan')"
                       >
                         <i class="pi pi-map-marker" style="font-size: 14px;"></i>
@@ -163,7 +170,7 @@
                 <Transition name="modal">
                   <div
                     v-show="addressesModalOpen"
-                    class="fixed inset-0 z-[100] flex items-center justify-center p-4"
+                    class="fixed inset-0 z-100 flex items-center justify-center p-4"
                     role="dialog"
                     aria-modal="true"
                     aria-labelledby="addresses-modal-title"
@@ -220,21 +227,45 @@
               </Teleport>
 
               <!-- Kalkış / Varış saati + Tarih (3 grid, PrimeVue) -->
-              <div class="flex items-center gap-2 w-full">
-                <div class="w-full">
-                  <label class="block text-sm font-medium text-gray-700 mb-2 pl-6">Kalkış, Varış Saati ve Tarihi</label>
-                  <div class="flex items-center gap-2 w-full">
-                    <div class="w-4 h-4 rounded-full bg-blue-200 inline-block shrink-0"></div>
-                    <div class="flex-1 flex gap-2">
+              <div class="w-full rounded-xl border border-blue-100 bg-blue-50/40 p-3 sm:p-4">
+                <div class="flex items-start gap-3 w-full">
+                  <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 items-center justify-center shrink-0 mt-0.5 hidden md:flex">
+                    <i class="pi pi-clock" style="font-size: 13px;"></i>
+                  </div>
+                  <div class="w-full">
+                    <label class="block text-sm font-semibold text-gray-800 mb-0.5">Kalkış ve Varış Saati</label>
+                    <p class="text-xs text-gray-500 mb-3">Saatleri seçin, isterseniz kalkış tarihi de ekleyin.</p>
+                    <div class="flex items-center justify-between w-full mb-3 rounded-xl border border-white bg-white px-3 py-2 shadow-sm">
+                      <div class="flex flex-col gap-0.5">
+                        <span class="text-sm font-medium text-gray-800">Kalkış tarihi belirt</span>
+                        <span class="text-xs text-gray-500">
+                          {{ departureDateEnabled ? 'İlan tarihiniz bitiminde ilandan kaldırılır' : 'İlanınız 3 hafta açık kalır' }}
+                        </span>
+                      </div>
+                    <button
+                      type="button"
+                      class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                      :class="departureDateEnabled ? 'bg-primary' : 'bg-gray-300'"
+                      @click="onToggleDepartureDate"
+                    >
+                      <span
+                        class="inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200"
+                        :class="departureDateEnabled ? 'translate-x-5' : 'translate-x-1'"
+                      />
+                    </button>
+                  </div>
+                    <div class="flex-1 flex flex-col md:flex-row gap-2">
                       <DatePicker
-                        class="w-full flex-1 h-12 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                        class="w-full flex-1 h-12 px-4 py-3 rounded-xl border border-white bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                         v-model="departure_time"
                         time-only
                         hour-format="24"
+                        stepMinute="30"
+                        :manualInput="false"
                         placeholder="Kalkış saati"
                         :pt="{
                           root: { class: 'flex-1 !text-sm' },
-                          input: { class: 'h-12 px-4 !rounded-lg !border !border-gray-200 !focus:outline-none !focus:ring-2 !focus:ring-primary/20 focus:border-primary !text-sm placeholder:text-sm w-full' },
+                          input: { class: 'h-12 px-4 !rounded-xl !border !border-gray-200 !focus:outline-none !focus:ring-2 !focus:ring-primary/20 focus:border-primary !text-sm placeholder:text-sm w-full !bg-white' },
                           panel: { class: '!bg-white !mt-2 !border !text-sm !border-gray-200 shadow-lg !rounded-lg' },
                           calendarContainer: { class: '!bg-white' },
                           timePicker: { class: '!bg-white' }
@@ -242,14 +273,16 @@
                         fluid
                       />
                       <DatePicker
-                        class="w-full flex-1 h-12 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
+                        class="w-full flex-1 h-12 px-4 py-3 rounded-xl border border-white bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
                         v-model="time_arrival"
                         time-only
                         hour-format="24"
+                        stepMinute="30"
+                        :manualInput="false"
                         placeholder="Varış saati"
                         :pt="{
                           root: { class: 'flex-1 !text-sm' },
-                          input: { class: 'h-12 px-4 !rounded-lg !border !border-gray-200 !focus:outline-none !focus:ring-2 !focus:ring-primary/20 focus:border-primary !text-sm placeholder:text-sm w-full' },
+                          input: { class: 'h-12 px-4 !rounded-xl !border !border-gray-200 !focus:outline-none !focus:ring-2 !focus:ring-primary/20 focus:border-primary !text-sm placeholder:text-sm w-full !bg-white' },
                           panel: { class: '!bg-white !mt-2 !border !text-sm !border-gray-200 shadow-lg !rounded-lg' },
                           calendarContainer: { class: '!bg-white' },
                           timePicker: { class: '!bg-white' }
@@ -257,7 +290,8 @@
                         fluid
                       />
                       <DatePicker
-                        class="w-full flex-1 h-12 px-4 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
+                        v-if="departureDateEnabled"
+                        class="w-full flex-1 h-12 px-4 py-3 rounded-xl border border-white bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
                         v-model="shipment_date"
                         date-format="dd.mm.yy"
                         placeholder="Tarih seçin"
@@ -265,8 +299,8 @@
                           root: { class: 'flex-1 !text-sm' },
                           input: {
                             class: [
-                              'h-12 !p-4 !rounded-lg !border !border-gray-200 !focus:outline-none !focus:ring-2 !focus:ring-primary/20 focus:border-primary !text-sm placeholder:text-sm w-full',
-                              shipment_date ? '!bg-primary/10 cursor-not-allowed' : '!bg-gray-100'
+                              'h-12 !p-4 !rounded-xl !border !border-gray-200 !focus:outline-none !focus:ring-2 !focus:ring-primary/20 focus:border-primary !text-sm placeholder:text-sm w-full',
+                              shipment_date ? '!bg-primary/10 cursor-not-allowed' : '!bg-white'
                             ]
                           },
                           panel: { class: '!bg-white !mt-2 !border !text-sm !border-gray-200 !text-gray-800 shadow-lg !rounded-lg !p-4' },
@@ -316,49 +350,74 @@
               </div>
 
               <!-- Arama ile iletişime geçilebilir switch -->
-              <div class="flex items-center justify-between w-full mt-4 pt-4 border-t border-gray-100">
-                <div class="flex flex-col gap-0.5">
-                  <span class="text-sm font-medium text-gray-800">Arama ile iletişime geçilebilir</span>
-                  <span class="text-xs text-gray-500">Taşıyıcıların sizi telefonla aramasına izin verin.</span>
+              <div class="w-full mt-4 pt-4 border-t border-gray-100">
+                <div class="rounded-2xl border border-violet-100 bg-linear-to-br from-white to-violet-50/60 px-4 py-3 sm:px-5 sm:py-4">
+                  <div class="flex items-center justify-between gap-3">
+                    <div class="flex items-start gap-3">
+                      <span class="w-8 h-8 rounded-xl bg-violet-100 text-violet-700 flex items-center justify-center shrink-0 mt-0.5">
+                        <i class="pi pi-phone text-xs"></i>
+                      </span>
+                      <div class="flex flex-col gap-0.5">
+                        <span class="text-sm font-semibold text-gray-800">Arama ile iletişime geçilebilir</span>
+                        <span class="text-xs text-gray-500">
+                          {{ canContactByCall ? 'Taşıyıcıların sizi telefonla aramasına izin verin.' : 'Taşıyıcılar size teklif gönderebilir' }}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      class="relative inline-flex h-7 w-12 items-center rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 shrink-0"
+                      :class="canContactByCall ? 'bg-primary' : 'bg-gray-300'"
+                      @click="canContactByCall = !canContactByCall"
+                    >
+                      <span
+                        class="inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200"
+                        :class="canContactByCall ? 'translate-x-6' : 'translate-x-1'"
+                      />
+                    </button>
+                  </div>
                 </div>
-                <button
-                  type="button"
-                  class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
-                  :class="canContactByCall ? 'bg-primary' : 'bg-gray-300'"
-                  @click="canContactByCall = !canContactByCall"
-                >
-                  <span
-                    class="inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200"
-                    :class="canContactByCall ? 'translate-x-5' : 'translate-x-1'"
-                  />
-                </button>
               </div>
 
               <!-- Mesafe ve süre (her iki yer seçildiğinde) -->
               <div
                 v-if="routeInfo"
-                class="mt-4 pt-4 border-t border-gray-100 flex gap-6 text-sm"
+                ref="routeStatusRef"
+                class="mt-4 pt-4 border-t border-gray-100 text-sm gap-4"
               >
-                <div class="flex flex-col gap-4">
-                  <div class="flex items-center gap-2">
-                    <span class="text-gray-500">Mesafe:</span>
-                    <span class="font-semibold text-gray-800">{{ routeInfo.distance }} km</span>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <span class="text-gray-500">Tahmini süre:</span>
-                    <span class="font-semibold text-gray-800">{{ routeInfo.duration }}</span>
+                <div class="w-full rounded-2xl border border-indigo-100 bg-linear-to-br from-white to-indigo-50/50 p-4 sm:p-5 shadow-sm">
+                  <div class="flex items-center gap-2 mb-4">
+                    <span class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0">
+                      <i class="pi pi-map text-xs"></i>
+                    </span>
+                    <div class="flex flex-col">
+                      <span class="text-sm font-semibold text-gray-800">Rota Özeti</span>
+                      <span class="text-xs text-gray-500">Adreslere göre hesaplanan tahmini bilgiler</span>
+                    </div>
                   </div>
 
-                  <div class="flex items-start gap-2 mt-5 flex-col w-full">
-                    <h2 class="text-base font-semibold text-gray-800 mb-2">Fiyatlar</h2>
-                    <div class="flex flex-wrap gap-3 w-full max-w-[780px]">
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-5">
+                    <div class="rounded-xl border border-gray-100 bg-white px-3 py-2.5">
+                      <div class="text-[11px] text-gray-500">Mesafe</div>
+                      <div class="text-base font-semibold text-gray-800">{{ routeInfo.distance }} km</div>
+                    </div>
+                    <div class="rounded-xl border border-gray-100 bg-white px-3 py-2.5">
+                      <div class="text-[11px] text-gray-500">Tahmini süre</div>
+                      <div class="text-base font-semibold text-gray-800">{{ routeInfo.duration }}</div>
+                    </div>
+                  </div>
+
+                  <div class="flex items-start gap-2 flex-col w-full">
+                    <h2 class="text-base font-semibold text-gray-800 mb-1">Fiyat Seçimi</h2>
+                    <p class="text-xs text-gray-500 mb-2">Sabit fiyat seçebilir veya teklif toplayabilirsiniz.</p>
+                    <div class="flex flex-col md:flex-wrap md:flex-row gap-3 w-full">
                       <button
                         type="button"
                         @click="selectedPriceType = 'sabit'"
-                        class="flex-1 min-w-[312px] text-left border-2 rounded-lg p-4 transition-all duration-200 hover:border-primary/60 hover:bg-primary/5"
+                        class="flex-1 min-w-0 sm:min-w-[312px] text-left border rounded-xl p-4 transition-all duration-200"
                         :class="selectedPriceType === 'sabit'
-                          ? 'border-primary bg-primary/10 ring-2 ring-primary/30'
-                          : 'border-gray-200 bg-white'"
+                          ? 'border-primary bg-primary/10 ring-2 ring-primary/20 shadow-sm'
+                          : 'border-gray-200 bg-white hover:border-primary/40 hover:bg-primary/5'"
                       >
                         <div class="flex justify-between items-start">
                           <div class="flex flex-col gap-0.5">
@@ -378,10 +437,10 @@
                       <button
                         type="button"
                         @click="selectedPriceType = 'teklif'"
-                        class="flex-1 min-w-[312px] text-left border-2 rounded-lg p-4 transition-all duration-200 hover:ring-2 hover:ring-primary/30 hover:border-primary/60 hover:bg-primary/5"
+                        class="flex-1 min-w-0 sm:min-w-[312px] text-left border rounded-xl p-4 transition-all duration-200"
                         :class="selectedPriceType === 'teklif'
-                          ? 'border-primary bg-primary/10 ring-2 ring-primary/30'
-                          : 'border-gray-200 bg-white'"
+                          ? 'border-primary bg-primary/10 ring-2 ring-primary/20 shadow-sm'
+                          : 'border-gray-200 bg-white hover:border-primary/40 hover:bg-primary/5'"
                       >
                         <div class="flex justify-between items-start">
                           <div class="flex flex-col gap-0.5">
@@ -399,7 +458,11 @@
 
                 </div>
               </div>
-              <div v-else-if="routeLoading" class="mt-4 pt-4 border-t border-gray-100 flex flex-col items-center justify-center gap-3 py-6">
+              <div
+                v-else-if="routeLoading"
+                ref="routeStatusRef"
+                class="mt-4 pt-4 border-t border-gray-100 flex flex-col items-center justify-center gap-3 py-6"
+              >
                 <img
                   :src="loadingGifUrl"
                   alt=""
@@ -412,12 +475,12 @@
 
           <!-- Pagination: Sol Sonraki / Sağ Önceki -->
           <div
-            class="w-full  overflow-hidden flex justify-between items-center absolute left-0 bottom-0 px-10 bg-white border-t border-gray-200 py-5"
+            class="fixed bottom-0 left-0 right-0 w-full overflow-hidden flex justify-between items-center gap-2 px-4 sm:px-6 lg:px-10 bg-white/95 backdrop-blur border-t border-gray-200 py-4 z-20"
           >
             <button
               type="button"
               @click="() => usePostStore().prevPage()"
-              class="px-5 py-2 rounded-lg border-2 cursor-pointer border-primary text-primary font-medium hover:bg-primary hover:text-white transition-all"
+              class="flex-1 sm:flex-none px-4 sm:px-5 py-2 rounded-lg border-2 cursor-pointer border-primary text-primary font-medium hover:bg-primary hover:text-white transition-all text-sm sm:text-base"
             >
               ← Önceki
             </button>
@@ -425,7 +488,7 @@
               @click="handlePublishOrNext"
               type="button"
               :disabled="!canGoNext || publishLoading"
-              class="px-5 py-2 rounded-lg border-2 transition-all"
+              class="flex-1 sm:flex-none px-4 sm:px-5 py-2 rounded-lg border-2 transition-all text-sm sm:text-base"
               :class="(!canGoNext || publishLoading)
                 ? 'cursor-not-allowed border-gray-200 text-gray-400 opacity-60'
                 : 'cursor-pointer border-primary text-primary font-medium hover:bg-primary hover:text-white'"
@@ -445,7 +508,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from "vue";
+import { ref, computed, watch, onMounted, nextTick } from "vue";
 import Header from "@/components/Header.vue";
 import Content from "@/components/Content.vue";
 import CargoOwner from "@/components/CargoOwner.vue";
@@ -493,7 +556,37 @@ const todayStart = (() => {
   t.setHours(0, 0, 0, 0);
   return t;
 })();
+const departureDateEnabled = ref(true);
 const shipment_date = ref(todayStart);
+
+function onToggleDepartureDate() {
+  departureDateEnabled.value = !departureDateEnabled.value;
+  if (!departureDateEnabled.value) {
+    // Tarih belirtilmesin: formdan undefined/null gitsin
+    shipment_date.value = null;
+  } else {
+    // Tekrar açınca varsayılanı doldur
+    shipment_date.value = new Date(todayStart);
+  }
+}
+
+/** timeOnly: sadece 30dk aralıkları (00 ve 30) için seçimi güvenceye al */
+function normalizeToStep30(date) {
+  if (!date || !(date instanceof Date)) return date;
+  const d = new Date(date);
+  const minutes = d.getMinutes();
+  // 00/30 aralığına aşağı yuvarla
+  const normalizedMinutes = minutes < 30 ? 0 : 30;
+  d.setMinutes(normalizedMinutes, 0, 0);
+  return d;
+}
+
+watch(departure_time, (v) => {
+  departure_time.value = normalizeToStep30(v);
+});
+watch(time_arrival, (v) => {
+  time_arrival.value = normalizeToStep30(v);
+});
 /** Boşaltılacak yer: sadece şehir ve ilçe isimleri */
 const bosaltilanYer = ref({ city: '', district: '' });
 const cities = ref([]);
@@ -505,6 +598,7 @@ const yuklenecekDistrictsLoading = ref(false);
 const bosaltilanDistrictsLoading = ref(false);
 const routeInfo = ref(null); // { distance: '123 km', duration: '2 saat 15 dk' }
 const routeLoading = ref(false);
+const routeStatusRef = ref(null);
 const selectedPriceType = ref('sabit');
 const canContactByCall = ref(true);
 
@@ -519,6 +613,17 @@ const postTypesError = ref(null);
 /** Ağırlık (Yük Tipi sayfası): değer + birim (kg default) */
 const weightValue = ref('');
 const weightUnit = ref('kg');
+const weightInputRef = ref(null);
+const weightSectionRef = ref(null);
+
+async function onPostTypeSelect(postType) {
+  postStore.setSelectedPostType(postType);
+  await nextTick();
+  weightSectionRef.value?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  setTimeout(() => {
+    weightInputRef.value?.focus?.();
+  }, 250);
+}
 
 function onWeightUnitChange(unit) {
   weightUnit.value = unit;
@@ -785,6 +890,12 @@ watch(
   { deep: true }
 );
 
+watch(routeLoading, async (isLoading) => {
+  if (!isLoading) return;
+  await nextTick();
+  routeStatusRef.value?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+});
+
 const postTypeImages = import.meta.glob('../assets/images/post_types/*', { eager: true, import: 'default' });
 
 function calculateRoutePrice() {
@@ -896,7 +1007,8 @@ function getShipmentFormData() {
     bosaltilanYer: { city: bosaltilanYer.value?.city ?? '', district: bosaltilanYer.value?.district ?? '' },
     departure_time: formatTimeToHHMM(departure_time.value) ?? undefined,
     time_arrival: formatTimeToHHMM(time_arrival.value) ?? undefined,
-    shipment_date: formatDateToYYYYMMDD(shipment_date.value) ?? undefined,
+    departure_date_enabled: departureDateEnabled.value,
+    shipment_date: departureDateEnabled.value ? formatDateToYYYYMMDD(shipment_date.value) ?? undefined : undefined,
     routeInfo: routeInfo.value,
     selectedPriceType: selectedPriceType.value,
     calculatedPrice: price,

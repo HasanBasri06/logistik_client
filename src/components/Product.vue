@@ -229,8 +229,11 @@ const toPlaceText = computed(() => {
   return district ? `${city} / ${district}` : city;
 });
 
-const creatorAvatarUrl = computed(() => {
-    const c = props.shipment?.creator;
+const creatorAvatarUrl = computed(() => {  
+  
+  const c = props.shipment?.creator;
+    
+    if (c?.profile_image !== null && c?.profile_image !== '') return import.meta.env.VITE_APP_SERVER_URL + 'storage/' + c.profile_image;
     if (c?.image) return c.image;
     if (c?.avatar) return c.avatar;
     const name = c?.full_name || '?';
