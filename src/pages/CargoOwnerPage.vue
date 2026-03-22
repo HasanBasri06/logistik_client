@@ -34,7 +34,7 @@
                                 <i class="pi pi-wallet text-emerald-600" style="font-size: 22px;"></i>
                             </div>
                             <div class="flex-1">
-                                <p class="text-xs text-gray-500">Cüzdanım</p>
+                                <p class="text-xs text-gray-500">Toplam Kazancım</p>
                                 <p class="text-2xl font-bold text-gray-900">{{ walletBalance }} ₺</p>
                             </div>
                             <i class="pi pi-chevron-right text-gray-300" style="font-size: 14px;"></i>
