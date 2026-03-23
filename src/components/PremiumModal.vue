@@ -34,28 +34,39 @@
                         </div>
 
                         <!-- Step 1: Plan selection -->
-                        <div v-if="step === 1" class="grid grid-cols-2 grid-flow-row gap-3">
+                        <div v-if="step === 1" class="grid grid-cols-2 auto-rows-fr gap-3 items-stretch">
                             <button
                                 v-for="plan in plans"
                                 :key="plan.id"
                                 type="button"
-                                class="flex flex-col items-start justify-between p-4 rounded-xl border-2 transition-all min-h-[104px] text-left"
+                                class="relative h-[225px] flex flex-col items-start justify-between p-4 rounded-2xl border-2 transition-all text-left shadow-sm"
                                 :class="selectedPlanId === plan.id
                                     ? 'border-primary bg-primary/10 ring-2 ring-primary/20'
-                                    : 'border-gray-200 bg-white hover:border-primary/40 hover:bg-primary/5'"
+                                    : 'border-gray-200 bg-white hover:border-primary/40 hover:bg-primary/5 hover:shadow-md'"
                                 @click="selectedPlanId = plan.id"
                             >
-                                <div class="flex items-start justify-between w-full gap-3">
-                                    <div>
-                                        <div class="text-sm font-semibold text-gray-900">{{ plan.title }}</div>
-                                        <div class="text-xs text-gray-600 mt-0.5">{{ plan.subtitle }}</div>
-                                    </div>
-                                    <i
-                                        class="pi text-primary text-lg"
-                                        :class="selectedPlanId === plan.id ? 'pi-check-circle' : plan.icon"
-                                    ></i>
+                                <div
+                                    v-if="plan.badge"
+                                    class="absolute -top-2 right-3 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider z-10 shadow-sm"
+                                    :class="plan.badge === 'Popüler'
+                                        ? 'border border-red-200 bg-red-50 text-red-600'
+                                        : 'border border-blue-200 bg-blue-50 text-blue-700'"
+                                >
+                                    <i v-if="plan.badge === 'Önerilen'" class="pi pi-bolt text-[10px] text-blue-600"></i>
+                                    <span v-else-if="plan.badge === 'Popüler'" class="text-red-500 text-[11px] leading-none">🔥</span>
+                                    {{ plan.badge }}
                                 </div>
-                                <div class="text-xs text-gray-500 mt-3">{{ plan.detail }}</div>
+                                <div class="flex items-start justify-between w-full gap-3 pt-7">
+                                    <div class="pr-6">
+                                        <div class="text-base font-bold leading-tight text-gray-900">{{ plan.title }}</div>
+                                        <div class="text-sm font-semibold text-gray-700 mt-1">{{ plan.totalPrice }}</div>
+                                    </div>
+                                    <i v-if="selectedPlanId === plan.id" class="pi pi-check-circle text-primary text-xl"></i>
+                                </div>
+                                <div class="mt-4 w-full rounded-xl border border-gray-100 bg-gray-50/80 px-3 py-2.5">
+                                    <div class="text-sm font-semibold text-primary leading-snug">{{ plan.monthlyCost }}</div>
+                                    <div v-if="plan.discountText" class="text-xs text-emerald-600 font-semibold mt-1 leading-snug">{{ plan.discountText }}</div>
+                                </div>
                             </button>
                         </div>
 
@@ -218,10 +229,42 @@ const step = ref(1); // 1: plan seçimi, 2: ödeme bilgileri (UI)
 const selectedPlanId = ref(null);
 
 const plans = [
-    { id: 'm1', months: 1, title: '1 Aylık', subtitle: 'Esnek', icon: 'pi-calendar', detail: 'İstediğin zaman iptal et' },
-    { id: 'm3', months: 3, title: '3 Aylık', subtitle: 'Popüler', icon: 'pi-star', detail: 'Daha avantajlı' },
-    { id: 'm6', months: 6, title: '6 Aylık', subtitle: 'İndirimli', icon: 'pi-tag', detail: 'Ekstra indirim' },
-    { id: 'm12', months: 12, title: '12 Aylık', subtitle: 'En avantajlı', icon: 'pi-check-circle', detail: 'En iyi fiyat' },
+    {
+        id: 'm1',
+        months: 1,
+        title: '1 Aylık',
+        totalPrice: '349 TL',
+        monthlyCost: 'Aylık maliyet: 349 TL',
+        discountText: null,
+        badge: null,
+    },
+    {
+        id: 'm3',
+        months: 3,
+        title: '3 Aylık',
+        totalPrice: '999 TL',
+        monthlyCost: 'Aylık maliyet: 333 TL',
+        discountText: 'İndirim: 48 TL (%4,59)',
+        badge: 'Önerilen',
+    },
+    {
+        id: 'm6',
+        months: 6,
+        title: '6 Aylık',
+        totalPrice: '1.779 TL',
+        monthlyCost: 'Aylık maliyet: 296,5 TL',
+        discountText: 'İndirim: 315 TL (%15,04)',
+        badge: null,
+    },
+    {
+        id: 'm12',
+        months: 12,
+        title: '12 Aylık',
+        totalPrice: '2.999 TL',
+        monthlyCost: 'Aylık maliyet: 249,9 TL',
+        discountText: 'İndirim: 1.189 TL (%28,39)',
+        badge: 'Popüler',
+    },
 ];
 
 const selectedPlan = computed(() => plans.find((p) => p.id === selectedPlanId.value) ?? null);
