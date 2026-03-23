@@ -124,6 +124,11 @@
             </Content>
         </header>
         <div class="h-16"></div>
+        <div v-if="showAccountBreadcrumb" class="w-full">
+            <Content class="py-2">
+                <AccountBreadcrumb />
+            </Content>
+        </div>
 
         <!-- Mobil: soldan kayan menü -->
         <Teleport to="body">
@@ -638,9 +643,10 @@ import { computed, onBeforeUnmount, onMounted, onUnmounted, ref, watch } from 'v
 import * as yup from 'yup';
 import { useAuthStore } from '@/stores/auth';
 import { toast } from 'vue-sonner';
-import { RouterLink, useRouter } from 'vue-router';
+import { RouterLink, useRoute, useRouter } from 'vue-router';
 import Content from './Content.vue';
 import EkibineSorModal from './EkibineSorModal.vue';
+import AccountBreadcrumb from './AccountBreadcrumb.vue';
 import loginWallpaper from '@/assets/images/login_wallpaper.gif';
 import { InputMask } from 'primevue';
 import { storeToRefs } from 'pinia';
@@ -649,7 +655,11 @@ import { Router } from 'lucide-vue-next';
 
 const authStore = useAuthStore();
 const router = useRouter();
+const route = useRoute();
 const { user, requestShowLoginModal } = storeToRefs(authStore);
+const showAccountBreadcrumb = computed(() =>
+    route.path.startsWith('/vehicle-owner') || route.path.startsWith('/cargo-owner')
+);
 
 const scrolled = ref(false);
 const onScroll = () => { scrolled.value = window.scrollY > 10; };

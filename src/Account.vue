@@ -5,7 +5,6 @@
             <div class="flex flex-row gap-3 w-full h-[calc(100vh-64px)]">
                 <AccountSidebar />
                 <div class="flex-1 mt-3 flex flex-col overflow-y-auto pb-6 gap-5">
-
                     <div class="bg-white border border-gray-200 rounded-xl p-6">
                         <h1 class="text-xl font-bold text-gray-900">Hoş geldin, {{ user?.first_name ?? 'Araç Sahibi' }} 👋</h1>
                         <p class="text-sm text-gray-500 mt-1">Araçlarını yönet, yük ilanlarını keşfet ve kazancını takip et.</p>

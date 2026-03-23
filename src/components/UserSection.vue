@@ -13,6 +13,7 @@
                 <span class="text-xs bg-primary/10 text-primary px-2 py-1 rounded-md">{{ useStatusValue }}</span>
             </div>
         </div>
+
     </router-link>
 </template>
 
@@ -44,7 +45,7 @@ onMounted(() => {
 
 onMounted(() => {
     if (user.value.image) {
-        userImage.value = user.value.image;
+        userImage.value = import.meta.env.VITE_APP_SERVER_URL + 'storage/' + user.value.image;
     } else {
         userImage.value = 'https://ui-avatars.com/api/?name=' + user.value.full_name + '&background=39838C&color=fff';
     }
