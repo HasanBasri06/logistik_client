@@ -33,14 +33,31 @@
             </div>
           </div>
           <p v-if="locationError" class="text-sm text-gray-600 mb-3">{{ locationError }}</p>
-          <template v-if="locationErrorCode === 1">
-            <p class="text-sm font-medium text-gray-700 mb-2">Tarayıcıdan izin vermek için:</p>
+          <template v-if="locationErrorCode === 1 && locationPermissionPlatform === 'android'">
+            <p class="text-sm font-medium text-gray-700 mb-2">Android için konum izni adımları:</p>
+            <ol class="text-sm text-gray-600 list-decimal list-inside space-y-1 mb-3">
+              <li>Tarayıcıda adres çubuğu yanındaki <strong>kilit</strong> simgesine dokunun.</li>
+              <li><strong>Site ayarları</strong> veya <strong>İzinler</strong> bölümünü açın.</li>
+              <li><strong>Konum</strong> iznini <strong>İzin ver</strong> olarak değiştirin.</li>
+              <li>Gerekirse Android Ayarlar &gt; Uygulamalar &gt; Tarayıcı &gt; İzinler kısmında Konum'u açın.</li>
+            </ol>
+          </template>
+          <template v-else-if="locationErrorCode === 1 && locationPermissionPlatform === 'ios'">
+            <p class="text-sm font-medium text-gray-700 mb-2">iOS için konum izni adımları:</p>
+            <ol class="text-sm text-gray-600 list-decimal list-inside space-y-1 mb-3">
+              <li>Safari'de adres çubuğundaki <strong>aA</strong> simgesine dokunun.</li>
+              <li><strong>Web Sitesi Ayarları</strong> bölümüne girin.</li>
+              <li><strong>Konum</strong> için <strong>İzin Ver</strong> seçin.</li>
+              <li>Gerekirse iOS Ayarlar &gt; Safari &gt; Konum bölümünde izinleri aktif edin.</li>
+            </ol>
+          </template>
+          <template v-else-if="locationErrorCode === 1 && locationPermissionPlatform === 'web'">
+            <p class="text-sm font-medium text-gray-700 mb-2">Web tarayıcı için konum izni adımları:</p>
             <ol class="text-sm text-gray-600 list-decimal list-inside space-y-1 mb-3">
               <li>Adres çubuğundaki <strong>kilit</strong> (veya bilgi) simgesine tıklayın.</li>
               <li>Açılan pencerede <strong>Konum</strong> satırını bulun.</li>
               <li>Konum erişimini <strong>İzin ver</strong> veya <strong>Açık</strong> yapın.</li>
             </ol>
-            <img :src="konumIzniImg" alt="Tarayıcıda konum izninin nereden açılacağı" class="w-full rounded-lg border border-gray-200 mb-4" />
           </template>
           <div class="flex justify-end">
             <button
@@ -66,7 +83,6 @@ import { storeToRefs } from 'pinia';
 import { MapPin } from 'lucide-vue-next';
 import Layout from './Layout.vue';
 import PremiumModal from './components/PremiumModal.vue';
-import konumIzniImg from '@/assets/images/konum_izni.png';
 import { useHead } from '@vueuse/head';
 import { useLocationStore } from './stores/location';
 import { useAuthStore } from './stores/auth';
@@ -76,6 +92,13 @@ const authStore = useAuthStore();
 const locationStore = useLocationStore();
 const { locationDeniedModalOpen, locationError, locationErrorCode, locationRequesting } = storeToRefs(locationStore);
 const { requestUserLocation, closeLocationModal } = locationStore;
+const locationPermissionPlatform = computed(() => {
+  if (typeof navigator === 'undefined') return 'web';
+  const ua = navigator.userAgent.toLowerCase();
+  if (ua.includes('android')) return 'android';
+  if (ua.includes('iphone') || ua.includes('ipad') || ua.includes('ipod')) return 'ios';
+  return 'web';
+});
 
 const isOnline = ref(typeof navigator !== 'undefined' ? navigator.onLine : true);
 // Sadece çevrimdışıyken veya çevrimdışıyken bağlanınca bar göster; ilk yüklemede çevrimiçiysen gösterme

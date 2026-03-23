@@ -16,6 +16,8 @@ const showFromDropdown = ref(false);
 const showToDropdown = ref(false);
 const fromLoading = ref(false);
 const toLoading = ref(false);
+const fromPlaceholder = ref('Nereden');
+const toPlaceholder = ref('Nereye');
 
 const fromRef = ref(null);
 const toRef = ref(null);
@@ -48,7 +50,7 @@ let fromTimer = null;
 let toTimer = null;
 
 const searchCities = async (query, results, loading) => {
-    if (query.length < 3) {
+    if (query.length < 1) {
         results.value = [];
         return;
     }
@@ -65,7 +67,7 @@ const searchCities = async (query, results, loading) => {
 
 watch(fromQuery, (val) => {
     clearTimeout(fromTimer);
-    if (val.length < 3) { fromResults.value = []; showFromDropdown.value = false; return; }
+    if (val.length < 1) { fromResults.value = []; showFromDropdown.value = false; return; }
     fromTimer = setTimeout(() => {
         searchCities(val, fromResults, fromLoading);
         showFromDropdown.value = true;
@@ -74,7 +76,7 @@ watch(fromQuery, (val) => {
 
 watch(toQuery, (val) => {
     clearTimeout(toTimer);
-    if (val.length < 3) { toResults.value = []; showToDropdown.value = false; return; }
+    if (val.length < 1) { toResults.value = []; showToDropdown.value = false; return; }
     toTimer = setTimeout(() => {
         searchCities(val, toResults, toLoading);
         showToDropdown.value = true;
@@ -158,9 +160,10 @@ const handleSearch = () => {
                     <input
                         v-model="fromQuery"
                         type="text"
-                        placeholder="Nereden"
+                        :placeholder="fromPlaceholder"
                         autocomplete="off"
-                        @focus="fromQuery.length >= 3 && (showFromDropdown = true)"
+                        @focus="fromPlaceholder = 'Lütfen seçmek istediğiniz ili yazınız'; fromQuery.length >= 1 && (showFromDropdown = true)"
+                        @blur="fromPlaceholder = 'Nereden'"
                         class=" w-full md:w-auto border border-gray-300 md:border-l md:border-t md:border-b md:border-r-0 rounded-lg md:rounded-none md:rounded-t-none md:rounded-l-xl px-4 py-4 outline-none bg-white"
                     />
                     <div v-if="showFromDropdown" class="absolute top-full left-0 mt-2 w-full md:w-72 bg-white rounded-xl border border-gray-200 shadow-xl z-50 overflow-hidden">
@@ -197,9 +200,10 @@ const handleSearch = () => {
                     <input
                         v-model="toQuery"
                         type="text"
-                        placeholder="Nereye"
+                        :placeholder="toPlaceholder"
                         autocomplete="off"
-                        @focus="toQuery.length >= 3 && (showToDropdown = true)"
+                        @focus="toPlaceholder = 'Lütfen seçmek istediğiniz ili yazınız'; toQuery.length >= 1 && (showToDropdown = true)"
+                        @blur="toPlaceholder = 'Nereye'"
                         class="rounded-lg md:rounded-none w-full md:w-auto border border-gray-300 md:border-r md:border-t md:border-b md:border-l-0 px-4 py-4 outline-none bg-white"
                     />
                     <div v-if="showToDropdown" class="absolute top-full left-0 mt-2 w-full md:w-72 bg-white rounded-xl border border-gray-200 shadow-xl z-50 overflow-hidden">

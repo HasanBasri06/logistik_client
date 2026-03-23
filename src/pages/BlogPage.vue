@@ -1,83 +1,57 @@
 <script setup>
 import { RouterLink } from 'vue-router';
+import { computed } from 'vue';
+import { useHead } from '@vueuse/head';
 import Header from '@/components/Header.vue';
 import Content from '@/components/Content.vue';
 import Footer from '@/components/Footer.vue';
+import { blogPosts as posts } from '@/data/blogPosts';
 
-const posts = [
-    {
-        slug: 'lojistik-sektorunde-dijitallesme',
-        title: 'Lojistik Sektöründe Dijitalleşme ve Geleceği',
-        excerpt: 'Dijital dönüşümün lojistik sektörüne etkileri ve gelecekte bizi nelerin beklediğini inceliyoruz.',
-        image: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=600&q=80',
-        category: 'Sektör',
-        date: '10 Mar 2026',
-        readTime: '5 dk',
-    },
-    {
-        slug: 'yuk-tasimaciligi-maliyetlerini-dusurme',
-        title: 'Yük Taşımacılığı Maliyetlerinizi Düşürmenin 7 Yolu',
-        excerpt: 'Nakliye giderlerinizi optimize etmek için uygulayabileceğiniz pratik yöntemleri paylaşıyoruz.',
-        image: 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=600&q=80',
-        category: 'Rehber',
-        date: '5 Mar 2026',
-        readTime: '4 dk',
-    },
-    {
-        slug: 'guvenlii-sevkiyat-icin-ipuclari',
-        title: 'Güvenli Sevkiyat İçin 10 Altın İpucu',
-        excerpt: 'Yüklerinizi hasarsız ve güvenli bir şekilde teslim etmek için dikkat etmeniz gereken noktalar.',
-        image: 'https://images.unsplash.com/photo-1494412574643-ff11b0a5eb19?w=600&q=80',
-        category: 'Güvenlik',
-        date: '28 Şub 2026',
-        readTime: '6 dk',
-    },
-    {
-        slug: 'arac-sahipleri-icin-kazanc-rehberi',
-        title: 'Araç Sahipleri İçin Kazanç Rehberi',
-        excerpt: 'Platformumuzda araç sahibi olarak kazancınızı nasıl maksimize edebileceğinizi anlatıyoruz.',
-        image: 'https://images.unsplash.com/photo-1519003722824-194d4455a60c?w=600&q=80',
-        category: 'Rehber',
-        date: '20 Şub 2026',
-        readTime: '5 dk',
-    },
-    {
-        slug: 'tasibul-yeni-ozellikler-2026',
-        title: 'TaşıBul 2026 Yeni Özellikler ve Güncellemeler',
-        excerpt: 'Bu yıl platformumuza eklediğimiz yeni özellikleri ve iyileştirmeleri keşfedin.',
-        image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&q=80',
-        category: 'Duyuru',
-        date: '15 Şub 2026',
-        readTime: '3 dk',
-    },
-    {
-        slug: 'turkiyede-lojistik-haritasi',
-        title: 'Türkiye\'de Lojistik Haritası: En Yoğun Güzergahlar',
-        excerpt: 'Türkiye\'nin en çok yük taşınan güzergahlarını ve bölgesel lojistik dinamiklerini inceliyoruz.',
-        image: 'https://images.unsplash.com/photo-1524661135-423995f22d0b?w=600&q=80',
-        category: 'Sektör',
-        date: '8 Şub 2026',
-        readTime: '7 dk',
-    },
-    {
-        slug: 'yuk-sigortasi-neden-onemli',
-        title: 'Yük Sigortası Neden Önemli?',
-        excerpt: 'Yük sigortasının önemi, türleri ve doğru sigorta seçimi hakkında bilmeniz gerekenler.',
-        image: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=600&q=80',
-        category: 'Bilgi',
-        date: '1 Şub 2026',
-        readTime: '4 dk',
-    },
-    {
-        slug: 'kucuk-isletmeler-icin-lojistik-cozumleri',
-        title: 'Küçük İşletmeler İçin Lojistik Çözümleri',
-        excerpt: 'Küçük ve orta ölçekli işletmelerin lojistik süreçlerini verimli hale getirmek için öneriler.',
-        image: 'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=600&q=80',
-        category: 'Rehber',
-        date: '25 Oca 2026',
-        readTime: '5 dk',
-    },
-];
+const siteUrl = 'https://tasibul.com';
+const canonicalUrl = `${siteUrl}/blog`;
+const listSchema = computed(() => ({
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'TaşıBul Blog Yazıları',
+    itemListElement: posts.map((post, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        url: `${siteUrl}/blog/${post.slug}`,
+        name: post.title
+    }))
+}));
+
+const setLogisticsFallback = (event) => {
+    const img = event?.target;
+    if (!img || img.dataset.fallbackApplied === '1') return;
+    img.dataset.fallbackApplied = '1';
+    img.src = 'https://images.pexels.com/photos/2199293/pexels-photo-2199293.jpeg?auto=compress&cs=tinysrgb&w=1200';
+};
+
+useHead({
+    title: 'Lojistik Blog Yazıları | TaşıBul',
+    meta: [
+        {
+            name: 'description',
+            content: 'TaşıBul blogunda lojistik, taşımacılık, maliyet optimizasyonu ve güvenli sevkiyat konularında güncel içerikleri keşfedin.'
+        },
+        { name: 'robots', content: 'index, follow' },
+        { property: 'og:title', content: 'Lojistik Blog Yazıları | TaşıBul' },
+        { property: 'og:description', content: 'Lojistik dünyasından haberler, rehberler ve ipuçları.' },
+        { property: 'og:type', content: 'website' },
+        { property: 'og:url', content: canonicalUrl }
+    ],
+    link: [
+        { rel: 'canonical', href: canonicalUrl }
+    ],
+    script: [
+        {
+            key: 'blog-list-jsonld',
+            type: 'application/ld+json',
+            children: JSON.stringify(listSchema.value)
+        }
+    ]
+});
 </script>
 
 <template>
@@ -101,6 +75,7 @@ const posts = [
                         <img
                             :src="post.image"
                             :alt="post.title"
+                            @error="setLogisticsFallback"
                             class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                         />
                     </div>

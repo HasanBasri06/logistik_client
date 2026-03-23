@@ -1,68 +1,148 @@
 <script setup>
 import { computed } from 'vue';
 import { useRoute, RouterLink } from 'vue-router';
+import { useHead } from '@vueuse/head';
 import Header from '@/components/Header.vue';
 import Content from '@/components/Content.vue';
 import Footer from '@/components/Footer.vue';
+import { blogPosts } from '@/data/blogPosts';
 
 const route = useRoute();
+const postsBySlug = Object.fromEntries(blogPosts.map((item) => [item.slug, item]));
+const post = computed(() => postsBySlug[route.params.slug] || null);
+const relatedPosts = computed(() =>
+    blogPosts
+        .filter((item) => item.slug !== route.params.slug)
+        .slice(0, 3)
+);
+const siteUrl = 'https://tasibul.com';
 
-const posts = {
-    'lojistik-sektorunde-dijitallesme': {
-        title: 'Lojistik Sektöründe Dijitalleşme ve Geleceği',
-        image: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1200&q=80',
-        category: 'Sektör',
-        date: '10 Mart 2026',
-        readTime: '5 dk',
-        author: 'TaşıBul Editör',
-        content: `
-            <p>Lojistik sektörü, dijital dönüşümün en hızlı yaşandığı alanlardan biri haline geldi. Geleneksel yöntemlerle yürütülen süreçler yerini akıllı platformlara, yapay zeka destekli rotalama sistemlerine ve gerçek zamanlı takip çözümlerine bırakıyor.</p>
+const canonicalUrl = computed(() =>
+    post.value ? `${siteUrl}/blog/${post.value.slug}` : `${siteUrl}/blog`
+);
+const pageTitle = computed(() =>
+    post.value ? `${post.value.title} | TaşıBul Blog` : 'Yazı Bulunamadı | TaşıBul Blog'
+);
 
-            <h2>Dijitalleşmenin Lojistiğe Etkileri</h2>
-            <p>Dijital platformlar sayesinde yük sahipleri ve araç sahipleri artık birbirlerini kolayca bulabiliyor. Bu durum hem maliyetleri düşürüyor hem de taşımacılık süreçlerini hızlandırıyor. TaşıBul gibi platformlar, bu dönüşümün öncüsü konumunda.</p>
+const blogPostingSchema = computed(() => {
+    if (!post.value) return null;
 
-            <h2>Gelecekte Bizi Neler Bekliyor?</h2>
-            <p>Otonom araçlar, drone ile teslimat ve blockchain tabanlı tedarik zinciri yönetimi gibi teknolojiler önümüzdeki yıllarda lojistik sektörünü köklü bir şekilde değiştirecek. Bu gelişmelere hazırlıklı olmak, rekabet avantajı sağlamanın anahtarı olacaktır.</p>
+    return {
+        '@context': 'https://schema.org',
+        '@type': 'BlogPosting',
+        headline: post.value.title,
+        description: post.value.excerpt,
+        image: [post.value.image],
+        articleSection: post.value.category,
+        author: {
+            '@type': 'Organization',
+            name: post.value.author
+        },
+        publisher: {
+            '@type': 'Organization',
+            name: 'TaşıBul'
+        },
+        mainEntityOfPage: canonicalUrl.value,
+        url: canonicalUrl.value
+    };
+});
+const breadcrumbSchema = computed(() => {
+    if (!post.value) return null;
+    return {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+            {
+                '@type': 'ListItem',
+                position: 1,
+                name: 'Anasayfa',
+                item: `${siteUrl}/`
+            },
+            {
+                '@type': 'ListItem',
+                position: 2,
+                name: 'Blog',
+                item: `${siteUrl}/blog`
+            },
+            {
+                '@type': 'ListItem',
+                position: 3,
+                name: post.value.title,
+                item: canonicalUrl.value
+            }
+        ]
+    };
+});
+const relatedPostsSchema = computed(() => {
+    if (!relatedPosts.value.length) return null;
+    return {
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        name: 'İlgili Bloglar',
+        itemListElement: relatedPosts.value.map((item, index) => ({
+            '@type': 'ListItem',
+            position: index + 1,
+            name: item.title,
+            url: `${siteUrl}/blog/${item.slug}`
+        }))
+    };
+});
 
-            <h2>Sonuç</h2>
-            <p>Dijitalleşme, lojistik sektöründe kaçınılmaz bir gerçek. Erken adapte olan işletmeler, hem maliyet avantajı hem de operasyonel verimlilik açısından bir adım önde olacaktır.</p>
-        `,
-    },
-    'yuk-tasimaciligi-maliyetlerini-dusurme': {
-        title: 'Yük Taşımacılığı Maliyetlerinizi Düşürmenin 7 Yolu',
-        image: 'https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?w=1200&q=80',
-        category: 'Rehber',
-        date: '5 Mart 2026',
-        readTime: '4 dk',
-        author: 'TaşıBul Editör',
-        content: `
-            <p>Nakliye maliyetleri, işletmelerin en büyük gider kalemlerinden biridir. Doğru stratejilerle bu maliyetleri önemli ölçüde azaltmak mümkündür.</p>
-
-            <h2>1. Dijital Platformları Kullanın</h2>
-            <p>TaşıBul gibi platformlar üzerinden teklif karşılaştırması yaparak en uygun fiyatı bulabilirsiniz.</p>
-
-            <h2>2. Güzergah Optimizasyonu Yapın</h2>
-            <p>En kısa ve en verimli rotayı seçmek yakıt maliyetlerini ciddi oranda düşürür.</p>
-
-            <h2>3. Boş Dönüş Seferlerinden Kaçının</h2>
-            <p>Araç sahipleri dönüş güzergahlarında yük alarak maliyetlerini paylaşabilir.</p>
-
-            <h2>4. Toplu Gönderim Planlayın</h2>
-            <p>Küçük gönderileri birleştirerek birim başına taşıma maliyetini düşürebilirsiniz.</p>
-
-            <h2>5. Uzun Vadeli Anlaşmalar Yapın</h2>
-            <p>Düzenli taşımacılık ihtiyaçlarınız için taşıyıcılarla uzun vadeli anlaşmalar yaparak indirimli fiyatlar elde edebilirsiniz.</p>
-
-            <h2>6. Yük Sigortası Yaptırın</h2>
-            <p>Olası hasarlardan korunarak beklenmedik maliyetlerin önüne geçebilirsiniz.</p>
-
-            <h2>7. Zamanlamayı Doğru Yapın</h2>
-            <p>Yoğun dönemlerden kaçınarak daha uygun fiyatlarla taşımacılık yaptırabilirsiniz.</p>
-        `,
-    },
+const setLogisticsFallback = (event) => {
+    const img = event?.target;
+    if (!img || img.dataset.fallbackApplied === '1') return;
+    img.dataset.fallbackApplied = '1';
+    img.src = 'https://images.pexels.com/photos/2199293/pexels-photo-2199293.jpeg?auto=compress&cs=tinysrgb&w=1200';
 };
 
-const post = computed(() => posts[route.params.slug] || null);
+useHead(() => {
+    if (!post.value) {
+        return {
+            title: pageTitle.value,
+            meta: [
+                { name: 'robots', content: 'noindex, follow' }
+            ],
+            link: [{ rel: 'canonical', href: `${siteUrl}/blog` }]
+        };
+    }
+
+    return {
+        title: pageTitle.value,
+        meta: [
+            { name: 'description', content: post.value.excerpt },
+            { name: 'keywords', content: `${post.value.category}, lojistik, taşımacılık, sevkiyat, TaşıBul blog` },
+            { name: 'robots', content: 'index, follow, max-image-preview:large' },
+            { property: 'og:title', content: pageTitle.value },
+            { property: 'og:description', content: post.value.excerpt },
+            { property: 'og:type', content: 'article' },
+            { property: 'og:url', content: canonicalUrl.value },
+            { property: 'og:image', content: post.value.image },
+            { property: 'og:site_name', content: 'TaşıBul' },
+            { property: 'article:section', content: post.value.category },
+            { name: 'twitter:card', content: 'summary_large_image' },
+            { name: 'twitter:title', content: pageTitle.value },
+            { name: 'twitter:description', content: post.value.excerpt },
+            { name: 'twitter:image', content: post.value.image }
+        ],
+        link: [
+            { rel: 'canonical', href: canonicalUrl.value }
+        ],
+        script: [
+            {
+                key: 'blog-detail-jsonld',
+                type: 'application/ld+json',
+                children: JSON.stringify({
+                    '@context': 'https://schema.org',
+                    '@graph': [
+                        blogPostingSchema.value,
+                        breadcrumbSchema.value,
+                        relatedPostsSchema.value
+                    ].filter(Boolean)
+                })
+            }
+        ]
+    };
+});
 </script>
 
 <template>
@@ -89,10 +169,31 @@ const post = computed(() => posts[route.params.slug] || null);
                 </div>
 
                 <div class="w-full h-80 rounded-2xl overflow-hidden">
-                    <img :src="post.image" :alt="post.title" class="w-full h-full object-cover" />
+                    <img :src="post.image" :alt="post.title" @error="setLogisticsFallback" class="w-full h-full object-cover" />
                 </div>
 
                 <article class="prose" v-html="post.content"></article>
+
+                <section class="mt-6">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-4">İlgili Bloglar</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <RouterLink
+                            v-for="item in relatedPosts"
+                            :key="item.slug"
+                            :to="`/blog/${item.slug}`"
+                            class="group rounded-xl border border-gray-200 bg-white overflow-hidden hover:shadow-md hover:border-primary/30 transition-all"
+                        >
+                            <div class="w-full h-32 overflow-hidden">
+                                <img :src="item.image" :alt="item.title" @error="setLogisticsFallback" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                            </div>
+                            <div class="p-3 flex flex-col gap-2">
+                                <span class="text-[11px] text-primary bg-primary/10 rounded-full px-2 py-0.5 w-fit">{{ item.category }}</span>
+                                <h3 class="text-sm font-semibold text-gray-800 line-clamp-2 group-hover:text-primary transition-colors">{{ item.title }}</h3>
+                                <p class="text-xs text-gray-500 line-clamp-2">{{ item.excerpt }}</p>
+                            </div>
+                        </RouterLink>
+                    </div>
+                </section>
             </div>
 
         </div>
