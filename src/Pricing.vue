@@ -78,73 +78,10 @@ import Content from '@/components/Content.vue';
 import Footer from '@/components/Footer.vue';
 import Pattern from '@/assets/images/pattern.jpg';
 import { useAuthStore } from '@/stores/auth';
+import { usePricingPlansStore } from '@/stores/pricingPlans';
+import { storeToRefs } from 'pinia';
 
 const authStore = useAuthStore();
-
-const plans = [
-    {
-        id: 'monthly',
-        name: '1 Aylık',
-        description: 'Kısa süreli kullanım için ideal başlangıç paketi.',
-        durationLabel: '1 Ay',
-        totalPrice: '349 TL',
-        normalPrice: '349 × 1 = 349 TL',
-        monthlyCost: '349 TL / ay',
-        discountAmount: '0 TL',
-        discountRate: '%0',
-        badge: null,
-        showDiscount: false,
-        features: ['Sınırsız ilan', 'Temel destek', 'Panel erişimi'],
-        ctaText: 'Paketi Seç',
-        ctaLink: '/panel',
-    },
-    {
-        id: 'quarterly',
-        name: '3 Aylık',
-        description: 'Düzenli kullanım için dengeli fiyat ve süre avantajı.',
-        durationLabel: '3 Ay',
-        totalPrice: '999 TL',
-        normalPrice: '349 × 3 = 1.047 TL',
-        monthlyCost: '333 TL / ay',
-        discountAmount: '48 TL',
-        discountRate: '%4,59',
-        badge: 'Önerilen',
-        showDiscount: true,
-        features: ['Sınırsız ilan', 'Öncelikli destek', 'Panel erişimi'],
-        ctaText: 'Paketi Seç',
-        ctaLink: '/panel',
-    },
-    {
-        id: 'semiannual',
-        name: '6 Aylık',
-        description: 'Orta vadeli planlama yapanlar için ekonomik seçenek.',
-        durationLabel: '6 Ay',
-        totalPrice: '1.779 TL',
-        normalPrice: '349 × 6 = 2.094 TL',
-        monthlyCost: '296,5 TL / ay',
-        discountAmount: '315 TL',
-        discountRate: '%15,04',
-        badge: null,
-        showDiscount: true,
-        features: ['Sınırsız ilan', 'Öncelikli destek', 'Raporlama erişimi'],
-        ctaText: 'Paketi Seç',
-        ctaLink: '/panel',
-    },
-    {
-        id: 'annual',
-        name: '12 Aylık',
-        description: 'Uzun vadede en düşük aylık maliyet sağlayan paket.',
-        durationLabel: '12 Ay',
-        totalPrice: '2.999 TL',
-        normalPrice: '349 × 12 = 4.188 TL',
-        monthlyCost: '249,9 TL / ay',
-        discountAmount: '1.189 TL',
-        discountRate: '%28,39',
-        badge: 'Popüler',
-        showDiscount: true,
-        features: ['Sınırsız ilan', 'Öncelikli destek', 'Detaylı raporlama', 'Özel kampanyalar'],
-        ctaText: 'Paketi Seç',
-        ctaLink: '/panel',
-    },
-];
+const pricingPlansStore = usePricingPlansStore();
+const { plans } = storeToRefs(pricingPlansStore);
 </script>

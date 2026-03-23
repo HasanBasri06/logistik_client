@@ -58,14 +58,16 @@
                                 </div>
                                 <div class="flex items-start justify-between w-full gap-3 pt-7">
                                     <div class="pr-6">
-                                        <div class="text-base font-bold leading-tight text-gray-900">{{ plan.title }}</div>
+                                        <div class="text-base font-bold leading-tight text-gray-900">{{ plan.name }}</div>
                                         <div class="text-sm font-semibold text-gray-700 mt-1">{{ plan.totalPrice }}</div>
                                     </div>
                                     <i v-if="selectedPlanId === plan.id" class="pi pi-check-circle text-primary text-xl"></i>
                                 </div>
                                 <div class="mt-4 w-full rounded-xl border border-gray-100 bg-gray-50/80 px-3 py-2.5">
-                                    <div class="text-sm font-semibold text-primary leading-snug">{{ plan.monthlyCost }}</div>
-                                    <div v-if="plan.discountText" class="text-xs text-emerald-600 font-semibold mt-1 leading-snug">{{ plan.discountText }}</div>
+                                    <div class="text-sm font-semibold text-primary leading-snug">Aylık maliyet: {{ plan.monthlyCost }}</div>
+                                    <div v-if="plan.showDiscount" class="text-xs text-emerald-600 font-semibold mt-1 leading-snug">
+                                        İndirim: {{ plan.discountAmount }} ({{ plan.discountRate }})
+                                    </div>
                                 </div>
                             </button>
                         </div>
@@ -78,7 +80,7 @@
                                     <div class="flex items-start justify-between">
                                         <div>
                                             <p class="text-xs/5 text-white/80">TaşıBul Premium</p>
-                                            <p class="text-sm font-semibold">{{ selectedPlan?.title || '—' }}</p>
+                                            <p class="text-sm font-semibold">{{ selectedPlan?.name || '—' }}</p>
                                         </div>
                                         <div class="flex items-center gap-1.5">
                                             <span class="w-7 h-7 rounded-full bg-white/25"></span>
@@ -109,7 +111,7 @@
                                 <div class="flex items-center justify-between gap-3">
                                     <div class="min-w-0">
                                         <p class="text-xs text-gray-500">Seçilen paket</p>
-                                        <p class="text-sm font-semibold text-gray-900 truncate">{{ selectedPlan?.title || '—' }}</p>
+                                        <p class="text-sm font-semibold text-gray-900 truncate">{{ selectedPlan?.name || '—' }}</p>
                                     </div>
                                     <button
                                         type="button"
@@ -217,6 +219,7 @@
 import { computed, ref } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { storeToRefs } from 'pinia';
+import { usePricingPlansStore } from '@/stores/pricingPlans';
 import api from '@/api';
 import { toast } from 'vue-sonner';
 
@@ -224,50 +227,12 @@ const authStore = useAuthStore();
 const { showPremiumModal } = storeToRefs(authStore);
 
 const show = computed(() => !!showPremiumModal.value);
+const pricingPlansStore = usePricingPlansStore();
+const { plans } = storeToRefs(pricingPlansStore);
 
 const step = ref(1); // 1: plan seçimi, 2: ödeme bilgileri (UI)
 const selectedPlanId = ref(null);
-
-const plans = [
-    {
-        id: 'm1',
-        months: 1,
-        title: '1 Aylık',
-        totalPrice: '349 TL',
-        monthlyCost: 'Aylık maliyet: 349 TL',
-        discountText: null,
-        badge: null,
-    },
-    {
-        id: 'm3',
-        months: 3,
-        title: '3 Aylık',
-        totalPrice: '999 TL',
-        monthlyCost: 'Aylık maliyet: 333 TL',
-        discountText: 'İndirim: 48 TL (%4,59)',
-        badge: 'Önerilen',
-    },
-    {
-        id: 'm6',
-        months: 6,
-        title: '6 Aylık',
-        totalPrice: '1.779 TL',
-        monthlyCost: 'Aylık maliyet: 296,5 TL',
-        discountText: 'İndirim: 315 TL (%15,04)',
-        badge: null,
-    },
-    {
-        id: 'm12',
-        months: 12,
-        title: '12 Aylık',
-        totalPrice: '2.999 TL',
-        monthlyCost: 'Aylık maliyet: 249,9 TL',
-        discountText: 'İndirim: 1.189 TL (%28,39)',
-        badge: 'Popüler',
-    },
-];
-
-const selectedPlan = computed(() => plans.find((p) => p.id === selectedPlanId.value) ?? null);
+const selectedPlan = computed(() => plans.value.find((p) => p.id === selectedPlanId.value) ?? null);
 
 const paymentForm = ref({
     name: '',
