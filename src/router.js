@@ -14,7 +14,6 @@ import AccountVehiclesPage from "./pages/AccountVehiclesPage.vue";
 import AccountChangePasswordPage from "./pages/AccountChangePasswordPage.vue";
 import AccountVerifyPage from "./pages/AccountVerifyPage.vue";
 import AccountCardsPage from "./pages/AccountCardsPage.vue";
-import AccountWalletPage from "./pages/AccountWalletPage.vue";
 import AccountAddressesPage from "./pages/AccountAddressesPage.vue";
 import CargoOwnerPage from "./pages/CargoOwnerPage.vue";
 import CargoOwnerReviewsPage from "./pages/CargoOwnerReviewsPage.vue";
@@ -24,7 +23,6 @@ import CargoOwnerAddressesPage from "./pages/CargoOwnerAddressesPage.vue";
 import CargoOwnerChangePasswordPage from "./pages/CargoOwnerChangePasswordPage.vue";
 import CargoOwnerVerifyAccountPage from "./pages/CargoOwnerVerifyAccountPage.vue";
 import CargoOwnerCardsPage from "./pages/CargoOwnerCardsPage.vue";
-import CargoOwnerWalletPage from "./pages/CargoOwnerWalletPage.vue";
 import PostDetail from "./posts/Detail.vue";
 import ProductDetailPage from "./pages/ProductDetailPage.vue";
 import NotFound from "./pages/NotFound.vue";
@@ -207,16 +205,6 @@ const routes = [
         }
     },
     {
-        path: '/vehicle-owner/cuzdan',
-        component: AccountWalletPage,
-        meta: {
-            layout: Layout,
-            title: 'Cüzdan | TaşıBul',
-            requiresAuth: true,
-            authorization: 'vehicle_owner'
-        }
-    },
-    {
         path: '/vehicle-owner/addresses',
         component: AccountAddressesPage,
         meta: {
@@ -321,16 +309,6 @@ const routes = [
         meta: {
             layout: Layout,
             title: 'Kayıtlı Kartlarım | TaşıBul',
-            requiresAuth: true,
-            authorization: 'cargo_owner'
-        }
-    },
-    {
-        path: '/cargo-owner/cuzdan',
-        component: CargoOwnerWalletPage,
-        meta: {
-            layout: Layout,
-            title: 'Cüzdan | TaşıBul',
             requiresAuth: true,
             authorization: 'cargo_owner'
         }

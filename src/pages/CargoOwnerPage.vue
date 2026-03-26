@@ -24,20 +24,6 @@
                             </div>
                             <i class="pi pi-chevron-right text-gray-300" style="font-size: 14px;"></i>
                         </router-link>
-
-                        <router-link
-                            to="/cargo-owner/cuzdan"
-                            class="bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4 hover:border-primary/50 hover:bg-primary/5 transition-all"
-                        >
-                            <div class="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0">
-                                <i class="pi pi-wallet text-emerald-600" style="font-size: 22px;"></i>
-                            </div>
-                            <div class="flex-1">
-                                <p class="text-xs text-gray-500">Toplam Kazancım</p>
-                                <p class="text-2xl font-bold text-gray-900">{{ walletBalance }} ₺</p>
-                            </div>
-                            <i class="pi pi-chevron-right text-gray-300" style="font-size: 14px;"></i>
-                        </router-link>
                     </div>
 
                     <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -185,7 +171,6 @@ const { user } = storeToRefs(authStore);
 
 const hasUnreadMessages = ref(false);
 const totalPosts = ref(0);
-const walletBalance = ref('0,00');
 
 async function fetchHasUnreadMessages() {
     if (!authStore.isAuthenticated) return;

@@ -11,20 +11,6 @@
                     </div>
 
                     <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        <router-link
-                            to="/vehicle-owner/cuzdan"
-                            class="bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4 hover:border-primary/50 hover:bg-primary/5 transition-all"
-                        >
-                            <div class="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0">
-                                <i class="pi pi-wallet text-emerald-600" style="font-size: 22px;"></i>
-                            </div>
-                            <div class="flex-1">
-                                <p class="text-xs text-gray-500">Toplam Kazancım</p>
-                                <p class="text-2xl font-bold text-gray-900">{{ totalEarnings.toLocaleString('tr-TR') }} ₺</p>
-                            </div>
-                            <i class="pi pi-chevron-right text-gray-300" style="font-size: 14px;"></i>
-                        </router-link>
-
                         <div class="bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4">
                             <div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
                                 <i class="pi pi-clock text-blue-600" style="font-size: 22px;"></i>
@@ -180,7 +166,6 @@ import api from './api';
 const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);
 
-const totalEarnings = ref(0);
 const pendingJobs = ref(0);
 const vehicleCount = ref(0);
 const hasUnreadMessages = ref(false);
@@ -194,7 +179,6 @@ async function fetchVehicleOwnerData() {
         const orders = content?.shipmentOrders ?? [];
         const shipmentStatus = (o) => o.shipment?.status ?? o.status;
         pendingJobs.value = orders.filter(o => shipmentStatus(o) === 'accepted' || shipmentStatus(o) === 'pending').length;
-        totalEarnings.value = orders.reduce((sum, o) => sum + (parseFloat(o.shipment?.price) || parseFloat(o.total_price) || 0), 0);
     } catch {
         vehicleCount.value = 0;
     }

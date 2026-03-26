@@ -19,6 +19,25 @@
                 </Content>
             </section>
 
+            <Content class="relative pb-2 px-4 overflow-hidden">
+                <div class="mx-auto max-w-3xl rounded-2xl border border-emerald-200/80 bg-linear-to-r from-emerald-50 to-white px-5 py-4 shadow-sm">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div class="text-left">
+                            <p class="text-xs font-semibold uppercase tracking-wider text-emerald-700/90">Başlangıç Avantajı</p>
+                            <p class="mt-1 text-sm sm:text-base font-semibold text-gray-900">
+                                Tüm kullanıcılar için ilk <span class="text-emerald-700">30 gün ücretsiz deneme</span> sunulur.
+                            </p>
+                            <p class="mt-1 text-xs sm:text-sm text-gray-600">
+                                Deneme süresi sonunda size en uygun planı seçerek kesintisiz devam edebilirsiniz.
+                            </p>
+                        </div>
+                        <span class="inline-flex self-start sm:self-auto items-center rounded-full border border-emerald-200 bg-emerald-100/70 px-4 py-2 text-sm font-bold text-emerald-800 whitespace-nowrap">
+                            30 Gün Ücretsiz
+                        </span>
+                    </div>
+                </div>
+            </Content>
+
             <!-- 4'lü Grid -->
             <Content class="relative py-12 px-4 overflow-hidden">
                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
@@ -48,10 +67,7 @@
                             <p class="mt-2 text-sm font-semibold text-primary whitespace-nowrap">Aylık maliyet: {{ plan.monthlyCost }}</p>
                             <div v-if="plan.showDiscount" class="mt-2 flex items-center gap-2">
                                 <span class="inline-flex rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-1 text-xs md:text-sm font-bold whitespace-nowrap">
-                                    İndirim {{ plan.discountAmount }}
-                                </span>
-                                <span class="inline-flex rounded-full bg-primary/10 text-primary border border-primary/15 px-2.5 py-1 text-xs font-semibold whitespace-nowrap">
-                                    {{ plan.discountRate }}
+                                    Toplam İndirim {{ plan.discountAmount }}
                                 </span>
                             </div>
                         </div>
