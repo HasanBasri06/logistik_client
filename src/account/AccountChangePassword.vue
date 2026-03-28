@@ -16,18 +16,17 @@
             <div class="flex flex-col gap-2">
                 <label class="text-sm font-semibold text-gray-700">E-posta Doğrulama Kodu</label>
                 <div class="flex gap-2">
-                    <input
+                    <InputOtp
                         v-model="passwordForm.code"
-                        type="text"
-                        inputmode="numeric"
-                        maxlength="6"
-                        placeholder="000000"
-                        :class="[
-                            'w-full h-12 px-4 rounded-lg border-2 text-center text-lg tracking-[0.35em] focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all',
-                            passwordErrors.code ? 'border-red-400 focus:border-red-500' : 'border-gray-200 focus:border-primary'
-                        ]"
+                        :length="6"
+                        :integerOnly="true"
                         :disabled="loading"
-                        @input="passwordForm.code = passwordForm.code.replace(/\D/g, '').slice(0, 6)"
+                        :invalid="!!passwordErrors.code"
+                        :unstyled="true"
+                        :pt="{
+                            root: { class: 'flex gap-2 flex-1 min-w-[200px]' },
+                            pcInputText: { root: { class: passwordErrors.code ? 'w-12 h-14 rounded-md text-lg text-center tracking-[0.4em] font-semibold border border-red-400 bg-white text-gray-700 outline-none focus:ring-2 focus:ring-red-200' : 'w-12 h-14 rounded-md text-lg text-center tracking-[0.4em] font-semibold border border-gray-200 bg-white text-gray-700 outline-none focus:ring-2 focus:ring-primary/20' } }
+                        }"
                     />
                 </div>
                 <div class="flex items-center justify-between gap-2 flex-wrap">
@@ -143,6 +142,7 @@ import { ref } from 'vue';
 import * as yup from 'yup';
 import api from '@/api';
 import { toast } from 'vue-sonner';
+import { InputOtp } from 'primevue';
 
 const passwordForm = ref({
     code: '',

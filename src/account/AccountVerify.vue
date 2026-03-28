@@ -58,16 +58,19 @@
                         <div v-if="!verificationStatus.email" class="flex flex-col gap-3">
                             <label class="text-sm font-medium text-gray-700">Doğrulama Kodu</label>
                             <div class="flex gap-2 flex-wrap">
-                                <input
+                                <InputOtp
                                     v-model="emailVerificationCode"
-                                    type="text"
-                                    placeholder="E-postanıza gelen doğrulama kodunu girin"
-                                    maxlength="6"
-                                    class="input flex-1 min-w-[200px]"
+                                    :length="6"
+                                    :integerOnly="true"
+                                    :unstyled="true"
+                                    :pt="{
+                                        root: { class: 'flex gap-2 flex-1 min-w-[200px]' },
+                                        pcInputText: { root: { class: 'w-12 h-14 rounded-md text-lg text-center tracking-[0.4em] font-semibold border border-gray-200 bg-white text-gray-700 outline-none focus:ring-2 focus:ring-primary/20' } }
+                                    }"
                                 />
                                 <button
                                     type="button"
-                                    :disabled="verifyEmailLoading"
+                                    :disabled="verifyEmailLoading || !emailVerificationCode || emailVerificationCode.length !== 6"
                                     @click="verifyEmailCode"
                                     class="px-4 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shrink-0"
                                 >
@@ -377,6 +380,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { toast } from 'vue-sonner';
 import api from '@/api';
+import { InputOtp } from 'primevue';
 
 const verificationStatus = ref({
     email: false,
@@ -430,7 +434,7 @@ const sendEmailVerificationCode = async () => {
     sendCodeLoading.value = true;
     try {
         const res = await api.post('/confirm-account/send-email-code');
-        const msg = res.data?.message ?? 'Doğrulama kodu e-posta adresinize gönderildi.';
+        const msg = res.data?.message ?? 'Doğrulama kodu telefon numaranıza gönderildi.';
         toast.success(msg, { description: 'E-posta kutunuzu kontrol edin.', duration: 5000 });
     } catch (err) {
         const msg = err.response?.data?.message ?? err.message ?? 'Kod gönderilemedi.';

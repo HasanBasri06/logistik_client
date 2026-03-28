@@ -279,7 +279,7 @@
                     </div>
 
                     <!-- Sağ: Form -->
-                    <div class="w-full md:w-[50%] px-2 py-9 md:p-12 overflow-y-auto md:bg-gradient-to-br md:from-gray-50 md:to-white">
+                    <div class="w-full md:w-[50%] px-2 py-9 md:p-12 overflow-y-auto md:bg-linear-to-br md:from-gray-50 md:to-white">
                         <div class="flex items-center justify-between mb-8">
                             <div>
                                 <p class="text-xs font-semibold uppercase tracking-wider text-primary mb-2">
@@ -457,15 +457,23 @@
 
                             <template v-else-if="registerOtpSent">
                                 <div class="flex flex-col gap-4">
-                                    <p class="text-sm text-gray-600 text-center">
+                                    <p class="text-sm text-gray-600">
                                         <strong>{{ pendingRegisterEmail }}</strong> adresine gönderilen 6 haneli kodu
                                         girin.
                                     </p>
                                     <div class="flex flex-col gap-1">
                                         <label class="text-sm font-medium text-gray-700">Doğrulama Kodu</label>
-                                        <input v-model="otpCode" type="text" inputmode="numeric" maxlength="6"
-                                            placeholder="000000" class="input text-center text-lg tracking-[0.4em]"
-                                            @input="otpCode = otpCode.replace(/\D/g, '').slice(0, 6)" />
+                                        <InputOtp
+                                            ref="registerOtpInputRef"
+                                            v-model="otpCode"
+                                            :length="6"
+                                            :integerOnly="true"
+                                            :unstyled="true"
+                                            :pt="{
+                                                root: { class: 'flex gap-2' },
+                                                pcInputText: { root: { class: 'w-12 h-14 rounded-md text-lg text-center tracking-[0.4em] font-semibold border border-gray-200 bg-white text-gray-700 outline-none focus:ring-2 focus:ring-primary/20' } }
+                                            }"
+                                        />
                                         <span v-if="otpError" class="text-xs text-red-500">{{ otpError }}</span>
                                     </div>
                                     <button type="button" @click="handleVerifyOtp"
@@ -639,7 +647,7 @@
 </template>
 
 <script setup>
-import { computed, onBeforeUnmount, onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, onUnmounted, ref, watch } from 'vue';
 import * as yup from 'yup';
 import { useAuthStore } from '@/stores/auth';
 import { toast } from 'vue-sonner';
@@ -649,6 +657,7 @@ import EkibineSorModal from './EkibineSorModal.vue';
 import AccountBreadcrumb from './AccountBreadcrumb.vue';
 import loginWallpaper from '@/assets/images/login_wallpaper.gif';
 import { InputMask } from 'primevue';
+import { InputOtp } from 'primevue';
 import { storeToRefs } from 'pinia';
 import api from '@/api';
 import { Router } from 'lucide-vue-next';
@@ -726,6 +735,15 @@ const registerLoading = ref(false);
 const resendOtpLoading = ref(false);
 const otpVerifyLoading = ref(false);
 const showPasswordSuggestion = ref(false);
+const registerOtpInputRef = ref(null);
+
+function focusRegisterOtpFirstInput() {
+    const inst = registerOtpInputRef.value;
+    const root = inst?.$el;
+    if (!root?.querySelector) return;
+    const first = root.querySelector('input');
+    first?.focus?.();
+}
 
 const loginSchema = yup.object({
     phone: yup
@@ -788,6 +806,16 @@ watch(requestShowLoginModal, (v) => {
 watch(showLogin, (isOpen) => {
     document.body.style.overflow = isOpen ? 'hidden' : 'auto';
 });
+
+watch(
+    registerOtpSent,
+    async (sent) => {
+        if (!sent || !showLogin.value) return;
+        await nextTick();
+        focusRegisterOtpFirstInput();
+    },
+    { flush: 'post' }
+);
 
 const handleLogout = () => {
     accountDropdownOpen.value = false;
@@ -895,7 +923,7 @@ const handleLoginSubmit = async () => {
             pendingRegisterEmail.value = result.email;
             otpCode.value = "";
             otpError.value = "";
-            toast.info('E-posta doğrulaması gerekli. Lütfen e-postanıza gelen kodu girin.', {
+            toast.info('Telefon doğrulaması gerekli. Lütfen telefonunuza gelen kodu girin.', {
                 description: 'Doğrulama kodu',
                 duration: 5000
             });
@@ -1009,7 +1037,7 @@ const handleRegisterSubmit = async () => {
             pendingRegisterEmail.value = result.email ?? registerForm.value.email;
             otpCode.value = "";
             otpError.value = "";
-            toast.success('Doğrulama kodu e-posta adresinize gönderildi.', {
+            toast.success('Doğrulama kodu telefonunuza gönderildi.', {
                 description: 'Kodu girin',
                 duration: 5000
             });
@@ -1165,7 +1193,7 @@ const handleResendOtp = async () => {
     const result = await authStore.resendOtp(pendingRegisterEmail.value);
     resendOtpLoading.value = false;
     if (result.success) {
-        toast.success('Yeni doğrulama kodu e-posta adresinize gönderildi.', { duration: 5000 });
+        toast.success('Yeni doğrulama kodu telefon numaranıza gönderildi.', { duration: 5000 });
         otpCode.value = '';
     } else {
         toast.error(result.error || 'Kod gönderilemedi.', { duration: 5000 });

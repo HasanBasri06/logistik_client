@@ -1526,11 +1526,18 @@ onMounted(async () => {
         if (!tourDone && document.querySelector('#tour-nereden')) {
             fromDropdownOpen.value = false;
             toDropdownOpen.value = false;
-            nextTick(() => {
-                const instance = getCurrentInstance();
+            // getCurrentInstance() nextTick içinde null dönebiliyor; önce referansı al, sonra start et.
+            const instance = getCurrentInstance();
+            await nextTick();
+            // Child komponent (v-tour) mount sırası bazen denk gelmeyebiliyor; kısa retry yapıyoruz.
+            for (let i = 0; i < 5; i++) {
                 const tours = instance?.appContext?.config?.globalProperties?.$tours;
-                if (tours?.panelTour) tours.panelTour.start();
-            });
+                if (tours?.panelTour?.start) {
+                    tours.panelTour.start();
+                    break;
+                }
+                await nextTick();
+            }
         }
     } catch (_) {}
 });
