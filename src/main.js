@@ -1,6 +1,7 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
+import 'vue3-tour/dist/vue3-tour.css'
 import './global.css'
 import 'vue-sonner/style.css'
 import { router } from './router'
@@ -8,7 +9,6 @@ import PrimeVue from 'primevue/config';
 import 'primeicons/primeicons.css';
 import { createHead } from '@vueuse/head'
 import Vue3Tour from 'vue3-tour'
-import 'vue3-tour/dist/vue3-tour.css'
 
 const app = createApp(App)
 const pinia = createPinia()

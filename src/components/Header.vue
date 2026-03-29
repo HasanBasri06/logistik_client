@@ -11,8 +11,8 @@
 
                 <!-- Sağ taraf: mobilde hamburger, masaüstünde menü -->
                 <ul class="flex items-center gap-6 text-sm font-medium">
-                    <!-- Mobil: hamburger -->
-                    <li class="md:hidden">
+                    <!-- Mobil: hamburger (vue3-tour: giriş yapılmışken #tour-hesap-mobil) -->
+                    <li class="md:hidden" :id="authStore.isAuthenticated ? 'tour-hesap-mobil' : undefined">
                         <button type="button"
                             class="p-2 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
                             aria-label="Menüyü aç" @click="mobileMenuOpen = true">

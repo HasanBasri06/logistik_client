@@ -4,8 +4,9 @@
         <!-- Arama Alanı (responsive) -->
         <div class="w-full bg-white border-b border-gray-200 py-2 sm:py-2 flex flex-col items-center shrink-0 relative " ref="searchBarRef">
             <div class="w-full flex flex-col max-w-[1200px] mx-auto px-3 sm:px-4 relative">
-                <!-- Mobil: tek input → tıklanınca filtre modalı açılır -->
+                <!-- Mobil: tek input → tıklanınca filtre modalı açılır (vue3-tour: #tour-mobil-arama) -->
                 <div
+                    id="tour-mobil-arama"
                     class="sm:hidden flex items-center gap-2 w-full h-12 px-4 rounded-xl border bg-gray-50 cursor-pointer transition-colors"
                     :class="(fromCity || fromDistrict) && (toCity || toDistrict) ? 'border-2 border-primary' : 'border-gray-200'"
                     @click="mobileFilterOpen = true"
@@ -337,8 +338,8 @@
                                 <ChevronDown class="w-5 h-5 text-gray-400 shrink-0" />
                             </div>
                         </div>
-                        <!-- Tarih alanları -->
-                        <div class="grid grid-cols-2 gap-3">
+                        <!-- Tarih alanları (vue3-tour mobil: #tour-mobil-gidis-donus) -->
+                        <div id="tour-mobil-gidis-donus" class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-[11px] font-medium text-gray-400 uppercase tracking-wider mb-1.5 ml-0.5">Gidiş</label>
                                 <div class="rounded-2xl border border-gray-200/80 p-3 bg-white shadow-sm overflow-hidden" @click="fromDropdownOpen = false; toDropdownOpen = false">
@@ -1430,33 +1431,101 @@ const { locationError, userCoords, locationRequesting } = storeToRefs(locationSt
 const { requestUserLocation } = locationStore;
 
 // İlk giriş panel turu (vue3-tour) – hesap bazlı, her hesap için bir kez
-const panelTourSteps = [
-    {
-        target: '#tour-nereden',
-        header: { title: 'Nereden' },
-        content: 'Sevkiyatın başlayacağı şehir ve ilçeyi buradan seçebilirsiniz.',
-        params: { placement: 'bottom' },
-    },
-    {
-        target: '#tour-nereye',
-        header: { title: 'Nereye' },
-        content: 'Sevkiyatın varacağı şehir ve ilçeyi buradan seçin.',
-        params: { placement: 'bottom' },
-    },
-    {
-        target: '#tour-gidis-donus',
-        header: { title: 'Gidiş ve Dönüş Saati' },
-        content: 'Gidiş ve dönüş tarihlerini bu alanlardan seçerek ilanları filtreleyebilirsiniz.',
-        params: { placement: 'bottom' },
-    },
-    {
-        target: '#tour-hesap',
-        header: { title: 'Hesap' },
-        content: 'Hesabınıza, ilanlarınıza ve ayarlarınıza bu menüden ulaşabilirsiniz.',
-        params: { placement: 'bottom' },
-    },
-];
+// Mobil: masaüstü hedefleri `hidden sm:flex` ile DOM'da gizli; Popper sağ üste düşer — ayrı mobil hedefler kullanılır.
+const isSmUp = ref(typeof window !== 'undefined' && window.matchMedia('(min-width: 640px)').matches);
+
+function updateTourBreakpoint() {
+    if (typeof window === 'undefined') return;
+    isSmUp.value = window.matchMedia('(min-width: 640px)').matches;
+}
+
+async function panelTourMobileBeforeStep2(type) {
+    if (isSmUp.value) return;
+    if (type === 'previous') {
+        mobileFilterOpen.value = false;
+        await nextTick();
+    }
+}
+
+async function panelTourMobileBeforeStep3(type) {
+    if (isSmUp.value) return;
+    if (type === 'next' || type === 'previous') {
+        mobileFilterOpen.value = true;
+        await nextTick();
+    }
+}
+
+async function panelTourMobileBeforeStep4(type) {
+    if (isSmUp.value) return;
+    if (type === 'next') {
+        mobileFilterOpen.value = false;
+        await nextTick();
+    }
+}
+
+const panelTourSteps = computed(() => {
+    if (isSmUp.value) {
+        return [
+            {
+                target: '#tour-nereden',
+                header: { title: 'Nereden' },
+                content: 'Sevkiyatın başlayacağı şehir ve ilçeyi buradan seçebilirsiniz.',
+                params: { placement: 'bottom' },
+            },
+            {
+                target: '#tour-nereye',
+                header: { title: 'Nereye' },
+                content: 'Sevkiyatın varacağı şehir ve ilçeyi buradan seçin.',
+                params: { placement: 'bottom' },
+            },
+            {
+                target: '#tour-gidis-donus',
+                header: { title: 'Gidiş ve Dönüş Saati' },
+                content: 'Gidiş ve dönüş tarihlerini bu alanlardan seçerek ilanları filtreleyebilirsiniz.',
+                params: { placement: 'bottom' },
+            },
+            {
+                target: '#tour-hesap',
+                header: { title: 'Hesap' },
+                content: 'Hesabınıza, ilanlarınıza ve ayarlarınıza bu menüden ulaşabilirsiniz.',
+                params: { placement: 'bottom' },
+            },
+        ];
+    }
+    return [
+        {
+            target: '#tour-mobil-arama',
+            header: { title: 'Nereden' },
+            content:
+                'Nereden ve nereye seçimini bu alana dokunarak açın; açılan ekranda şehir ve ilçeyi belirleyebilirsiniz.',
+            params: { placement: 'bottom' },
+        },
+        {
+            target: '#tour-mobil-arama',
+            header: { title: 'Nereye' },
+            content: 'Aynı arama ekranında varış şehir ve ilçesini de seçebilirsiniz.',
+            params: { placement: 'bottom' },
+            before: panelTourMobileBeforeStep2,
+        },
+        {
+            target: '#tour-mobil-gidis-donus',
+            header: { title: 'Gidiş ve Dönüş Saati' },
+            content: 'Gidiş ve dönüş tarihlerini bu alanlardan seçerek ilanları filtreleyebilirsiniz.',
+            params: { placement: 'bottom' },
+            before: panelTourMobileBeforeStep3,
+        },
+        {
+            target: '#tour-hesap-mobil',
+            header: { title: 'Hesap' },
+            content: 'Hesabınıza, ilanlarınıza ve ayarlarınıza üst menüdeki simgeyi açarak ulaşabilirsiniz.',
+            params: { placement: 'bottom' },
+            before: panelTourMobileBeforeStep4,
+        },
+    ];
+});
+
 const markPanelTourCompleted = async () => {
+    mobileFilterOpen.value = false;
     try {
         const res = await api.post('/auth/panel-tour-complete');
         const user = res?.data?.content?.user;
@@ -1510,6 +1579,8 @@ const handleFilterChange = (modelKey) => {
 
 onMounted(async () => {
     document.addEventListener('click', handleClickOutside);
+    window.addEventListener('resize', updateTourBreakpoint);
+    updateTourBreakpoint();
     const initialPage = parseInt(route.query.page) || 1;
     shipmentsStore.fetchShipments({ initialPage });
     fetchCities().then(setDefaultLocations);
@@ -1523,7 +1594,7 @@ onMounted(async () => {
     // DB'de panel_tour_completed_at dolu değilse turu göster
     try {
         const tourDone = authStore.user?.panel_tour_completed === true;
-        if (!tourDone && document.querySelector('#tour-nereden')) {
+        if (!tourDone && document.querySelector(isSmUp.value ? '#tour-nereden' : '#tour-mobil-arama')) {
             fromDropdownOpen.value = false;
             toDropdownOpen.value = false;
             // getCurrentInstance() nextTick içinde null dönebiliyor; önce referansı al, sonra start et.
@@ -1544,6 +1615,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
     document.removeEventListener('click', handleClickOutside);
+    window.removeEventListener('resize', updateTourBreakpoint);
 });
 
 function getSearchFormData() {
