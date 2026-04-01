@@ -100,7 +100,6 @@
                     <p class="text-xs text-gray-500">
                         © {{ currentYear }} TaşıBul. Tüm hakları saklıdır.
                     </p>
-                    <img src="@/assets/images/visa_master.png" alt="Visa ve Mastercard" class="h-6 md:h-7 object-contain opacity-90" />
                 </div>
             </div>
         </Content>
