@@ -84,7 +84,13 @@ async function fetchReviews() {
         const list = content?.comments ?? [];
         reviews.value = list.map((c) => ({
             id: c.id,
-            userName: c.creator?.full_name ?? c.commenter_name ?? 'Kullanıcı',
+            userName:
+                c.commenter_name?.trim() ||
+                c.sender?.full_name ||
+                [c.sender?.first_name, c.sender?.last_name].filter(Boolean).join(' ') ||
+                c.creator?.full_name ||
+                [c.creator?.first_name, c.creator?.last_name].filter(Boolean).join(' ') ||
+                'Kullanıcı',
             rating: Number(c.score) || 0,
             comment: c.comment ?? '',
             date: formatDate(c.created_at),

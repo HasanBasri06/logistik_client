@@ -178,7 +178,8 @@ async function fetchVehicleOwnerData() {
 
         const orders = content?.shipmentOrders ?? [];
         const shipmentStatus = (o) => o.shipment?.status ?? o.status;
-        pendingJobs.value = orders.filter(o => shipmentStatus(o) === 'accepted' || shipmentStatus(o) === 'pending').length;
+        const ongoing = (s) => s === 'accepted' || s === 'active' || s === 'pending';
+        pendingJobs.value = orders.filter((o) => ongoing(shipmentStatus(o))).length;
     } catch {
         vehicleCount.value = 0;
     }

@@ -3,6 +3,7 @@
     class="w-full min-h-0 rounded-2xl bg-white border border-gray-200 overflow-hidden cursor-pointer transition-all duration-300 shadow-sm hover:border-primary hover:shadow-[0_4px_12px_rgba(57,131,140,0.15)] hover:-translate-y-0.5"
     @click="handleClick($event, shipment)"
   >
+    
     <!-- Üst Bölüm: Nereden-Nereye ve Gidiş Saati -->
     <div class="flex flex-row justify-between items-center gap-3 py-4 px-4 sm:py-5 sm:px-6 border-b border-gray-100">
       <!-- Nereden-Nereye: mobilde [saatler] [ok] [yerler]; masaüstünde yatay -->
@@ -80,7 +81,15 @@
         <div class="text-sm font-medium text-gray-600 shrink-0">{{ shipment.post_type?.value }}</div>
         <div class="w-px h-5 bg-gray-200 shrink-0"></div>
         <span class="text-sm text-gray-500 shrink-0">{{ requestText }}</span>
-        <div v-if="(user.id == shipment.creater_id && shipment.status == 'active')" class="flex items-center shrink-0">
+        <div v-if="showOwnerNotLiveBadge" class="flex items-center shrink-0">
+          <div class="w-px h-5 bg-gray-200 mr-4"></div>
+          <span
+            class="inline-flex items-center rounded-full bg-slate-100 text-slate-800 border border-slate-200 px-3 py-1 text-xs font-semibold"
+          >
+            İlanınız şu an yayında değildir
+          </span>
+        </div>
+        <div v-else-if="showOwnerCancelButton" class="flex items-center shrink-0">
           <div class="w-px h-5 bg-gray-200 mr-4"></div>
           <button class="bg-red-200 text-red-700 text-sm px-4 py-1 rounded-md cursor-pointer" @click.stop="handleCanceledBtn($event, shipment)">İptal Et</button>
         </div>
@@ -100,7 +109,16 @@
         </div>
         <p class="text-sm text-gray-500 min-w-0">{{ requestText }}</p>
         <p class="text-sm font-medium text-gray-700 truncate min-w-0 text-end">{{ shipment.car?.name }}{{ carDetailValue }}</p>
-        <template v-if="user.id == shipment.creater_id">
+        <template v-if="showOwnerNotLiveBadge">
+          <div class="col-span-2 flex justify-end">
+            <span
+              class="inline-flex items-center rounded-full bg-slate-100 text-slate-800 border border-slate-200 px-3 py-1.5 text-xs font-semibold"
+            >
+              İlanınız şu an yayında değildir
+            </span>
+          </div>
+        </template>
+        <template v-else-if="showOwnerCancelButton">
           <div class="flex md:justify-end text-end">
             <button class="bg-red-100 hover:bg-red-200 text-red-700 text-sm font-medium px-3 py-1.5 rounded-lg transition-colors cursor-pointer" @click.stop="handleCanceledBtn($event, shipment)">İptal Et</button>
           </div>
@@ -142,7 +160,12 @@
           <label class="block text-sm font-medium text-gray-700 mb-2">Nedeni</label>
           <select
             v-model="cancelReason"
-            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary mb-3"
+            :class="[
+              'w-full rounded-lg border px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 mb-3',
+              cancelReason
+                ? 'border-red-400 focus:ring-red-200 focus:border-red-500 text-red-700'
+                : 'border-gray-300 focus:ring-red-200 focus:border-red-500'
+            ]"
           >
             <option value="" disabled>Bir neden seçin</option>
             <option v-for="reason in cancelReasons" :key="reason" :value="reason">
@@ -155,7 +178,7 @@
             <textarea
               v-model="cancelOtherReason"
               rows="3"
-              class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
+              class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-200 focus:border-red-500 resize-none"
               placeholder="Kısaca açıklayın..."
             />
           </div>
@@ -185,7 +208,7 @@
 </template>
 
 <script setup>
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { ref, computed } from 'vue';
 import { Star, ArrowRight, ArrowDown } from 'lucide-vue-next';
 import { useAuthStore } from '@/stores/auth';
@@ -209,6 +232,23 @@ const props = defineProps({
 });
 
 const router = useRouter();
+const route = useRoute();
+
+/** Kendi ilanı — `/product/:slug` sayfasında iptal yok; aktif değilse “yayında değildir” rozeti */
+const isListingOwner = computed(
+  () => user.value?.id != null && Number(user.value.id) === Number(props.shipment?.creater_id)
+);
+const isProductDetailRoute = computed(() => route.path.startsWith('/product/'));
+const showOwnerNotLiveBadge = computed(
+  () =>
+    isListingOwner.value &&
+    isProductDetailRoute.value &&
+    props.shipment?.status != null &&
+    props.shipment.status !== 'active'
+);
+const showOwnerCancelButton = computed(
+  () => isListingOwner.value && props.shipment?.status === 'active' && !isProductDetailRoute.value
+);
 
 // UserSection.vue ile aynı: resim yoksa ui-avatars.com API'sinden avatar
 const fromPlaceText = computed(() => {
@@ -229,15 +269,16 @@ const toPlaceText = computed(() => {
   return district ? `${city} / ${district}` : city;
 });
 
-const creatorAvatarUrl = computed(() => {  
-  
+const creatorAvatarUrl = computed(() => {
   const c = props.shipment?.creator;
-    
-    if (c?.profile_image !== null && c?.profile_image !== '') return import.meta.env.VITE_APP_SERVER_URL + 'storage/' + c.profile_image;
-    if (c?.image) return c.image;
-    if (c?.avatar) return c.avatar;
-    const name = c?.full_name || '?';
-    return 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name) + '&background=39838C&color=fff';
+  const profileImg = c?.profile_image;
+  if (c && profileImg != null && profileImg !== '') {
+    return import.meta.env.VITE_APP_SERVER_URL + 'storage/' + profileImg;
+  }
+  if (c?.image) return c.image;
+  if (c?.avatar) return c.avatar;
+  const name = c?.full_name || '?';
+  return 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name) + '&background=39838C&color=fff';
 });
 
 const handleClick = (e, shipment) => {

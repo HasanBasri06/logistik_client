@@ -25,6 +25,12 @@ export const usePostStore = defineStore('post', () => {
         selectedPostType.value = postType;
     }
 
+    /** Araç her değiştiğinde varyant seçimini sıfırla */
+    function setSelectedCar(car) {
+        selectedCar.value = car;
+        selectedDetailValues.value = {};
+    }
+
     const selectResetStates = () => {
         selectedCar.value = null
         selectedDetailValues.value = {}
@@ -40,6 +46,7 @@ export const usePostStore = defineStore('post', () => {
         nextPage,
         prevPage,
         resetPage,
+        setSelectedCar,
         setSelectedPostType,
         selectResetStates
     }

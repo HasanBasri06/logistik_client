@@ -4,7 +4,7 @@
         <Content>
             <div class="flex flex-row gap-3 w-full h-[calc(100vh-64px)]">
                 <AccountSidebar />
-                <div class="bg-white flex-1 mt-3 border border-gray-200 p-3 rounded-md flex flex-col overflow-hidden">
+                <div class="bg-white flex-1 min-h-0 mt-3 border border-gray-200 p-3 rounded-md flex flex-col overflow-hidden">
                     <AccountOrders />
                 </div>
             </div>

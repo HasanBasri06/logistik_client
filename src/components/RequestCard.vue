@@ -28,13 +28,20 @@
             <div class="flex items-center gap-2">
                 <button
                     type="button"
-                    class="rounded-xl border border-primary px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
+                    :disabled="messagingDisabled"
+                    class="rounded-xl border border-primary px-4 py-2 text-sm font-medium text-primary transition-colors hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent"
                     @click="$emit('message-click', request)"
                 >
                     Mesaj
                 </button>
-                <button type="button" class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors">
-                    Hemen Al
+                <button
+                    v-if="showAcceptButton && request.status !== 'accepted'"
+                    type="button"
+                    class="rounded-xl bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                    :disabled="acceptLoading"
+                    @click="$emit('accept-click', request)"
+                >
+                    {{ acceptLoading ? 'İşleniyor...' : 'Hemen Al' }}
                 </button>
             </div>
         </div>
@@ -49,8 +56,24 @@ defineProps({
     request: {
         type: Object,
         default: () => ({})
+    },
+    /** İlan sahibi: teklifi kabul (Hemen Al) */
+    showAcceptButton: {
+        type: Boolean,
+        default: false
+    },
+    acceptLoading: {
+        type: Boolean,
+        default: false
+    },
+    /** İlan active değilken Mesaj kapalı */
+    messagingDisabled: {
+        type: Boolean,
+        default: false
     }
 });
+
+defineEmits(['message-click', 'accept-click']);
 </script>
 
 <style scoped></style>

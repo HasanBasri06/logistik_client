@@ -147,62 +147,77 @@ useHead(() => {
 
 <template>
     <Header />
-    <Content class="mt-10 min-h-screen">
-        <div v-if="post" class="py-10 max-w-3xl mx-auto">
-
-            <RouterLink to="/blog" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-primary transition-colors mb-8">
+    <Content class="mt-6 min-h-screen sm:mt-10">
+        <div v-if="post" class="mx-auto w-full max-w-3xl py-6 sm:py-10">
+            <RouterLink
+                to="/blog"
+                class="mb-6 inline-flex items-center gap-2 text-sm text-gray-500 transition-colors hover:text-primary sm:mb-8"
+            >
                 <i class="pi pi-arrow-left text-xs"></i> Tüm Yazılar
             </RouterLink>
 
-            <div class="flex flex-col gap-6">
-                <div class="flex items-center gap-3">
-                    <span class="text-xs font-medium text-primary bg-primary/10 px-2.5 py-1 rounded-full">{{ post.category }}</span>
+            <div class="flex flex-col gap-5 sm:gap-6">
+                <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+                    <span class="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">{{ post.category }}</span>
                     <span class="text-xs text-gray-400">{{ post.date }}</span>
                     <span class="text-xs text-gray-400">{{ post.readTime }} okuma</span>
                 </div>
 
-                <h1 class="text-3xl font-bold tracking-tight leading-tight">{{ post.title }}</h1>
+                <h1 class="text-2xl font-bold leading-tight tracking-tight wrap-break-word text-gray-900 sm:text-3xl md:text-4xl">
+                    {{ post.title }}
+                </h1>
 
                 <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-white text-xs font-semibold">TE</div>
+                    <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-white">TE</div>
                     <span class="text-sm text-gray-600">{{ post.author }}</span>
                 </div>
 
-                <div class="w-full h-80 rounded-2xl overflow-hidden">
-                    <img :src="post.image" :alt="post.title" @error="setLogisticsFallback" class="w-full h-full object-cover" />
+                <div class="aspect-16/10 w-full overflow-hidden rounded-xl sm:aspect-21/9 sm:rounded-2xl">
+                    <img
+                        :src="post.image"
+                        :alt="post.title"
+                        @error="setLogisticsFallback"
+                        class="h-full w-full object-cover"
+                    />
                 </div>
 
-                <article class="prose" v-html="post.content"></article>
+                <article class="prose w-full min-w-0 max-w-full" v-html="post.content"></article>
 
-                <section class="mt-6">
-                    <h2 class="text-xl font-semibold text-gray-900 mb-4">İlgili Bloglar</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <section class="mt-4 sm:mt-6">
+                    <h2 class="mb-3 text-lg font-semibold text-gray-900 sm:mb-4 sm:text-xl">İlgili Bloglar</h2>
+                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3">
                         <RouterLink
                             v-for="item in relatedPosts"
                             :key="item.slug"
                             :to="`/blog/${item.slug}`"
-                            class="group rounded-xl border border-gray-200 bg-white overflow-hidden hover:shadow-md hover:border-primary/30 transition-all"
+                            class="group overflow-hidden rounded-xl border border-gray-200 bg-white transition-all hover:border-primary/30 hover:shadow-md"
                         >
-                            <div class="w-full h-32 overflow-hidden">
-                                <img :src="item.image" :alt="item.title" @error="setLogisticsFallback" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                            <div class="aspect-16/10 w-full overflow-hidden sm:aspect-auto sm:h-32">
+                                <img
+                                    :src="item.image"
+                                    :alt="item.title"
+                                    @error="setLogisticsFallback"
+                                    class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                />
                             </div>
-                            <div class="p-3 flex flex-col gap-2">
-                                <span class="text-[11px] text-primary bg-primary/10 rounded-full px-2 py-0.5 w-fit">{{ item.category }}</span>
-                                <h3 class="text-sm font-semibold text-gray-800 line-clamp-2 group-hover:text-primary transition-colors">{{ item.title }}</h3>
-                                <p class="text-xs text-gray-500 line-clamp-2">{{ item.excerpt }}</p>
+                            <div class="flex flex-col gap-2 p-3 sm:p-3.5">
+                                <span class="w-fit rounded-full bg-primary/10 px-2 py-0.5 text-[11px] text-primary">{{ item.category }}</span>
+                                <h3 class="line-clamp-2 text-sm font-semibold text-gray-800 transition-colors group-hover:text-primary">
+                                    {{ item.title }}
+                                </h3>
+                                <p class="line-clamp-2 text-xs text-gray-500">{{ item.excerpt }}</p>
                             </div>
                         </RouterLink>
                     </div>
                 </section>
             </div>
-
         </div>
 
-        <div v-else class="py-20 flex flex-col items-center gap-4 text-center">
-            <i class="pi pi-file-edit text-5xl text-gray-300"></i>
-            <h2 class="text-xl font-semibold text-gray-700">Yazı Bulunamadı</h2>
-            <p class="text-sm text-gray-500">Aradığınız blog yazısı mevcut değil veya kaldırılmış olabilir.</p>
-            <RouterLink to="/blog" class="text-sm text-primary hover:underline mt-2">Bloğa Dön</RouterLink>
+        <div v-else class="flex flex-col items-center gap-4 px-4 py-16 text-center sm:py-20">
+            <i class="pi pi-file-edit text-4xl text-gray-300 sm:text-5xl"></i>
+            <h2 class="text-lg font-semibold text-gray-700 sm:text-xl">Yazı Bulunamadı</h2>
+            <p class="max-w-md text-sm text-gray-500">Aradığınız blog yazısı mevcut değil veya kaldırılmış olabilir.</p>
+            <RouterLink to="/blog" class="mt-1 text-sm text-primary hover:underline">Bloğa Dön</RouterLink>
         </div>
     </Content>
     <Footer />
@@ -211,17 +226,46 @@ useHead(() => {
 <style scoped>
 .prose {
     font-size: 0.9375rem;
-    line-height: 1.8;
+    line-height: 1.75;
     color: #374151;
 }
+@media (min-width: 640px) {
+    .prose {
+        font-size: 1rem;
+        line-height: 1.8;
+    }
+}
 .prose :deep(h2) {
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     font-weight: 700;
     color: #111827;
-    margin-top: 2rem;
+    margin-top: 1.75rem;
     margin-bottom: 0.75rem;
+}
+@media (min-width: 640px) {
+    .prose :deep(h2) {
+        font-size: 1.25rem;
+        margin-top: 2rem;
+    }
 }
 .prose :deep(p) {
     margin-bottom: 1rem;
+}
+.prose :deep(img) {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.75rem;
+}
+.prose :deep(a) {
+    word-break: break-word;
+}
+.prose :deep(pre),
+.prose :deep(table) {
+    max-width: 100%;
+    overflow-x: auto;
+}
+.prose :deep(ul),
+.prose :deep(ol) {
+    padding-left: 1.25rem;
 }
 </style>

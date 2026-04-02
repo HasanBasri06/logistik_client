@@ -56,39 +56,41 @@ useHead({
 
 <template>
     <Header />
-    <Content class="mt-10 min-h-screen">
-        <div class="flex flex-col gap-10 py-10">
+    <Content class="mt-6 min-h-screen sm:mt-10">
+        <div class="flex flex-col gap-6 py-6 sm:gap-10 sm:py-10">
 
-            <div class="flex flex-col gap-3">
-                <h1 class="text-4xl font-bold tracking-tight">Blog</h1>
-                <p class="text-gray-500 text-base">Lojistik dünyasından haberler, rehberler ve ipuçları.</p>
+            <div class="flex flex-col gap-2 sm:gap-3">
+                <h1 class="text-3xl font-bold tracking-tight sm:text-4xl">Blog</h1>
+                <p class="text-sm text-gray-500 sm:text-base">Lojistik dünyasından haberler, rehberler ve ipuçları.</p>
             </div>
 
-            <div class="grid grid-cols-4 gap-6">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
                 <RouterLink
                     v-for="post in posts"
                     :key="post.slug"
                     :to="`/blog/${post.slug}`"
-                    class="group flex flex-col rounded-2xl border border-gray-100 bg-white overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-primary/20 hover:-translate-y-1"
+                    class="group flex min-h-0 flex-col overflow-hidden rounded-2xl border border-gray-100 bg-white transition-all duration-300 hover:-translate-y-1 hover:border-primary/20 hover:shadow-lg"
                 >
-                    <div class="w-full h-44 overflow-hidden">
+                    <div class="aspect-16/10 w-full shrink-0 overflow-hidden sm:aspect-5/3">
                         <img
                             :src="post.image"
                             :alt="post.title"
                             @error="setLogisticsFallback"
-                            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                         />
                     </div>
-                    <div class="flex flex-col gap-3 p-5 flex-1">
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs font-medium text-primary bg-primary/10 px-2.5 py-1 rounded-full">{{ post.category }}</span>
+                    <div class="flex min-h-0 flex-1 flex-col gap-2 p-4 sm:gap-3 sm:p-5">
+                        <div class="flex flex-wrap items-center gap-2">
+                            <span class="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">{{ post.category }}</span>
                             <span class="text-xs text-gray-400">{{ post.readTime }}</span>
                         </div>
-                        <h2 class="text-sm font-semibold text-gray-900 leading-snug line-clamp-2 group-hover:text-primary transition-colors">
+                        <h2
+                            class="line-clamp-2 text-sm font-semibold leading-snug text-gray-900 transition-colors group-hover:text-primary sm:text-base"
+                        >
                             {{ post.title }}
                         </h2>
-                        <p class="text-xs text-gray-500 leading-relaxed line-clamp-2">{{ post.excerpt }}</p>
-                        <span class="text-xs text-gray-400 mt-auto pt-2">{{ post.date }}</span>
+                        <p class="line-clamp-2 text-xs leading-relaxed text-gray-500 sm:text-sm">{{ post.excerpt }}</p>
+                        <span class="mt-auto pt-2 text-xs text-gray-400">{{ post.date }}</span>
                     </div>
                 </RouterLink>
             </div>

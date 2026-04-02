@@ -80,15 +80,17 @@ const shipments = ref([]);
 const selectedStatus = ref('active');
 
 const postTabs = [
-    { value: 'active', label: 'Devam Eden', icon: 'pi-sync' },
+    { value: 'active', label: 'İlanda Olanlar', icon: 'pi-sync' },
+    { value: 'accepted', label: 'Devam Eden', icon: 'pi-sync' },
     { value: 'done', label: 'Tamamlanan', icon: 'pi-check-circle' },
     { value: 'canceled', label: 'İptal Edilen', icon: 'pi-times-circle' },
 ];
 
 const emptyMessage = computed(() => {
-    if (selectedStatus.value === 'active') return 'Henüz devam eden ilanınız bulunmuyor.';
-    if (selectedStatus.value === 'done') return 'Henüz tamamlanan ilanınız bulunmuyor.';
-    if (selectedStatus.value === 'canceled') return 'İptal edilen ilanınız bulunmuyor.';
+    if (selectedStatus.value === 'active') return 'Henüz yayında (teklif bekleyen) ilanınız yok.';
+    if (selectedStatus.value === 'accepted') return 'Henüz devam eden (anlaşılmış) ilanınız yok.';
+    if (selectedStatus.value === 'done') return 'Henüz tamamlanan ilanınız yok.';
+    if (selectedStatus.value === 'canceled') return 'İptal edilen ilanınız yok.';
     return 'Henüz ilanınız bulunmuyor.';
 });
 
@@ -105,7 +107,8 @@ async function loadShipments() {
         const res = await api.get(`/shipments/creator/${id}`, {
             params: { status: selectedStatus.value },
         });
-        const content = res.data?.content;
+        const content = res.data?.content ?? res.data;
+        // Laravel sayfalama: { data: [...], current_page, ... } veya düz dizi
         const list = content?.data ?? (Array.isArray(content) ? content : []);
         shipments.value = Array.isArray(list) ? list : [];
     } catch (err) {

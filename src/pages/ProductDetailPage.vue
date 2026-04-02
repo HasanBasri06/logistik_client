@@ -42,7 +42,14 @@
                                     {{ postTypeLabel }}
                                 </span>
                             </div>
-                            <div v-if="isCreator" class="mt-4 pt-4 border-t border-gray-100">
+                            <div v-if="isCreator && shipment?.status !== 'active'" class="mt-4 pt-4 border-t border-gray-100">
+                                <span
+                                    class="inline-flex items-center rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-700"
+                                >
+                                    İlan şu an listelenmemektedir
+                                </span>
+                            </div>
+                            <div v-else-if="isCreator && shipment?.status === 'active'" class="mt-4 pt-4 border-t border-gray-100">
                                 <button
                                     type="button"
                                     class="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 text-sm font-semibold transition-colors"
@@ -94,7 +101,11 @@
                                         v-for="req in (shipment?.requests || [])"
                                         :key="req?.id ?? req?.created_at"
                                         :request="req"
+                                        :show-accept-button="isCreator && canAcceptOffers"
+                                        :accept-loading="acceptOfferLoadingId === req?.id"
+                                        :messaging-disabled="!isShipmentActive"
                                         @message-click="openMessagePanel"
+                                        @accept-click="openAcceptOfferModal"
                                     />
                                 </div>
                             </div>
@@ -141,7 +152,13 @@
                                         </div>
                                         <button
                                             type="button"
-                                            class="shrink-0 flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 hover:border-primary hover:bg-primary/10 hover:text-primary transition-colors"
+                                            class="shrink-0 flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition-colors"
+                                            :class="
+                                                isShipmentActive
+                                                    ? 'hover:border-primary hover:bg-primary/10 hover:text-primary'
+                                                    : 'opacity-50 cursor-not-allowed'
+                                            "
+                                            :disabled="!isShipmentActive"
                                             title="Mesaj gönder"
                                             @click="openMessagePanel({ user: u, fromCloseUser: true })"
                                         >
@@ -253,11 +270,13 @@
                                 v-model="newMessageText"
                                 type="text"
                                 placeholder="Mesajınızı yazın..."
-                                class="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+                                :disabled="!isShipmentActive"
+                                class="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
                             />
                             <button
                                 type="submit"
-                                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-white hover:bg-primary/90 transition-colors"
+                                :disabled="!isShipmentActive"
+                                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-white hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-primary"
                                 aria-label="Gönder"
                             >
                                 <i class="pi pi-send text-sm"></i>
@@ -269,7 +288,7 @@
         </div>
     </Teleport>
 
-    <!-- İptal Onay Modali -->
+    <!-- İptal onayı (yalnızca ilan active iken) -->
     <Teleport to="body">
         <Transition name="modal">
             <div
@@ -286,7 +305,12 @@
                     <label class="block text-sm font-medium text-gray-700 mb-2">Nedeni</label>
                     <select
                         v-model="cancelReason"
-                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary mb-3"
+                        :class="[
+                            'w-full rounded-lg border px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 mb-3',
+                            cancelReason
+                                ? 'border-red-400 focus:ring-red-200 focus:border-red-500 text-red-700'
+                                : 'border-gray-300 focus:ring-red-200 focus:border-red-500'
+                        ]"
                     >
                         <option value="" disabled>Bir neden seçin</option>
                         <option v-for="r in cancelReasons" :key="r" :value="r">{{ r }}</option>
@@ -296,7 +320,7 @@
                         <textarea
                             v-model="cancelOtherReason"
                             rows="3"
-                            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none"
+                            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-red-200 focus:border-red-500 resize-none"
                             placeholder="Kısaca açıklayın..."
                         />
                     </div>
@@ -316,6 +340,44 @@
                             @click="submitCancel"
                         >
                             {{ cancelSubmitting ? 'İptal ediliyor...' : 'İptal et' }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </Transition>
+    </Teleport>
+
+    <!-- Hemen Al — teklifi kabul onayı (ilan sahibi) -->
+    <Teleport to="body">
+        <Transition name="modal">
+            <div
+                v-if="acceptOfferModalOpen"
+                class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 px-4"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="accept-offer-title"
+            >
+                <div class="w-full max-w-md bg-white rounded-2xl shadow-xl p-5 sm:p-6">
+                    <h2 id="accept-offer-title" class="text-lg font-semibold text-gray-900 mb-2">Teklifi kabul et</h2>
+                    <p class="text-sm text-gray-600 mb-6">
+                        Bu taşıyıcıyı seçmek üzeresiniz. Emin misiniz?
+                    </p>
+                    <div class="flex justify-end gap-2">
+                        <button
+                            type="button"
+                            class="px-4 py-2 rounded-lg border border-gray-200 text-gray-700 text-sm font-medium hover:bg-gray-50 transition-colors"
+                            :disabled="acceptOfferLoadingId != null"
+                            @click="closeAcceptOfferModal"
+                        >
+                            Hayır
+                        </button>
+                        <button
+                            type="button"
+                            class="px-4 py-2 rounded-lg bg-primary text-white text-sm font-semibold hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                            :disabled="acceptOfferLoadingId != null"
+                            @click="confirmAcceptOffer"
+                        >
+                            {{ acceptOfferLoadingId != null ? 'İşleniyor...' : 'Evet' }}
                         </button>
                     </div>
                 </div>
@@ -348,6 +410,48 @@ const isCreator = computed(() => {
     return Number(s.creater_id) === Number(u) || Number(s.creator?.id) === Number(u);
 });
 
+/** İlan hâlâ teklif kabul edilebilir durumda mı (shipment.status) */
+const canAcceptOffers = computed(() => {
+    const st = shipment.value?.status;
+    if (st == null || st === '') return true;
+    return st === 'active' || st === 'pending';
+});
+
+const acceptOfferModalOpen = ref(false);
+const acceptOfferTarget = ref(null);
+const acceptOfferLoadingId = ref(null);
+
+function openAcceptOfferModal(request) {
+    if (!request?.id) return;
+    acceptOfferTarget.value = request;
+    acceptOfferModalOpen.value = true;
+}
+
+function closeAcceptOfferModal() {
+    if (acceptOfferLoadingId.value != null) return;
+    acceptOfferModalOpen.value = false;
+    acceptOfferTarget.value = null;
+}
+
+async function confirmAcceptOffer() {
+    const req = acceptOfferTarget.value;
+    const slugVal = slug.value;
+    if (!req?.id || !slugVal || acceptOfferLoadingId.value != null) return;
+    acceptOfferLoadingId.value = req.id;
+    error.value = null;
+    try {
+        await api.post(`/shipments/${slugVal}/requests/${req.id}/accept`);
+        acceptOfferModalOpen.value = false;
+        acceptOfferTarget.value = null;
+        router.push('/cargo-owner/posts');
+    } catch (err) {
+        console.error(err);
+        error.value = err?.response?.data?.message ?? err?.message ?? 'Teklif kabul edilemedi.';
+    } finally {
+        acceptOfferLoadingId.value = null;
+    }
+}
+
 const cancelModalOpen = ref(false);
 const cancelReason = ref('');
 const cancelOtherReason = ref('');
@@ -357,7 +461,7 @@ const cancelReasons = [
     'Yanlış bilgi ile ilan açtım',
     'Farklı bir firma ile anlaştım',
     'Fiyat / şartlar değişti',
-    'Diğer'
+    'Diğer',
 ];
 
 function openCancelModal() {
@@ -389,6 +493,7 @@ async function submitCancel() {
         cancelSubmitting.value = false;
     }
 }
+
 const messageStore = useMessageStore();
 const authStore = useAuthStore();
 const locationStore = useLocationStore();
@@ -418,6 +523,9 @@ const loadShipment = async () => {
 watch(slug, loadShipment);
 
 const requestCount = computed(() => shipment.value?.requests?.length ?? 0);
+
+/** Teklif / yakın taşıyıcı mesajları yalnızca ilan yayında (active) iken */
+const isShipmentActive = computed(() => shipment.value?.status === 'active');
 
 const routeFrom = computed(() => {
     const s = shipment.value;
@@ -571,6 +679,7 @@ function scrollPanelToBottom() {
 }
 
 async function openMessagePanel(request) {
+    if (!isShipmentActive.value) return;
     const user = request?.user;
     if (!user?.id) return;
     selectedReceiver.value = user;
@@ -600,6 +709,7 @@ function closeMessagePanel() {
 }
 
 async function sendPanelMessage() {
+    if (!isShipmentActive.value) return;
     const text = newMessageText.value?.trim();
     if (!text || !selectedReceiver.value?.id) return;
     panelMessages.value = [...panelMessages.value, { id: `temp-${Date.now()}`, text, time: 'Şimdi', isMe: true }];

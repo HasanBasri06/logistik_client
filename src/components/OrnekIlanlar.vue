@@ -5,9 +5,9 @@ import { useAuthStore } from '@/stores/auth';
 const authStore = useAuthStore();
 
 const ornekIlanlar = [
-    { from: 'Ankara / Çankaya', to: 'İzmir / Konak', time: '08:00', price: '₺4.500' },
-    { from: 'İstanbul / Kadıköy', to: 'Bursa / Osmangazi', time: '07:30', price: '₺2.200' },
-    { from: 'İzmir / Bornova', to: 'Antalya / Muratpaşa', time: '06:00', price: '₺3.800' }
+    { from: 'Ankara / Çankaya', to: 'İzmir / Konak', time: '08:00', price: '₺20.000' },
+    { from: 'İstanbul / Kadıköy', to: 'Bursa / Osmangazi', time: '07:30', price: '₺12.000' },
+    { from: 'İzmir / Bornova', to: 'Antalya / Muratpaşa', time: '06:00', price: '₺22.000' }
 ];
 </script>
 

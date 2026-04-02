@@ -236,7 +236,14 @@
                         class="hidden md:flex bg-gray-50 border-t border-gray-100 w-full px-4 py-3 gap-3"
                     >
                         <button
-                            v-if="shipment?.call_access !== 1"
+                            v-if="isCargoOwnerViewer"
+                            type="button"
+                            class="flex-1 h-11 sm:h-12 rounded-xl border-2 border-primary text-primary bg-white font-semibold transition-all duration-200 text-sm sm:text-base"
+                        >
+                            Önizleme
+                        </button>
+                        <button
+                            v-else-if="shipment?.call_access !== 1"
                             @click="handleOfferClick"
                             class="flex-1 h-11 sm:h-12 rounded-xl bg-primary text-white font-semibold transition-all duration-200 text-sm sm:text-base shadow-sm hover:bg-primary/90 hover:shadow-md"
                         >
@@ -250,7 +257,7 @@
                             Mesaj ile Teklif
                         </button>
                         <button
-                            v-if="shipment?.call_access == 1"
+                            v-if="!isCargoOwnerViewer && shipment?.call_access == 1"
                             type="button"
                             @click="openCallModal"
                             class="h-11 sm:h-12 px-5 rounded-xl border-2 border-primary text-primary bg-white font-semibold transition-all duration-200 text-sm sm:text-base hover:bg-primary/5 shrink-0"
@@ -319,21 +326,28 @@
             class="fixed bottom-0 left-0 right-0 z-40 flex md:hidden bg-white border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] pb-[env(safe-area-inset-bottom)]"
         >
             <button
-                v-if="shipment?.call_access !== 1"
+                v-if="isCargoOwnerViewer"
+                type="button"
+                class="flex-1 h-14 py-3 px-3 border-t border-primary text-primary font-semibold text-sm bg-white"
+            >
+                Önizleme
+            </button>
+            <button
+                v-else-if="shipment?.call_access !== 1"
                 @click="handleOfferClick"
                 class="flex-1 h-14 py-3 px-3 bg-primary text-white font-semibold text-sm"
             >
                 Teklif Ver
             </button>
             <button
-                v-if="shipment?.call_access !== 1"
+                v-if="!isCargoOwnerViewer && shipment?.call_access !== 1"
                 @click="openMessageOfferPanel"
                 class="flex-1 h-14 py-3 px-3 border-t border-l border-gray-200 text-primary font-semibold text-sm bg-white"
             >
                 Mesaj ile Teklif
             </button>
             <button
-                v-if="shipment?.call_access == 1"
+                v-if="!isCargoOwnerViewer && shipment?.call_access == 1"
                 type="button"
                 @click="openCallModal"
                 class="flex-1 h-14 py-3 px-3 md:border-t md:border-l md:border-gray-200 md:text-primary md:font-semibold md:text-sm md:bg-white bg-primary text-white font-semibold text-md flex items-center justify-center gap-4"
@@ -595,6 +609,7 @@ const selectedDestination = ref(null);
 const message_input = useTemplateRef('message_input');
 
 const is_me = ref(false);
+const isCargoOwnerViewer = computed(() => !is_me.value && authStore.user?.type === 'cargo_owner');
 
 const post = ref(null);
 const shipment = ref(null);

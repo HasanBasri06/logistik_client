@@ -148,7 +148,9 @@
             :key="groupName"
             class="mb-4 last:mb-0"
           >
-            <div class="text-sm font-semibold text-gray-700 mb-2">{{ groupName }}</div>
+            <div v-if="shouldShowDetailGroupTitle(groupName)" class="text-sm font-semibold text-gray-700 mb-2">
+              {{ groupName }}
+            </div>
             <div class="flex flex-wrap gap-2">
               <label
                 v-for="item in group"
@@ -197,12 +199,25 @@ const selectedDetailValues = ref([]);
 
 const postStore = usePostStore();
 
+/** Sunucudaki `name` alanı bazen literal "{{name}}" geliyor; grup başlığı için kullanma. */
+function normalizeDetailGroupKey(raw) {
+  const s = raw != null ? String(raw).trim() : '';
+  if (!s || s.includes('{{') || s.toLowerCase() === 'type') return 'Varyant';
+  return s;
+}
+
+function shouldShowDetailGroupTitle(groupName) {
+  const keys = Object.keys(detailsByType.value);
+  if (keys.length === 1 && groupName === 'Varyant') return false;
+  return true;
+}
+
 const detailsByType = computed(() => {
   const details = selectedCar.value?.details ?? [];
   if (!details.length) return {};
   const groups = {};
   for (const item of details) {
-    const type = item.type ?? item.name ?? "Varyant";
+    const type = normalizeDetailGroupKey(item.type);
     if (!groups[type]) groups[type] = [];
     groups[type].push(item);
   }
@@ -210,7 +225,8 @@ const detailsByType = computed(() => {
 });
 
 function groupKey(group, groupName) {
-  return group?.[0]?.name ?? groupName;
+  const firstId = group?.[0]?.id;
+  return `${groupName}-${firstId ?? 'g'}`;
 }
 
 /** Bu gruptaki seçili öğe: dizide bu gruba ait id varsa { id, name } döner */
@@ -258,17 +274,19 @@ function autoSelectFirstDetails(car) {
   if (!details.length) return [];
   const groups = {};
   for (const item of details) {
-    const type = item.type ?? item.name ?? "Varyant";
+    const type = normalizeDetailGroupKey(item.type);
     if (!groups[type]) groups[type] = item;
   }
-  return Object.values(groups).map((item) => ({ id: item.id, name: item.value }));
+  return Object.values(groups).map((item) => ({
+    id: item.id,
+    name: item.value != null && String(item.value).trim() !== '' ? String(item.value) : String(item.name ?? ''),
+  }));
 }
 
 const selectCar = async (car, index) => {
   selectedCar.value = car;
-  postStore.selectedCar = car;
-  const stored = parseStoreDetailValues(postStore.selectedDetailValues);
-  selectedDetailValues.value = stored.length ? stored : autoSelectFirstDetails(car);
+  postStore.setSelectedCar(car);
+  selectedDetailValues.value = autoSelectFirstDetails(car);
   if (typeof index === "number") {
     activeCarIndex.value = index;
     await nextTick();
@@ -283,14 +301,20 @@ const restoreFromStore = async () => {
   if (idx === -1) return;
   selectedCar.value = cars.value[idx];
   activeCarIndex.value = idx;
-  const parsed = parseStoreDetailValues(postStore.selectedDetailValues);
-  selectedDetailValues.value = parsed.length ? parsed : autoSelectFirstDetails(cars.value[idx]);
+  postStore.setSelectedCar(cars.value[idx]);
+  selectedDetailValues.value = autoSelectFirstDetails(cars.value[idx]);
   await nextTick();
   carsCarouselRef.value?.slideTo(idx);
 };
 
 const onCarouselSlideEnd = (e) => {
-  activeCarIndex.value = e.currentSlideIndex;
+  const idx = e.currentSlideIndex;
+  activeCarIndex.value = idx;
+  const car = cars.value[idx];
+  if (!car) return;
+  selectedCar.value = car;
+  postStore.setSelectedCar(car);
+  selectedDetailValues.value = autoSelectFirstDetails(car);
 };
 
 const getCars = async () => {

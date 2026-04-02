@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col h-full">
+    <div class="flex flex-col h-full min-h-0 flex-1">
         <h2 class="text-xl font-semibold text-gray-900 mb-4">Tüm Siparişlerim</h2>
         
         <!-- Filtre Sekmeleri -->
@@ -28,18 +28,18 @@
                     alt=""
                     class="w-16 h-16 object-contain"
                 />
-                <p class="text-sm text-gray-600">İlanlar yükleniyor</p>
+                <p class="text-sm text-gray-600">Siparişler yükleniyor…</p>
             </div>
             <div v-else class="flex flex-col gap-5 pt-4">
-                <template v-if="!orders?.length">
+                <template v-if="!orders.length">
                     <p class="text-gray-500">Henüz sipariş bulunmuyor.</p>
                 </template>
                 <template v-else>
                     <Product
-                        v-for="item in orders"
-                        :key="item.id"
-                        :shipment="item.shipment"
-                        :slug="item.shipment?.slug ?? item.slug ?? String(item.id)"
+                        v-for="(item, idx) in orders"
+                        :key="item.id ?? idx"
+                        :shipment="item.shipment ?? item.shipment_order ?? {}"
+                        :slug="item.shipment?.slug ?? item.shipment_order?.slug ?? item.slug ?? String(item.id ?? idx)"
                     />
                 </template>
             </div>
@@ -64,12 +64,27 @@ const orderTabs = [
     { value: 'cancelled', label: 'İptal Edilen', icon: 'pi-times-circle' },
 ];
 
+/** API yanıtı: content / data; liste: shipmentOrders veya shipment_orders; bazen dizi yerine nesne */
+function shipmentOrdersFromResponse(res) {
+    const root = res?.data ?? res;
+    const content = root?.content ?? root?.data?.content ?? root?.data ?? root;
+    const raw =
+        content?.shipmentOrders ??
+        content?.shipment_orders ??
+        (Array.isArray(content) ? content : null);
+    if (Array.isArray(raw)) return raw;
+    if (raw && typeof raw === 'object') {
+        const vals = Object.values(raw);
+        if (vals.length && vals.every((v) => v != null && typeof v === 'object')) return vals;
+    }
+    return [];
+}
+
 const getOrders = async () => {
     ordersLoading.value = true;
     try {
         const response = await api.get('/vehicle/orders', { params: { status: selectedOrderStatus.value } });
-        const { content } = await response.data;
-        orders.value = content.shipmentOrders ?? [];
+        orders.value = shipmentOrdersFromResponse(response);
     } catch (err) {
         console.log(err);
         orders.value = [];

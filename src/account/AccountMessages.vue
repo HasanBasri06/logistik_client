@@ -123,23 +123,30 @@
                 </div>
                 <div
                     v-if="conversationTeklif"
-                    class="flex-1 min-h-0 rounded-xl border-2 border-primary/30 bg-white p-3 sm:p-4 shadow-sm min-w-0"
+                    class="flex-1 min-h-0 min-w-0 rounded-xl border-2 border-primary/30 bg-white shadow-sm flex flex-col overflow-hidden"
                 >
-                    <p class="text-xs font-semibold text-primary uppercase tracking-wide mb-1.5 sm:mb-2">Talep / Teklif</p>
-                    <p v-if="conversationTeklif.carName" class="text-xs sm:text-sm font-medium text-gray-900 mb-1">{{ conversationTeklif.carName }}</p>
-                    <p class="text-xs sm:text-sm font-semibold text-primary mb-1">{{ conversationTeklif.price }}</p>
-                    <p v-if="conversationTeklif.message" class="text-xs sm:text-sm text-gray-600 mt-2 border-t border-gray-100 pt-2 line-clamp-2">{{ conversationTeklif.message }}</p>
-                    <span class="text-xs text-gray-500 mt-2 block">{{ conversationTeklif.time }}</span>
-                    <button
-                        v-if="isShipmentOwner && conversationTeklif.status !== 'accepted'"
-                        type="button"
-                        class="mt-3 w-full min-h-[44px] py-2.5 rounded-lg bg-primary text-white font-semibold text-sm hover:bg-primary/90 active:bg-primary/80 transition-colors disabled:opacity-60 disabled:cursor-not-allowed touch-manipulation"
-                        :disabled="teklifAcceptLoading === conversationTeklif.id"
-                        @click="acceptTeklif(conversationTeklif.id)"
+                    <div class="px-3 sm:px-4 pt-3 sm:pt-4 pb-2 min-h-0 flex-1 overflow-y-auto">
+                        <p class="text-xs font-semibold text-primary uppercase tracking-wide mb-1.5 sm:mb-2">Talep / Teklif</p>
+                        <p v-if="conversationTeklif.carName" class="text-xs sm:text-sm font-medium text-gray-900 mb-1">{{ conversationTeklif.carName }}</p>
+                        <p class="text-xs sm:text-sm font-semibold text-primary mb-1">{{ conversationTeklif.price }}</p>
+                        <p v-if="conversationTeklif.message" class="text-xs sm:text-sm text-gray-600 mt-2 border-t border-gray-100 pt-2 line-clamp-3 sm:line-clamp-none">{{ conversationTeklif.message }}</p>
+                        <span class="text-xs text-gray-500 mt-2 block">{{ conversationTeklif.time }}</span>
+                    </div>
+                    <div
+                        v-if="isShipmentOwner"
+                        class="shrink-0 px-3 sm:px-4 pb-3 sm:pb-4 pt-2 border-t border-primary/15 bg-primary/3"
                     >
-                        {{ teklifAcceptLoading === conversationTeklif.id ? 'İşleniyor...' : 'Teklifi Kabul Et' }}
-                    </button>
-                    <p v-else-if="isShipmentOwner && conversationTeklif.status === 'accepted'" class="mt-2 text-xs sm:text-sm font-medium text-green-600">Kabul edildi</p>
+                        <button
+                            v-if="conversationTeklif.status !== 'accepted'"
+                            type="button"
+                            class="w-full min-h-[44px] py-2.5 rounded-lg bg-primary text-white font-semibold text-sm hover:bg-primary/90 active:bg-primary/80 transition-colors disabled:opacity-60 disabled:cursor-not-allowed touch-manipulation shadow-sm"
+                            :disabled="teklifAcceptLoading === conversationTeklif.id"
+                            @click="acceptTeklif(conversationTeklif.id)"
+                        >
+                            {{ teklifAcceptLoading === conversationTeklif.id ? 'İşleniyor...' : 'Teklifi Kabul Et' }}
+                        </button>
+                        <p v-else class="text-center text-xs sm:text-sm font-medium text-green-600 py-1">Kabul edildi</p>
+                    </div>
                 </div>
             </div>
 

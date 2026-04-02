@@ -1,56 +1,75 @@
 <script setup>
+/** Örnek: Ahmet Kaya → Ahmet K. (soyad yalnızca baş harf) */
+function commentDisplayName(firstName, lastName) {
+    const f = (firstName || '').trim();
+    const l = (lastName || '').trim();
+    if (!f) return '—';
+    if (!l) return f;
+    const initial = l.charAt(0).toLocaleUpperCase('tr-TR');
+    return `${f} ${initial}.`;
+}
+
+function commentInitials(firstName, lastName) {
+    const f = (firstName || '').trim();
+    const l = (lastName || '').trim();
+    if (!f && !l) return '?';
+    const a = (f.charAt(0) || l.charAt(0) || '').toLocaleUpperCase('tr-TR');
+    const b = (l.charAt(0) || f.charAt(1) || '').toLocaleUpperCase('tr-TR');
+    return a + b;
+}
+
 const topRow = [
     {
-        name: 'Ahmet Kaya',
-        initials: 'AK',
+        firstName: 'Ahmet',
+        lastName: 'Kaya',
         color: 'bg-primary',
         role: 'Yük Sahibi',
         rating: 5,
         text: 'Yükümü oluşturdum, 30 dakika içinde 4 farklı teklif aldım. En uygun taşıyıcıyı seçtim ve yüküm zamanında teslim edildi. Kesinlikle tavsiye ederim.',
     },
     {
-        name: 'Ayşe Demir',
-        initials: 'AD',
+        firstName: 'Ayşe',
+        lastName: 'Demir',
         color: 'bg-emerald-600',
         role: 'Yük Sahibi',
         rating: 5,
         text: 'Daha önce nakliye için saatlerce telefon açıyordum. Şimdi tek platformdan her şeyi hallediyorum. Fiyatlar da çok daha uygun.',
     },
     {
-        name: 'Mustafa Arslan',
-        initials: 'MA',
+        firstName: 'Mustafa',
+        lastName: 'Arslan',
         color: 'bg-primary',
         role: 'Yük Sahibi',
         rating: 5,
         text: 'Canlı destek ekibi çok ilgili. Sevkiyatımda bir sorun olduğunda anında müdahale ettiler. Profesyonel bir platform.',
     },
     {
-        name: 'Emre Şahin',
-        initials: 'EŞ',
+        firstName: 'Emre',
+        lastName: 'Şahin',
         color: 'bg-emerald-600',
         role: 'Yük Sahibi',
         rating: 5,
         text: 'Teklif karşılaştırma özelliği süper. Fiyat, puan ve sefer sayısına göre en doğru kararı verebiliyorum.',
     },
     {
-        name: 'Can Özdemir',
-        initials: 'CÖ',
+        firstName: 'Can',
+        lastName: 'Özdemir',
         color: 'bg-primary',
         role: 'Yük Sahibi',
         rating: 4,
         text: 'İlan vermek çok kolay. Birkaç tıkla yükümü girdim, taşıyıcılar hızlıca teklif verdi. Zamanımdan tasarruf ettim.',
     },
     {
-        name: 'Barış Aydın',
-        initials: 'BA',
+        firstName: 'Barış',
+        lastName: 'Aydın',
         color: 'bg-emerald-600',
         role: 'Yük Sahibi',
         rating: 5,
         text: 'Düzenli sevkiyat yapıyoruz. TaşıBul sayesinde sabit taşıyıcılarımızı bulduk, artık her seferinde aramıyoruz.',
     },
     {
-        name: 'Kerem Polat',
-        initials: 'KP',
+        firstName: 'Kerem',
+        lastName: 'Polat',
         color: 'bg-primary',
         role: 'Yük Sahibi',
         rating: 5,
@@ -60,48 +79,48 @@ const topRow = [
 
 const bottomRow = [
     {
-        name: 'Mehmet Çelik',
-        initials: 'MC',
+        firstName: 'Mehmet',
+        lastName: 'Çelik',
         color: 'bg-teal-700',
         role: 'Araç Sahibi',
         rating: 5,
         text: 'Boş dönüş yapıyordum, platform sayesinde güzergahıma uygun yük buldum ve ekstra gelir elde ettim. Araç sahipleri için harika bir sistem.',
     },
     {
-        name: 'Burak Yılmaz',
-        initials: 'BY',
+        firstName: 'Burak',
+        lastName: 'Yılmaz',
         color: 'bg-teal-500',
         role: 'Araç Sahibi',
         rating: 5,
         text: 'Onaylı hesap sistemi güven veriyor. Yük sahipleriyle sorunsuz anlaşıyoruz, ödemeler de zamanında geliyor.',
     },
     {
-        name: 'Serkan Öztürk',
-        initials: 'SÖ',
+        firstName: 'Serkan',
+        lastName: 'Öztürk',
         color: 'bg-teal-700',
         role: 'Araç Sahibi',
         rating: 4,
         text: 'Uygulamayı kullanmaya başladığımdan beri boş sefer oranım neredeyse sıfıra düştü. Kazancımı ciddi oranda artırdım.',
     },
     {
-        name: 'Oğuz Koç',
-        initials: 'OK',
+        firstName: 'Oğuz',
+        lastName: 'Koç',
         color: 'bg-teal-500',
         role: 'Araç Sahibi',
         rating: 5,
         text: 'Kayıt süreci çok kolaydı. Belgelerimi yükledim, hesabım hızlıca onaylandı. İlk haftada 3 sefer aldım.',
     },
     {
-        name: 'Volkan Kılıç',
-        initials: 'VK',
+        firstName: 'Volkan',
+        lastName: 'Kılıç',
         color: 'bg-teal-700',
         role: 'Araç Sahibi',
         rating: 5,
         text: 'Yük listesi her gün güncelleniyor. Rotama uygun ilanları filtreleyip hemen teklif verebiliyorum.',
     },
     {
-        name: 'Tolga Yıldız',
-        initials: 'TY',
+        firstName: 'Tolga',
+        lastName: 'Yıldız',
         color: 'bg-teal-500',
         role: 'Araç Sahibi',
         rating: 4,
@@ -142,10 +161,10 @@ const bottomRow = [
                     <p class="text-sm text-gray-600 leading-relaxed">{{ review.text }}</p>
                     <div class="flex items-center gap-3 mt-auto pt-3 border-t border-gray-50">
                         <div :class="review.color" class="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-semibold shadow-sm">
-                            {{ review.initials }}
+                            {{ commentInitials(review.firstName, review.lastName) }}
                         </div>
                         <div>
-                            <h4 class="text-sm font-semibold text-gray-900">{{ review.name }}</h4>
+                            <h4 class="text-sm font-semibold text-gray-900">{{ commentDisplayName(review.firstName, review.lastName) }}</h4>
                             <p class="text-xs text-gray-400">{{ review.role }}</p>
                         </div>
                     </div>
@@ -169,10 +188,10 @@ const bottomRow = [
                     <p class="text-sm text-gray-600 leading-relaxed">{{ review.text }}</p>
                     <div class="flex items-center gap-3 mt-auto pt-3 border-t border-gray-50">
                         <div :class="review.color" class="w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-semibold shadow-sm">
-                            {{ review.initials }}
+                            {{ commentInitials(review.firstName, review.lastName) }}
                         </div>
                         <div>
-                            <h4 class="text-sm font-semibold text-gray-900">{{ review.name }}</h4>
+                            <h4 class="text-sm font-semibold text-gray-900">{{ commentDisplayName(review.firstName, review.lastName) }}</h4>
                             <p class="text-xs text-gray-400">{{ review.role }}</p>
                         </div>
                     </div>
