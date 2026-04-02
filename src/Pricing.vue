@@ -64,7 +64,15 @@
                                 <span class="text-3xl md:text-4xl font-bold tracking-tight text-gray-900 whitespace-nowrap leading-none">{{ plan.totalPrice }}</span>
                                 <span class="text-xs md:text-sm text-gray-500 whitespace-nowrap pb-0.5">/ {{ plan.durationLabel }}</span>
                             </div>
-                            <p class="mt-2 text-sm font-semibold text-primary whitespace-nowrap">Aylık maliyet: {{ plan.monthlyCost }}</p>
+                            <div class="mt-2 flex items-center gap-2 flex-wrap">
+                                <p class="text-sm font-semibold text-primary whitespace-nowrap">Aylık maliyet: {{ plan.monthlyCost }}</p>
+                                <span
+                                    v-if="plan.showInstallments && plan.installmentOptions?.length"
+                                    class="inline-flex items-center rounded-full border border-primary/20 bg-primary/7 px-2.5 py-1 text-[11px] font-semibold text-primary whitespace-nowrap"
+                                >
+                                    Taksit fırsatı ile
+                                </span>
+                            </div>
                             <div v-if="plan.showDiscount" class="mt-2 flex items-center gap-2">
                                 <span class="inline-flex rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-1 text-xs md:text-sm font-bold whitespace-nowrap">
                                     Toplam İndirim {{ plan.discountAmount }}
@@ -72,6 +80,7 @@
                             </div>
                         </div>
                         <p class="mt-4 text-sm leading-relaxed text-gray-600 min-h-[42px]">{{ plan.description }}</p>
+
                         <div class="mt-5 h-px w-full bg-gray-100"></div>
                         <button
                             type="button"

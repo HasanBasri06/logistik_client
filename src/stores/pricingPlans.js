@@ -15,6 +15,7 @@ function formatRate(value) {
 
 export const usePricingPlansStore = defineStore('pricingPlans', () => {
     const baseMonthlyPrice = 299;
+    const installmentRatePercent = 7.53;
 
     const rawPlans = [
         {
@@ -51,22 +52,54 @@ export const usePricingPlansStore = defineStore('pricingPlans', () => {
         },
     ];
 
+    /** Sadece 3 / 6 / 12 aylık planlarda gösterilir */
+    const installmentOptionPresets = [
+        {
+            id: 'equal',
+            title: 'Eşit 2 taksit',
+            subtitle: '50% · 50%',
+            description: '%7,53 vade farkı uygulanır.',
+            splits: [0.5, 0.5],
+            labels: ['1. taksit', '2. taksit'],
+        },
+    ];
+
     const plans = computed(() =>
         rawPlans.map((plan) => {
             const normalTotal = baseMonthlyPrice * plan.months;
             const total = plan.totalPriceFixed ?? normalTotal * (1 - (plan.discountPercent ?? 0) / 100);
+            const totalRounded = roundCurrency(total);
             const monthlyPrice = total / plan.months;
             const discount = normalTotal - total;
             const discountRate = normalTotal > 0 ? (discount / normalTotal) * 100 : 0;
 
+            const showInstallments = plan.months >= 3;
+            const installmentTotal = totalRounded * (1 + installmentRatePercent / 100);
+            const installmentTotalRounded = roundCurrency(installmentTotal);
+            const installmentOptions = showInstallments
+                ? installmentOptionPresets.map((preset) => ({
+                      ...preset,
+                      payments: preset.splits.map((ratio, idx) => ({
+                          label: preset.labels[idx] ?? `Taksit ${idx + 1}`,
+                          amount: formatTl(roundCurrency(installmentTotalRounded * ratio)),
+                          ratioPercent: Math.round(ratio * 100),
+                      })),
+                  }))
+                : null;
+
             return {
                 ...plan,
                 durationLabel: `${plan.months} Ay`,
-                totalPrice: formatTl(roundCurrency(total)),
+                totalNumeric: totalRounded,
+                totalPrice: formatTl(totalRounded),
                 monthlyCost: `${formatTl(roundCurrency(monthlyPrice))} / ay`,
                 discountAmount: formatTl(roundCurrency(discount)),
                 discountRate: formatRate(discountRate),
                 showDiscount: discount > 0,
+                showInstallments,
+                installmentRate: formatRate(installmentRatePercent),
+                installmentTotalPrice: formatTl(installmentTotalRounded),
+                installmentOptions,
                 ctaText: 'Paketi Seç',
             };
         })

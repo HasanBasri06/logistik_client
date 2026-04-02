@@ -284,7 +284,12 @@
                                 <p class="text-xs font-semibold uppercase tracking-wider text-primary mb-2">
                                     TaşıBul Hesabın
                                 </p>
-                                <h3 class="text-2xl md:text-3xl font-bold text-gray-900">
+                                <h3
+                                    :class="[
+                                        'font-bold text-gray-900',
+                                        registerOtpSent ? 'text-2xl md:text-3xl' : isRegister ? 'text-3xl md:text-4xl' : 'text-2xl md:text-3xl',
+                                    ]"
+                                >
                                     {{ registerOtpSent ? 'E-posta Doğrulama' : (isRegister ? 'Kayıt Ol' : 'Giriş Yap')
                                     }}
                                 </h3>
@@ -407,10 +412,10 @@
                                             </span>
                                             <span v-else>Giriş Yap</span>
                                         </button>
-                                        <p class="text-sm text-gray-600 flex items-center gap-1.5">
+                                        <p class="text-sm text-gray-600 flex items-center gap-1.5 flex-wrap">
                                             Hesabın yok mu?
                                             <span
-                                                class="text-primary font-semibold hover:bg-primary/5 transition-colors cursor-pointer"
+                                                class="text-primary text-base md:text-lg font-semibold hover:bg-primary/5 transition-colors cursor-pointer"
                                                 @click="openRegister">
                                                 Kayıt ol
                                             </span>
@@ -615,7 +620,7 @@
                                 </div>
                                 <div class="flex flex-wrap items-center gap-3 mt-2">
                                     <button type="submit" :disabled="registerLoading" :class="[
-                                        'h-11 px-6 font-semibold rounded-md transition-all text-sm shrink-0',
+                                        'h-12 px-6 font-semibold rounded-md transition-all text-base md:text-lg shrink-0',
                                         registerLoading
                                             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                             : 'bg-primary text-white hover:opacity-90'
