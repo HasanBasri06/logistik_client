@@ -58,9 +58,9 @@
                                 </a>
                             </li>
                             <li>
-                                <span class="footer-link flex items-center gap-2 cursor-default opacity-60">
-                                    <Linkedin :size="16" /> LinkedIn <span class="text-xs text-gray-500">(yakında)</span>
-                                </span>
+                                <a href="https://www.linkedin.com/in/ta%C5%9F%C4%B1bul-lojistik-6475b1400" target="_blank" rel="noopener noreferrer" class="footer-link flex items-center gap-2">
+                                    <Linkedin :size="16" /> LinkedIn
+                                </a>
                             </li>
                         </ul>
                     </div>

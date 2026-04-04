@@ -36,10 +36,10 @@
                     </li>
                     <li class="hidden md:block" v-if="!authStore.isAuthenticated">
                         <button type="button" @click="handleLoginClick"
-                            class="flex items-center gap-2 rounded-full border border-gray-200 px-4 py-2 text-sm font-semibold hover:border-primary group cursor-pointer hover:text-primary transition-colors">
+                            class="flex items-center gap-2 rounded-full border border-primary px-4 py-2 text-sm font-semibold text-primary group cursor-pointer hover:text-primary transition-colors">
                             <span class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-gray-100">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                                    class="h-4 w-4 text-gray-600 group-hover:text-primary" fill="none"
+                                    class="h-4 w-4 text-primary group-hover:text-primary" fill="none"
                                     stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
                                     stroke-linejoin="round">
                                     <path d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Z" />
@@ -290,7 +290,7 @@
                                         registerOtpSent ? 'text-2xl md:text-3xl' : isRegister ? 'text-3xl md:text-4xl' : 'text-2xl md:text-3xl',
                                     ]"
                                 >
-                                    {{ registerOtpSent ? 'E-posta Doğrulama' : (isRegister ? 'Kayıt Ol' : 'Giriş Yap')
+                                    {{ registerOtpSent ? 'Telefon Doğrulama' : (isRegister ? 'Kayıt Ol' : 'Giriş Yap')
                                     }}
                                 </h3>
                                 <p class="text-sm text-gray-500 mt-2">
@@ -400,10 +400,43 @@
                                             Şifremi Unuttum
                                         </button>
                                     </div>
+                                    <div class="flex flex-col gap-2.5 text-sm text-gray-600 -mt-1">
+                                        <label class="flex items-start gap-2.5 cursor-pointer select-none">
+                                            <input
+                                                v-model="loginAcceptUyelik"
+                                                type="checkbox"
+                                                class="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 text-primary focus:ring-primary"
+                                            />
+                                            <span class="leading-snug">
+                                                <RouterLink
+                                                    to="/uyelik-sozlesmesi"
+                                                    class="font-semibold text-primary hover:underline"
+                                                    @click.stop
+                                                >Üyelik Sözleşmesi</RouterLink>'ni okudum ve kabul ediyorum.
+                                            </span>
+                                        </label>
+                                        <label class="flex items-start gap-2.5 cursor-pointer select-none">
+                                            <input
+                                                v-model="loginAcceptKvkk"
+                                                type="checkbox"
+                                                class="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 text-primary focus:ring-primary"
+                                            />
+                                            <span class="leading-snug">
+                                                <RouterLink
+                                                    to="/kvkk"
+                                                    class="font-semibold text-primary hover:underline"
+                                                    @click.stop
+                                                >KVKK Aydınlatma Metni</RouterLink>'ni okudum ve onaylıyorum.
+                                            </span>
+                                        </label>
+                                    </div>
                                     <div class="flex flex-wrap items-center gap-3">
-                                        <button type="submit" :disabled="loginLoading" :class="[
+                                        <button
+                                            type="submit"
+                                            :disabled="loginLoading || !loginAcceptUyelik || !loginAcceptKvkk"
+                                            :class="[
                                             'h-12 px-6 font-semibold rounded-lg transition-all duration-200 shadow-lg text-base shrink-0',
-                                            loginLoading
+                                            loginLoading || !loginAcceptUyelik || !loginAcceptKvkk
                                                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                                 : 'bg-primary text-white hover:bg-primary/90 hover:shadow-xl transform hover:-translate-y-0.5'
                                         ]">
@@ -462,8 +495,20 @@
                             <template v-else-if="registerOtpSent">
                                 <div class="flex flex-col gap-4">
                                     <p class="text-sm text-gray-600">
-                                        <strong>{{ pendingRegisterEmail }}</strong> adresine gönderilen 6 haneli kodu
-                                        girin.
+                                        <span class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                            <span class="font-semibold text-gray-800">{{
+                                                '+90 ' + formatPhoneDisplay(pendingRegisterEmail)
+                                            }}</span>
+                                            <button
+                                                type="button"
+                                                class="inline-flex items-center justify-center rounded-md p-1 text-primary hover:bg-primary/10"
+                                                title="Telefon numarasını değiştir"
+                                                @click="openLoginOtpChangePhoneModal"
+                                            >
+                                                <i class="pi pi-pencil" style="font-size: 14px;"></i>
+                                            </button>
+                                        </span>
+                                        <span class="mt-1 block">numarasına gönderilen 6 haneli kodu girin.</span>
                                     </p>
                                     <div class="flex flex-col gap-1">
                                         <label class="text-sm font-medium text-gray-700">Doğrulama Kodu</label>
@@ -618,10 +663,43 @@
                                         {{ registerErrors.confirmPassword }}
                                     </span>
                                 </div>
+                                <div class="flex flex-col gap-2.5 text-sm text-gray-600 mt-1">
+                                    <label class="flex items-start gap-2.5 cursor-pointer select-none">
+                                        <input
+                                            v-model="registerAcceptUyelik"
+                                            type="checkbox"
+                                            class="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 text-primary focus:ring-primary"
+                                        />
+                                        <span class="leading-snug">
+                                            <RouterLink
+                                                to="/uyelik-sozlesmesi"
+                                                class="font-semibold text-primary hover:underline"
+                                                @click.stop
+                                            >Üyelik Sözleşmesi</RouterLink>'ni okudum ve kabul ediyorum.
+                                        </span>
+                                    </label>
+                                    <label class="flex items-start gap-2.5 cursor-pointer select-none">
+                                        <input
+                                            v-model="registerAcceptKvkk"
+                                            type="checkbox"
+                                            class="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 text-primary focus:ring-primary"
+                                        />
+                                        <span class="leading-snug">
+                                            <RouterLink
+                                                to="/kvkk"
+                                                class="font-semibold text-primary hover:underline"
+                                                @click.stop
+                                            >KVKK Aydınlatma Metni</RouterLink>'ni okudum ve onaylıyorum.
+                                        </span>
+                                    </label>
+                                </div>
                                 <div class="flex flex-wrap items-center gap-3 mt-2">
-                                    <button type="submit" :disabled="registerLoading" :class="[
+                                    <button
+                                        type="submit"
+                                        :disabled="registerLoading || !registerAcceptUyelik || !registerAcceptKvkk"
+                                        :class="[
                                         'h-12 px-6 font-semibold rounded-md transition-all text-base md:text-lg shrink-0',
-                                        registerLoading
+                                        registerLoading || !registerAcceptUyelik || !registerAcceptKvkk
                                             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                             : 'bg-primary text-white hover:opacity-90'
                                     ]">
@@ -645,6 +723,78 @@
                 </div>
             </div>
         </div>
+
+        <Teleport to="body">
+            <div
+                v-show="loginOtpChangePhoneModalOpen"
+                class="fixed inset-0 z-[100] flex items-center justify-center p-4"
+                role="dialog"
+                aria-modal="true"
+            >
+                <div class="absolute inset-0 bg-black/50" @click="closeLoginOtpChangePhoneModal" />
+                <div
+                    class="relative w-full max-w-md rounded-xl border border-gray-100 bg-white p-6 shadow-xl"
+                    @click.stop
+                >
+                    <h3 class="mb-1 text-lg font-semibold text-gray-900">Telefon numarasını güncelle</h3>
+                    <p class="mb-4 text-sm text-gray-500">
+                        Yeni numaraya doğrulama kodu SMS ile gönderilir. Numara başka bir hesapta kayıtlı olamaz.
+                    </p>
+                    <label class="mb-1 block text-sm font-medium text-gray-700">Yeni telefon</label>
+                    <div class="relative mb-3">
+                        <InputMask
+                            v-model="loginOtpNewPhone"
+                            type="tel"
+                            mask="999 999 99 99"
+                            placeholder="5XX XXX XX XX"
+                            autocomplete="tel"
+                            @keydown.enter.prevent="submitLoginOtpChangePhone"
+                            :class="[
+                                'w-full h-12 !border !rounded-lg !pl-12 pr-4 text-left text-gray-900 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/20',
+                                '!border-gray-200 focus:border-primary',
+                                'placeholder:text-gray-300',
+                            ]"
+                        />
+                        <div class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                                />
+                            </svg>
+                        </div>
+                    </div>
+                    <p v-if="loginOtpChangePhoneError" class="mb-3 text-xs text-red-600">
+                        {{ loginOtpChangePhoneError }}
+                    </p>
+                    <div class="mt-4 flex justify-end gap-2">
+                        <button
+                            type="button"
+                            class="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+                            :disabled="loginOtpChangePhoneLoading"
+                            @click="closeLoginOtpChangePhoneModal"
+                        >
+                            Vazgeç
+                        </button>
+                        <button
+                            type="button"
+                            class="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"
+                            :disabled="
+                                loginOtpChangePhoneLoading ||
+                                String(loginOtpNewPhone ?? '').replace(/\s/g, '').length !== 10
+                            "
+                            @click="submitLoginOtpChangePhone"
+                        >
+                            {{
+                                loginOtpChangePhoneLoading ? 'Kaydediliyor...' : 'Kaydet ve kod gönder'
+                            }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </Teleport>
 
         <EkibineSorModal v-model:open="ekibineSorOpen" />
     </div>
@@ -708,6 +858,11 @@ const loginErrors = ref({
 const showLoginPassword = ref(false);
 const loginLoading = ref(false);
 
+const loginAcceptUyelik = ref(false);
+const loginAcceptKvkk = ref(false);
+const registerAcceptUyelik = ref(false);
+const registerAcceptKvkk = ref(false);
+
 const registerForm = ref({
     userType: "cargo_owner",
     firstName: "",
@@ -740,6 +895,92 @@ const resendOtpLoading = ref(false);
 const otpVerifyLoading = ref(false);
 const showPasswordSuggestion = ref(false);
 const registerOtpInputRef = ref(null);
+
+const loginOtpChangePhoneModalOpen = ref(false);
+const loginOtpNewPhone = ref('');
+const loginOtpChangePhoneLoading = ref(false);
+const loginOtpChangePhoneError = ref('');
+
+/** OTP üst satırı: girişteki InputMask (`999 999 99 99`) ile aynı gruplama — örn. 555 123 45 67 */
+function formatPhoneDisplay(phone) {
+    if (!phone || typeof phone !== 'string') return '';
+    const d = String(phone).replace(/\D/g, '');
+    let ten = '';
+    if (d.length === 11 && d.startsWith('0')) {
+        ten = d.slice(1);
+    } else if (d.length === 10 && d.startsWith('5')) {
+        ten = d;
+    } else if (d.length >= 10) {
+        ten = d.slice(-10);
+    } else {
+        return phone.trim();
+    }
+    if (ten.length !== 10) {
+        return phone.trim();
+    }
+    return `${ten.slice(0, 3)} ${ten.slice(3, 6)} ${ten.slice(6, 8)} ${ten.slice(8, 10)}`;
+}
+
+/** Girişteki InputMask (10 hane, 5XX…) ile uyumlu string */
+function phoneForInputMask(stored) {
+    if (!stored) return '';
+    const d = String(stored).replace(/\D/g, '');
+    if (d.length === 11 && d.startsWith('0')) {
+        return d.slice(1);
+    }
+    if (d.length === 10 && d.startsWith('5')) {
+        return d;
+    }
+    if (d.length >= 10) {
+        return d.slice(-10);
+    }
+    return d;
+}
+
+function openLoginOtpChangePhoneModal() {
+    loginOtpChangePhoneError.value = '';
+    loginOtpNewPhone.value = phoneForInputMask(pendingRegisterEmail.value || '');
+    loginOtpChangePhoneModalOpen.value = true;
+}
+
+function closeLoginOtpChangePhoneModal() {
+    if (loginOtpChangePhoneLoading.value) return;
+    loginOtpChangePhoneModalOpen.value = false;
+    loginOtpChangePhoneError.value = '';
+}
+
+async function submitLoginOtpChangePhone() {
+    const newPhone = String(loginOtpNewPhone.value ?? '').replace(/\s/g, '');
+    const current = pendingRegisterEmail.value;
+    if (!current || newPhone.length !== 10) {
+        loginOtpChangePhoneError.value =
+            newPhone.length !== 10 ? 'Geçerli bir 10 haneli cep numarası girin.' : 'Oturum bilgisi eksik.';
+        return;
+    }
+    loginOtpChangePhoneError.value = '';
+    loginOtpChangePhoneLoading.value = true;
+    const result = await authStore.changePhonePending(current, newPhone);
+    loginOtpChangePhoneLoading.value = false;
+    if (result.success && result.phone) {
+        pendingRegisterEmail.value = result.phone;
+        otpCode.value = '';
+        otpError.value = '';
+        loginOtpChangePhoneModalOpen.value = false;
+        const masked = phoneForInputMask(result.phone);
+        if (otpOpenedFromLogin.value) {
+            loginForm.value.phone = masked;
+        } else {
+            registerForm.value.phone = masked;
+        }
+        toast.success('Telefon güncellendi', {
+            description: 'Yeni doğrulama kodu SMS ile gönderildi.',
+            duration: 5000,
+        });
+    } else {
+        loginOtpChangePhoneError.value = result.error || 'İşlem başarısız.';
+        toast.error(loginOtpChangePhoneError.value, { duration: 5000 });
+    }
+}
 
 function focusRegisterOtpFirstInput() {
     const inst = registerOtpInputRef.value;
@@ -809,6 +1050,12 @@ watch(requestShowLoginModal, (v) => {
 
 watch(showLogin, (isOpen) => {
     document.body.style.overflow = isOpen ? 'hidden' : 'auto';
+    if (isOpen) {
+        loginAcceptUyelik.value = false;
+        loginAcceptKvkk.value = false;
+        registerAcceptUyelik.value = false;
+        registerAcceptKvkk.value = false;
+    }
 });
 
 watch(
@@ -905,6 +1152,10 @@ const handleAuthModalSubmit = () => {
 };
 
 const handleLoginSubmit = async () => {
+    if (!loginAcceptUyelik.value || !loginAcceptKvkk.value) {
+        toast.error('Giriş için üyelik sözleşmesi ve KVKK metnini onaylamalısınız.', { duration: 4000 });
+        return;
+    }
     loginErrors.value = { phone: "", password: "" };
     loginLoading.value = true;
     try {
@@ -919,6 +1170,8 @@ const handleLoginSubmit = async () => {
             toast.success('Giriş başarılı!', { description: 'Başarılı', duration: 5000 });
             showLogin.value = false;
             loginForm.value = { phone: "", password: "" };
+            loginAcceptUyelik.value = false;
+            loginAcceptKvkk.value = false;
             redirectAfterLogin();
         } else if (result.needOtp && result.email) {
             otpOpenedFromLogin.value = true;
@@ -1012,6 +1265,10 @@ const handleLoginSubmit = async () => {
 };
 
 const handleRegisterSubmit = async () => {
+    if (!registerAcceptUyelik.value || !registerAcceptKvkk.value) {
+        toast.error('Kayıt için üyelik sözleşmesi ve KVKK metnini onaylamalısınız.', { duration: 4000 });
+        return;
+    }
     registerErrors.value = {
         userType: "",
         firstName: "",
@@ -1060,6 +1317,8 @@ const handleRegisterSubmit = async () => {
                 password: "",
                 confirmPassword: ""
             };
+            registerAcceptUyelik.value = false;
+            registerAcceptKvkk.value = false;
             redirectAfterLogin();
         } else {
             // Server'dan dönen hata mesajını toast ile göster
@@ -1215,7 +1474,10 @@ const handleVerifyOtp = async () => {
     const result = await authStore.verifyOtp(pendingRegisterEmail.value, code);
     otpVerifyLoading.value = false;
     if (result.success) {
-        toast.success('Kayıt tamamlandı.', { description: 'Başarılı', duration: 5000 });
+        toast.success(otpOpenedFromLogin.value ? 'Giriş başarılı!' : 'Kayıt tamamlandı.', {
+            description: 'Başarılı',
+            duration: 5000,
+        });
         showLogin.value = false;
         registerOtpSent.value = false;
         otpOpenedFromLogin.value = false;

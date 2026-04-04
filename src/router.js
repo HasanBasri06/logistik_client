@@ -34,6 +34,8 @@ import GizlilikSozlesmesiPage from "./pages/GizlilikSozlesmesiPage.vue";
 import UyelikSozlesmesiPage from "./pages/UyelikSozlesmesiPage.vue";
 import KvkkPage from "./pages/KvkkPage.vue";
 import IptalVeIadeKosullariPage from "./pages/IptalVeIadeKosullariPage.vue";
+import PaytrPaymentOkPage from "./pages/PaytrPaymentOkPage.vue";
+import PaytrPaymentFailPage from "./pages/PaytrPaymentFailPage.vue";
 
 const routes = [
     {
@@ -355,6 +357,24 @@ const routes = [
         meta: {
             layout: Layout,
             title: 'Blog | TaşıBul',
+            requiresAuth: false
+        }
+    },
+    {
+        path: '/odeme/basarili',
+        component: PaytrPaymentOkPage,
+        meta: {
+            layout: Layout,
+            title: 'Ödeme | TaşıBul',
+            requiresAuth: false
+        }
+    },
+    {
+        path: '/odeme/hata',
+        component: PaytrPaymentFailPage,
+        meta: {
+            layout: Layout,
+            title: 'Ödeme | TaşıBul',
             requiresAuth: false
         }
     },

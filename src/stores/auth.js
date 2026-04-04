@@ -126,6 +126,27 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
+    /** Giriş/kayıt OTP ekranı: yanlış telefonu günceller, yeni SMS gönderir (token gerekmez). */
+    const changePhonePending = async (currentPhone, newPhone) => {
+        try {
+            const response = await api.post('/auth/change-phone-pending', {
+                current_phone: currentPhone,
+                new_phone: newPhone,
+            })
+            const content = response.data?.content ?? response.data
+            return {
+                success: true,
+                phone: content?.phone ?? content?.email,
+                data: response.data,
+            }
+        } catch (error) {
+            const body = error.response?.data
+            const fieldErr = body?.error?.new_phone?.[0]
+            const errorMessage = fieldErr || body?.message || error.message
+            return { success: false, error: errorMessage }
+        }
+    }
+
     /** Giriş modalını açmak isteyen bileşenler bunu true yapar; Header izleyip modalı açar. */
     const requestShowLoginModal = ref(false)
 
@@ -188,6 +209,7 @@ export const useAuthStore = defineStore('auth', () => {
         register,
         verifyOtp,
         resendOtp,
+        changePhonePending,
         logout,
         checkToken
     }

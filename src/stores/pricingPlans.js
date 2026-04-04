@@ -15,7 +15,6 @@ function formatRate(value) {
 
 export const usePricingPlansStore = defineStore('pricingPlans', () => {
     const baseMonthlyPrice = 299;
-    const installmentRatePercent = 7.53;
 
     const rawPlans = [
         {
@@ -25,6 +24,7 @@ export const usePricingPlansStore = defineStore('pricingPlans', () => {
             discountPercent: 0,
             description: 'Kısa süreli kullanım için ideal başlangıç paketi.',
             badge: null,
+            price: 299,
         },
         {
             id: 'quarterly',
@@ -33,6 +33,7 @@ export const usePricingPlansStore = defineStore('pricingPlans', () => {
             totalPriceFixed: 750,
             description: 'Düzenli kullanım için dengeli fiyat ve süre avantajı.',
             badge: 'Önerilen',
+            price: 750,
         },
         {
             id: 'semiannual',
@@ -41,6 +42,7 @@ export const usePricingPlansStore = defineStore('pricingPlans', () => {
             totalPriceFixed: 1320,
             description: 'Orta vadeli planlama yapanlar için ekonomik seçenek.',
             badge: null,
+            price: 1320,
         },
         {
             id: 'annual',
@@ -49,18 +51,7 @@ export const usePricingPlansStore = defineStore('pricingPlans', () => {
             totalPriceFixed: 2400,
             description: 'Uzun vadede en düşük aylık maliyet sağlayan paket.',
             badge: 'Popüler',
-        },
-    ];
-
-    /** Sadece 3 / 6 / 12 aylık planlarda gösterilir */
-    const installmentOptionPresets = [
-        {
-            id: 'equal',
-            title: 'Eşit 2 taksit',
-            subtitle: '50% · 50%',
-            description: '%7,53 vade farkı uygulanır.',
-            splits: [0.5, 0.5],
-            labels: ['1. taksit', '2. taksit'],
+            price: 2400,
         },
     ];
 
@@ -73,20 +64,6 @@ export const usePricingPlansStore = defineStore('pricingPlans', () => {
             const discount = normalTotal - total;
             const discountRate = normalTotal > 0 ? (discount / normalTotal) * 100 : 0;
 
-            const showInstallments = plan.months >= 3;
-            const installmentTotal = totalRounded * (1 + installmentRatePercent / 100);
-            const installmentTotalRounded = roundCurrency(installmentTotal);
-            const installmentOptions = showInstallments
-                ? installmentOptionPresets.map((preset) => ({
-                      ...preset,
-                      payments: preset.splits.map((ratio, idx) => ({
-                          label: preset.labels[idx] ?? `Taksit ${idx + 1}`,
-                          amount: formatTl(roundCurrency(installmentTotalRounded * ratio)),
-                          ratioPercent: Math.round(ratio * 100),
-                      })),
-                  }))
-                : null;
-
             return {
                 ...plan,
                 durationLabel: `${plan.months} Ay`,
@@ -96,10 +73,6 @@ export const usePricingPlansStore = defineStore('pricingPlans', () => {
                 discountAmount: formatTl(roundCurrency(discount)),
                 discountRate: formatRate(discountRate),
                 showDiscount: discount > 0,
-                showInstallments,
-                installmentRate: formatRate(installmentRatePercent),
-                installmentTotalPrice: formatTl(installmentTotalRounded),
-                installmentOptions,
                 ctaText: 'Paketi Seç',
             };
         })

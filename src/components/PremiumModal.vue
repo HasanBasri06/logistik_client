@@ -40,10 +40,10 @@
                                 :key="plan.id"
                                 type="button"
                                 class="relative h-[225px] flex flex-col items-start justify-between p-4 rounded-2xl border-2 transition-all text-left shadow-sm"
-                                :class="selectedPlanId === plan.id
+                                :class="selectedPlan?.id === plan.id
                                     ? 'border-primary bg-primary/10 ring-2 ring-primary/20'
                                     : 'border-gray-200 bg-white hover:border-primary/40 hover:bg-primary/5 hover:shadow-md'"
-                                @click="selectedPlanId = plan.id"
+                                @click="selectPlan(plan)"
                             >
                                 <div
                                     v-if="plan.badge"
@@ -61,10 +61,14 @@
                                         <div class="text-base font-bold leading-tight text-gray-900">{{ plan.name }}</div>
                                         <div class="text-sm font-semibold text-gray-700 mt-1">{{ plan.totalPrice }}</div>
                                     </div>
-                                    <i v-if="selectedPlanId === plan.id" class="pi pi-check-circle text-primary text-xl"></i>
+                                    <i v-if="selectedPlan?.id === plan.id" class="pi pi-check-circle text-primary text-xl"></i>
                                 </div>
                                 <div class="mt-4 w-full rounded-xl border border-gray-100 bg-gray-50/80 px-3 py-2.5">
-                                    <div class="text-sm font-semibold text-primary leading-snug">Aylık maliyet: {{ plan.monthlyCost }}</div>
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <p class="text-sm font-semibold text-primary leading-snug whitespace-nowrap">
+                                            Aylık maliyet: {{ plan.monthlyCost }}
+                                        </p>
+                                    </div>
                                     <div v-if="plan.showDiscount" class="text-xs text-emerald-600 font-semibold mt-1 leading-snug">
                                         İndirim: {{ plan.discountAmount }} ({{ plan.discountRate }})
                                     </div>
@@ -112,6 +116,14 @@
                                     <div class="min-w-0">
                                         <p class="text-xs text-gray-500">Seçilen paket</p>
                                         <p class="text-sm font-semibold text-gray-900 truncate">{{ selectedPlan?.name || '—' }}</p>
+                                        <div
+                                            v-if="selectedPlan"
+                                            class="mt-2 flex items-center gap-2 flex-wrap"
+                                        >
+                                            <p class="text-xs font-semibold text-primary whitespace-nowrap">
+                                                Aylık maliyet: {{ selectedPlan.monthlyCost }}
+                                            </p>
+                                        </div>
                                     </div>
                                     <button
                                         type="button"
@@ -194,7 +206,7 @@
                             v-if="step === 1"
                             type="button"
                             class="px-4 py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-                            :disabled="!selectedPlanId"
+                            :disabled="!selectedPlan"
                             @click="goToPayment"
                         >
                             Premium'a geç
@@ -227,12 +239,11 @@ const authStore = useAuthStore();
 const { showPremiumModal } = storeToRefs(authStore);
 
 const show = computed(() => !!showPremiumModal.value);
-const pricingPlansStore = usePricingPlansStore();
-const { plans } = storeToRefs(pricingPlansStore);
+const { plans } = storeToRefs(usePricingPlansStore());
 
 const step = ref(1); // 1: plan seçimi, 2: ödeme bilgileri (UI)
-const selectedPlanId = ref(null);
-const selectedPlan = computed(() => plans.value.find((p) => p.id === selectedPlanId.value) ?? null);
+/** Store’daki tam plan nesnesi (servise gönderilecek) */
+const selectedPlan = ref(null);
 
 const paymentForm = ref({
     name: '',
@@ -249,6 +260,10 @@ const paymentErrors = ref({
     plan: '',
 });
 const paymentSubmitting = ref(false);
+
+function selectPlan(plan) {
+    selectedPlan.value = plan;
+}
 
 const cardDisplayName = computed(() => (paymentForm.value.name || 'AD SOYAD').toUpperCase());
 const cardDisplayNumber = computed(() => {
@@ -274,21 +289,21 @@ const cardDisplayCvc = computed(() => {
 function close() {
     authStore.showPremiumModal = false;
     step.value = 1;
-    selectedPlanId.value = null;
+    selectedPlan.value = null;
     paymentForm.value = { name: '', number: '', exp: '', cvc: '' };
     paymentErrors.value = { name: '', number: '', exp: '', cvc: '', plan: '' };
     paymentSubmitting.value = false;
 }
 
 function goToPayment() {
-    if (!selectedPlanId.value) return;
+    if (!selectedPlan.value) return;
     step.value = 2;
 }
 
 function validatePaymentForm() {
     const errs = { name: '', number: '', exp: '', cvc: '', plan: '' };
 
-    if (!selectedPlanId.value) errs.plan = 'Lütfen paket seçin.';
+    if (!selectedPlan.value) errs.plan = 'Lütfen paket seçin.';
 
     const name = String(paymentForm.value.name ?? '').trim();
     if (!name) errs.name = 'Kart üzerindeki ad zorunludur.';
@@ -336,28 +351,100 @@ async function submitPayment() {
 
     paymentSubmitting.value = true;
     try {
-        const plan = selectedPlan.value?.months ?? null;
+        const p = selectedPlan.value;
+        const plan_months = p?.months ?? null;
         const card_number = String(paymentForm.value.number ?? '').replace(/\D/g, '');
         const expDigits = String(paymentForm.value.exp ?? '').replace(/\D/g, '').slice(0, 4);
-        const card_exp = `${expDigits.slice(0, 2)}/${expDigits.slice(2, 4)}`;
         const card_cvc = String(paymentForm.value.cvc ?? '').replace(/\D/g, '');
 
-        await api.post('/payment/create', {
-            plan_months: plan,
-            card_name: String(paymentForm.value.name ?? '').trim(),
-            card_number,
-            card_exp,
-            card_cvc,
-        });
+        const planPayload = p
+            ? {
+                  id: p.id,
+                  months: p.months,
+                  name: p.name,
+                  description: p.description,
+                  badge: p.badge,
+                  duration_label: p.durationLabel,
+                  total_numeric: p.totalNumeric,
+                  total_price: p.totalPrice,
+                  monthly_cost: p.monthlyCost,
+                  discount_amount: p.discountAmount,
+                  discount_rate: p.discountRate,
+                  show_discount: p.showDiscount,
+              }
+            : null;
 
-        if (authStore.user) {
-            authStore.setUser({ ...authStore.user, payment_confirm: true });
+        const mm = expDigits.slice(0, 2).padStart(2, '0');
+        const yy = expDigits.slice(2, 4);
+
+        const res = await api.post(
+            '/payment/create',
+            {
+                plan: planPayload,
+                plan_months,
+                cc_owner: String(paymentForm.value.name ?? '').trim(),
+                card_number,
+                expiry_month: mm,
+                expiry_year: yy,
+                cvv: card_cvc,
+            },
+            { timeout: 120000 }
+        );
+
+        if (res.status < 200 || res.status >= 300) {
+            toast.error(res.data?.message || 'Ödeme isteği tamamlanamadı.', { description: 'Ödeme', duration: 5000 });
+            return;
         }
-        toast.success('Premium üyeliğiniz aktif edildi.', { description: 'Ödeme Başarılı', duration: 5000 });
+
+        const content = res.data?.content;
+        const isObj = content !== null && typeof content === 'object';
+        const redirectUrl = isObj ? content.paytr_redirect_url || content.location : undefined;
+        const html =
+            isObj && typeof content.paytr_html === 'string'
+                ? content.paytr_html
+                : typeof content === 'string' && content.trim() !== ''
+                  ? content
+                  : null;
+
+        if (redirectUrl && typeof redirectUrl === 'string') {
+            window.open(redirectUrl, '_blank');
+            toast.success('Ödeme başarıyla oluşturuldu.', {
+                description: 'Ödeme adımı yeni sekmede açıldı.',
+                duration: 5000,
+            });
+            close();
+            return;
+        }
+
+        if (html) {
+            const w = window.open('', '_blank');
+            if (w) {
+                w.document.open();
+                w.document.write(html);
+                w.document.close();
+                toast.success('Ödeme başarıyla oluşturuldu.', {
+                    description: '3D / banka sayfası yeni sekmede açıldı.',
+                    duration: 5000,
+                });
+                close();
+                return;
+            }
+            toast.error('Pop-up engellendi. Tarayıcıda bu site için pop-up izni verin.', { duration: 6000 });
+            return;
+        }
+
+        toast.success(res.data?.message || 'Ödeme başarıyla oluşturuldu.', { duration: 5000 });
         close();
     } catch (err) {
-        const msg = err?.response?.data?.message || err?.message || 'Ödeme alınamadı.';
-        toast.error(msg, { description: 'Ödeme Hatası', duration: 5000 });
+        let msg = err?.response?.data?.message || err?.message || 'Ödeme alınamadı.';
+        if (err?.code === 'ECONNABORTED') {
+            msg =
+                'İstek zaman aşımına uğradı. Sunucunun PayTR ile iletişimi uzun sürdü; tekrar deneyin veya API adresini (VITE_APP_SERVER_URL) kontrol edin.';
+        } else if (err?.message === 'Network Error' && !err?.response) {
+            msg =
+                'Ağ hatası: Laravel API’ye erişilemedi (CORS, yanlış URL, SSL veya sunucu kapalı). VITE_APP_SERVER_URL ve php artisan serve kontrol edin.';
+        }
+        toast.error(msg, { description: 'Ödeme Hatası', duration: 7000 });
     } finally {
         paymentSubmitting.value = false;
     }

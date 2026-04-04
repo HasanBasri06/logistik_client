@@ -47,10 +47,21 @@
         </div>
       </div>
 
-      <!-- Ücret Badge -->
-      <div
-        class="inline-flex items-center py-1.5 px-3 text-sm sm:px-3.5 rounded-full bg-primary/10  sm:text-xs font-semibold text-primary whitespace-nowrap shrink-0 self-center"
-      >{{ shipment?.price }}
+      <!-- Ücret + masaüstünde İptal (solda); mobilde yalnızca fiyat — İptal altta grid’de -->
+      <div class="flex flex-row items-center gap-2 sm:gap-3 shrink-0 self-center">
+        <button
+          v-if="showOwnerCancelButton"
+          type="button"
+          class="hidden sm:inline-flex bg-red-200 text-red-700 text-sm px-4 py-1 rounded-md cursor-pointer"
+          @click.stop="handleCanceledBtn($event, shipment)"
+        >
+          İptal Et
+        </button>
+        <div
+          class="inline-flex items-center py-1.5 px-3 text-sm sm:px-3.5 rounded-full bg-primary/10 sm:text-xs font-semibold text-primary whitespace-nowrap"
+        >
+          {{ shipment?.price }}
+        </div>
       </div>
     </div>
 
@@ -88,10 +99,6 @@
           >
             İlanınız şu an yayında değildir
           </span>
-        </div>
-        <div v-else-if="showOwnerCancelButton" class="flex items-center shrink-0">
-          <div class="w-px h-5 bg-gray-200 mr-4"></div>
-          <button class="bg-red-200 text-red-700 text-sm px-4 py-1 rounded-md cursor-pointer" @click.stop="handleCanceledBtn($event, shipment)">İptal Et</button>
         </div>
       </div>
       <div class="hidden sm:flex items-center min-w-0 shrink-0">
