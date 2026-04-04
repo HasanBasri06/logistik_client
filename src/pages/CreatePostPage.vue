@@ -260,7 +260,6 @@
                         v-model="departure_time"
                         time-only
                         hour-format="24"
-                        stepMinute="30"
                         :manualInput="false"
                         placeholder="Kalkış saati"
                         :pt="{
@@ -277,7 +276,6 @@
                         v-model="time_arrival"
                         time-only
                         hour-format="24"
-                        stepMinute="30"
                         :manualInput="false"
                         placeholder="Varış saati"
                         :pt="{
@@ -570,23 +568,6 @@ function onToggleDepartureDate() {
   }
 }
 
-/** timeOnly: sadece 30dk aralıkları (00 ve 30) için seçimi güvenceye al */
-function normalizeToStep30(date) {
-  if (!date || !(date instanceof Date)) return date;
-  const d = new Date(date);
-  const minutes = d.getMinutes();
-  // 00/30 aralığına aşağı yuvarla
-  const normalizedMinutes = minutes < 30 ? 0 : 30;
-  d.setMinutes(normalizedMinutes, 0, 0);
-  return d;
-}
-
-watch(departure_time, (v) => {
-  departure_time.value = normalizeToStep30(v);
-});
-watch(time_arrival, (v) => {
-  time_arrival.value = normalizeToStep30(v);
-});
 /** Boşaltılacak yer: sadece şehir ve ilçe isimleri */
 const bosaltilanYer = ref({ city: '', district: '' });
 const cities = ref([]);

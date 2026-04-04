@@ -408,11 +408,11 @@
                                                 class="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 text-primary focus:ring-primary"
                                             />
                                             <span class="leading-snug">
-                                                <RouterLink
-                                                    to="/uyelik-sozlesmesi"
-                                                    class="font-semibold text-primary hover:underline"
-                                                    @click.stop
-                                                >Üyelik Sözleşmesi</RouterLink>'ni okudum ve kabul ediyorum.
+                                                <button
+                                                    type="button"
+                                                    class="font-semibold text-primary hover:underline inline p-0 border-0 bg-transparent cursor-pointer text-left"
+                                                    @click.stop="openLegalTextModal('uyelik', true)"
+                                                >Üyelik Sözleşmesi</button>'ni okudum ve kabul ediyorum.
                                             </span>
                                         </label>
                                         <label class="flex items-start gap-2.5 cursor-pointer select-none">
@@ -422,11 +422,11 @@
                                                 class="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 text-primary focus:ring-primary"
                                             />
                                             <span class="leading-snug">
-                                                <RouterLink
-                                                    to="/kvkk"
-                                                    class="font-semibold text-primary hover:underline"
-                                                    @click.stop
-                                                >KVKK Aydınlatma Metni</RouterLink>'ni okudum ve onaylıyorum.
+                                                <button
+                                                    type="button"
+                                                    class="font-semibold text-primary hover:underline inline p-0 border-0 bg-transparent cursor-pointer text-left"
+                                                    @click.stop="openLegalTextModal('kvkk', true)"
+                                                >KVKK Aydınlatma Metni</button>'ni okudum ve onaylıyorum.
                                             </span>
                                         </label>
                                     </div>
@@ -684,11 +684,11 @@
                                             class="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 text-primary focus:ring-primary"
                                         />
                                         <span class="leading-snug">
-                                            <RouterLink
-                                                to="/uyelik-sozlesmesi"
-                                                class="font-semibold text-primary hover:underline"
-                                                @click.stop
-                                            >Üyelik Sözleşmesi</RouterLink>'ni okudum ve kabul ediyorum.
+                                            <button
+                                                type="button"
+                                                class="font-semibold text-primary hover:underline inline p-0 border-0 bg-transparent cursor-pointer text-left"
+                                                @click.stop="openLegalTextModal('uyelik', false)"
+                                            >Üyelik Sözleşmesi</button>'ni okudum ve kabul ediyorum.
                                         </span>
                                     </label>
                                     <label class="flex items-start gap-2.5 cursor-pointer select-none">
@@ -698,11 +698,11 @@
                                             class="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 text-primary focus:ring-primary"
                                         />
                                         <span class="leading-snug">
-                                            <RouterLink
-                                                to="/kvkk"
-                                                class="font-semibold text-primary hover:underline"
-                                                @click.stop
-                                            >KVKK Aydınlatma Metni</RouterLink>'ni okudum ve onaylıyorum.
+                                            <button
+                                                type="button"
+                                                class="font-semibold text-primary hover:underline inline p-0 border-0 bg-transparent cursor-pointer text-left"
+                                                @click.stop="openLegalTextModal('kvkk', false)"
+                                            >KVKK Aydınlatma Metni</button>'ni okudum ve onaylıyorum.
                                         </span>
                                     </label>
                                 </div>
@@ -810,6 +810,12 @@
         </Teleport>
 
         <EkibineSorModal v-model:open="ekibineSorOpen" />
+
+        <LegalTextModal
+            v-model="legalTextModal"
+            :is-login="legalModalIsLogin"
+            @confirm="onLegalTextModalConfirm"
+        />
     </div>
 </template>
 
@@ -821,6 +827,7 @@ import { toast } from 'vue-sonner';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 import Content from './Content.vue';
 import EkibineSorModal from './EkibineSorModal.vue';
+import LegalTextModal from '@/components/legal/LegalTextModal.vue';
 import AccountBreadcrumb from './AccountBreadcrumb.vue';
 import loginWallpaper from '@/assets/images/login_wallpaper.gif';
 import { InputMask } from 'primevue';
@@ -847,6 +854,16 @@ const isRegister = ref(false);
 const accountDropdownOpen = ref(false);
 const mobileMenuOpen = ref(false);
 const ekibineSorOpen = ref(false);
+/** null | 'uyelik' | 'kvkk' — giriş/kayıt üzerinde yasal metin önizlemesi */
+const legalTextModal = ref(null);
+/** Modal hangi formdan açıldı (onay butonu ilgili checkbox’a yazar) */
+const legalModalIsLogin = ref(true);
+
+function openLegalTextModal(doc, isLogin) {
+    legalTextModal.value = doc;
+    legalModalIsLogin.value = !!isLogin;
+}
+
 /** Okunmamış mesaj var mı (Header dropdown Mesajlarım yanında kırmızı nokta) */
 const hasUnreadMessages = ref(false);
 
@@ -875,6 +892,16 @@ const loginAcceptUyelik = ref(false);
 const loginAcceptKvkk = ref(false);
 const registerAcceptUyelik = ref(false);
 const registerAcceptKvkk = ref(false);
+
+function onLegalTextModalConfirm({ doc, isLogin }) {
+    if (doc === 'uyelik') {
+        if (isLogin) loginAcceptUyelik.value = true;
+        else registerAcceptUyelik.value = true;
+    } else if (doc === 'kvkk') {
+        if (isLogin) loginAcceptKvkk.value = true;
+        else registerAcceptKvkk.value = true;
+    }
+}
 
 const registerForm = ref({
     userType: "cargo_owner",
