@@ -77,11 +77,11 @@
                                 Destek Formu
                             </RouterLink>
                             <a
-                                href="mailto:info@tasibul.com"
+                                href="mailto:destek@tasibul.com"
                                 class="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
                             >
                                 <i class="pi pi-envelope"></i>
-                                info@tasibul.com
+                                destek@tasibul.com
                             </a>
                         </div>
                     </div>
