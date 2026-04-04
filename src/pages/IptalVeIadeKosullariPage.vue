@@ -17,19 +17,7 @@
                 </div>
 
                 <article class="space-y-6">
-                    <section class="rounded-2xl bg-white border border-gray-200/80 shadow-sm overflow-hidden transition-shadow hover:shadow-md">
-                        <div class="p-6 md:p-8">
-                            <div class="flex items-center gap-3 mb-4">
-                                <span class="flex items-center justify-center w-9 h-9 rounded-xl bg-primary/10 text-primary font-bold text-sm">1</span>
-                                <h2 class="text-lg md:text-xl font-bold text-gray-900">Hizmet İptali</h2>
-                            </div>
-                            <p class="text-gray-600 text-sm md:text-base leading-relaxed">
-                                TaşıBul olarak hizmeti biz iptal etmiyoruz. Platform tarafından sunulan hizmet (üyelik, ilan/teklif eşleştirmesi) taraflarca sonlandırılmadıkça devam eder. Üyeliğinizi yalnızca siz kapatabilirsiniz; bu durumda da abonelik bedeli iade edilmez.
-                            </p>
-                        </div>
-                    </section>
-
-                    <div class="rounded-2xl bg-gray-100/80 border border-gray-200/80 px-6 py-4 md:px-8 md:py-5 mt-8">
+                    <div class="rounded-2xl bg-gray-100/80 border border-gray-200/80 px-6 py-4 md:px-8 md:py-5">
                         <p class="text-xs md:text-sm text-gray-500 leading-relaxed">
                             Sorularınız için destek@tasibul.com. Tüketici şikâyetleri: <a href="https://tuketicihakemleri.ticaret.gov.tr" target="_blank" rel="noopener noreferrer" class="text-primary font-medium hover:underline">tuketicihakemleri.ticaret.gov.tr</a>. Son güncelleme: {{ currentYear }}.
                         </p>

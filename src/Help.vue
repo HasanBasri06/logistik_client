@@ -86,7 +86,7 @@
                 </div>
 
                 <p class="mt-6 text-center text-sm text-gray-500">
-                    E-posta: <a href="mailto:info@tasibul.com" class="text-primary font-medium hover:underline">info@tasibul.com</a>
+                    E-posta: <a href="mailto:destek@tasibul.com" class="text-primary font-medium hover:underline">destek@tasibul.com</a>
                 </p>
             </div>
         </Content>
