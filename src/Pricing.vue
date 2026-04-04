@@ -7,8 +7,8 @@
             <section class="relative overflow-hidden">
                 <div class="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,var(--color-primary)_0%,transparent_50%)] opacity-[0.06]" />
                 <Content class="relative py-14 md:py-18 flex flex-col items-center gap-5 text-center">
-                    <span class="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-primary">
-                        Fiyat planları
+                    <span class="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-4 py-1.5 text-xs font-semibold tracking-wider text-primary">
+                        FİYAT PLANLARI
                     </span>
                     <h1 class="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl max-w-2xl">
                         Sizin için en uygun paketi seçin

@@ -625,21 +625,34 @@
                                     <div class="relative">
                                         <input :type="showRegisterPassword ? 'text' : 'password'"
                                             v-model="registerForm.password"
-                                            :class="['input pr-12', registerErrors.password ? 'border-red-400' : '']"
-                                            placeholder="Şifrenizi oluşturun" @focus="showPasswordSuggestion = true"
-                                            @blur="hidePasswordSuggestion" />
-                                        <button type="button" @click="showRegisterPassword = !showRegisterPassword"
-                                            class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
-                                            <i :class="showRegisterPassword ? 'pi pi-eye-slash' : 'pi pi-eye'"
-                                                style="font-size: 18px;"></i>
-                                        </button>
-                                    </div>
-                                    <div v-if="showPasswordSuggestion" class="flex items-center gap-2 mt-1">
-                                        <button type="button" @click="applyStrongPassword"
-                                            class="text-xs text-primary font-medium hover:underline flex items-center gap-1">
-                                            <i class="pi pi-key"></i>
-                                            Güçlü şifre öner
-                                        </button>
+                                            :class="['input pr-24', registerErrors.password ? 'border-red-400' : '']"
+                                            placeholder="Şifrenizi oluşturun"
+                                            autocomplete="new-password" />
+                                        <div
+                                            class="absolute inset-y-0 right-2 z-10 flex items-center gap-0.5"
+                                            role="presentation"
+                                        >
+                                            <button
+                                                type="button"
+                                                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+                                                aria-label="Şifreyi göster veya gizle"
+                                                @click="showRegisterPassword = !showRegisterPassword"
+                                            >
+                                                <i
+                                                    :class="showRegisterPassword ? 'pi pi-eye-slash' : 'pi pi-eye'"
+                                                    class="text-lg"
+                                                ></i>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-primary transition-colors hover:bg-primary/10"
+                                                aria-label="Rastgele güçlü şifre oluştur"
+                                                title="Rastgele güçlü şifre"
+                                                @click="rollRegisterPassword"
+                                            >
+                                                <i class="pi pi-lightbulb text-lg"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                     <span v-if="registerErrors.password" class="text-xs text-red-500 mt-0.5">
                                         {{ registerErrors.password }}
@@ -893,7 +906,6 @@ const otpOpenedFromLogin = ref(false);
 const registerLoading = ref(false);
 const resendOtpLoading = ref(false);
 const otpVerifyLoading = ref(false);
-const showPasswordSuggestion = ref(false);
 const registerOtpInputRef = ref(null);
 
 const loginOtpChangePhoneModalOpen = ref(false);
@@ -1427,17 +1439,17 @@ function generateStrongPassword() {
     return pwd.split('').sort(() => Math.random() - 0.5).join('');
 }
 
-const applyStrongPassword = () => {
+/** Zar: yeni güçlü şifre üretir, alanlara yazar ve şifreyi gösterir (toast ile de gösterilir). */
+function rollRegisterPassword() {
     const pwd = generateStrongPassword();
     registerForm.value.password = pwd;
     registerForm.value.confirmPassword = pwd;
     showRegisterPassword.value = true;
-    toast.success('Güçlü şifre uygulandı. Şifreyi kopyalayıp saklayın.', { duration: 5000 });
-};
-
-const hidePasswordSuggestion = () => {
-    setTimeout(() => { showPasswordSuggestion.value = false; }, 200);
-};
+    toast.success('Yeni şifre oluşturuldu', {
+        description: pwd,
+        duration: 12000,
+    });
+}
 
 const handleOtpBack = () => {
     registerOtpSent.value = false;
