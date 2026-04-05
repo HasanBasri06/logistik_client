@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, onMounted } from 'vue';
 import Content from './Content.vue';
 import api from '@/api';
 
@@ -9,9 +9,15 @@ const scrollContainer = ref(null);
 
 const scrollBy = (direction) => {
     if (!scrollContainer.value) return;
+    const el = scrollContainer.value;
     const isMobile = window.innerWidth < 768;
-    const amount = isMobile ? Math.max(280, window.innerWidth - 32) : 284 * 2;
-    scrollContainer.value.scrollBy({ left: direction * amount, behavior: 'smooth' });
+    if (isMobile) {
+        const card = el.querySelector('[data-vehicle-card]');
+        const step = card ? card.offsetWidth + 16 : Math.max(280, window.innerWidth - 32);
+        el.scrollBy({ left: direction * step, behavior: 'auto' });
+        return;
+    }
+    scrollContainer.value.scrollBy({ left: direction * (284 * 2), behavior: 'smooth' });
 };
 
 const getCarImageUrl = (image) => {
@@ -40,7 +46,7 @@ onMounted(getCars);
         <div class="flex flex-col items-center gap-8 md:gap-12">
 
             <div class="flex flex-col items-center gap-4 text-center max-w-xl">
-                <span class="text-sm font-semibold text-primary tracking-wide uppercase">Araç Filomuz</span>
+                <span class="text-sm font-semibold text-primary tracking-wide ">ARAÇ FİLOMUZ</span>
                 <h2 class="text-2xl md:text-4xl font-bold tracking-tight">Her Yük İçin Doğru Araç</h2>
                 <p class="text-gray-500 text-base leading-relaxed">
                     Küçük paketlerden ağır tonajlı yüklere kadar, ihtiyacınıza uygun araç seçenekleriyle hizmetinizdeyiz.
@@ -68,12 +74,13 @@ onMounted(getCars);
 
                 <div
                     ref="scrollContainer"
-                    class="flex gap-4 md:gap-6 overflow-x-auto no_scrool scroll-smooth py-4 px-1"
+                    class="vehicle-strip no_scrool flex gap-4 overflow-x-auto py-4 pl-4 pr-4 md:gap-6 md:px-1 md:scroll-smooth snap-x snap-mandatory scroll-auto md:snap-none"
                 >
                     <div
                         v-for="car in cars"
                         :key="car.id"
-                        class="vehicle-card group flex flex-col items-center gap-4 rounded-2xl border border-gray-100 bg-white p-6 w-[calc(100vw-2rem)] min-w-0 md:w-[260px] shrink-0 transition-all duration-300 hover:shadow-xl hover:border-primary/20 hover:-translate-y-1"
+                        data-vehicle-card
+                        class="vehicle-card group flex w-[calc(100vw-2rem)] shrink-0 snap-start snap-always flex-col items-center gap-4 rounded-2xl border border-gray-100 bg-white p-6 min-w-0 transition-all duration-300 hover:shadow-xl hover:border-primary/20 hover:-translate-y-1 md:w-[260px]"
                     >
                         <div class="w-full h-36 flex items-center justify-center p-2 rounded-xl overflow-hidden">
                             <img
