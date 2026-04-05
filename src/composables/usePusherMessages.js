@@ -13,9 +13,10 @@ const CHANNEL_PREFIX = 'user';
  * @param {Object} callbacks
  * @param {(e: object) => void} [callbacks.onMessageSent]
  * @param {(e: object) => void} [callbacks.onOfferSent]
+ * @param {(e: object) => void} [callbacks.onOfferAccepted] — teklif kabul; mesajlar inactive, liste yenilenir
  */
 export function usePusherMessages(userIdRef, callbacks = {}) {
-    const { onMessageSent, onOfferSent } = callbacks;
+    const { onMessageSent, onOfferSent, onOfferAccepted } = callbacks;
     let channel = null;
     const isConnected = ref(false);
 
@@ -24,6 +25,7 @@ export function usePusherMessages(userIdRef, callbacks = {}) {
             try {
                 channel.stopListening('.message.sent');
                 channel.stopListening('.offer.sent');
+                channel.stopListening('.offer.accepted');
             } catch (_) {}
             channel = null;
             isConnected.value = false;
@@ -50,6 +52,11 @@ export function usePusherMessages(userIdRef, callbacks = {}) {
             if (typeof onOfferSent === 'function') {
                 channel.listen('.offer.sent', (payload) => {
                     onOfferSent(payload);
+                });
+            }
+            if (typeof onOfferAccepted === 'function') {
+                channel.listen('.offer.accepted', (payload) => {
+                    onOfferAccepted(payload);
                 });
             }
             isConnected.value = true;

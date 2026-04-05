@@ -10,11 +10,39 @@ import { blogPosts } from '@/data/blogPosts';
 const route = useRoute();
 const postsBySlug = Object.fromEntries(blogPosts.map((item) => [item.slug, item]));
 const post = computed(() => postsBySlug[route.params.slug] || null);
-const relatedPosts = computed(() =>
-    blogPosts
-        .filter((item) => item.slug !== route.params.slug)
-        .slice(0, 3)
-);
+
+/** Slug’a göre deterministik sayı (aynı yazıda SEO/JSON-LD ile uyumlu, yazılar arası farklı üçlü) */
+function hashSlug(s) {
+    let h = 5381;
+    const str = String(s ?? '');
+    for (let i = 0; i < str.length; i++) {
+        h = (h * 33) ^ str.charCodeAt(i);
+    }
+    return Math.abs(h) >>> 0;
+}
+
+/** İlgili yazılar: sabit ilk 3 değil; her makale için slug’a özgü (deterministik) karışık 3 öneri */
+function seededShuffle(items, seed) {
+    const a = [...items];
+    let s = seed >>> 0;
+    const next = () => {
+        s = (Math.imul(s, 1664525) + 1013904223) >>> 0;
+        return s / 4294967296;
+    };
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(next() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
+function pickRelatedPosts(currentSlug, all, count = 3) {
+    const others = all.filter((item) => item.slug !== currentSlug);
+    if (others.length <= count) return others;
+    return seededShuffle(others, hashSlug(currentSlug)).slice(0, count);
+}
+
+const relatedPosts = computed(() => pickRelatedPosts(route.params.slug, blogPosts, 3));
 const siteUrl = 'https://tasibul.com';
 
 const canonicalUrl = computed(() =>

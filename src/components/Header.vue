@@ -31,8 +31,25 @@
                     <li class="hidden md:block" v-if="!authStore.isAuthenticated">
                         <router-link to="/fiyatlandirma" class="hover:text-primary transition-colors">Fiyatlandırma</router-link>
                     </li>
-                    <li class="hidden md:block" v-if="authStore.isAuthenticated">
-                        <router-link to="/panel" class="hover:text-primary transition-colors">İlanlar</router-link>
+                    <li
+                        v-if="authStore.isAuthenticated"
+                        class="hidden md:flex items-center gap-4"
+                    >
+                        <router-link
+                            to="/panel"
+                            class="inline-flex items-center gap-1.5 hover:text-primary transition-colors"
+                        >
+                            <i class="pi pi-search text-sm opacity-90" aria-hidden="true"></i>
+                            İlanlar
+                        </router-link>
+                        <router-link
+                            v-if="user?.type === 'cargo_owner'"
+                            to="/cargo-owner/posts/create"
+                            class="inline-flex items-center gap-1.5 hover:text-primary transition-colors"
+                        >
+                            <i class="pi pi-plus-circle text-sm opacity-90" aria-hidden="true"></i>
+                            İlan Oluştur
+                        </router-link>
                     </li>
                     <li class="hidden md:block" v-if="!authStore.isAuthenticated">
                         <button type="button" @click="handleLoginClick"
@@ -63,30 +80,45 @@
                             </svg>
                         </button>
                         <div v-if="accountDropdownOpen"
-                            class="absolute top-full right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
+                            class="absolute top-full right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
                             <div class="px-4 py-3 text-sm font-medium bg-primary text-white">{{ userType }}</div>
                             <button @click="handleGotoAccountClick"
                                 class="block px-4 py-3 cursor-pointer text-sm font-medium text-gray-700 hover:bg-gray-100 w-full transition-colors text-left">
                                 <div class="flex items-center gap-2"><i class="pi pi-user"
                                         style="font-size: 14px;"></i><span>Hesaba Git</span></div>
                             </button>
-                            <div class="flex flex-col gap-2" v-if="user.type == 'cargo_owner'">
-                                <RouterLink to="/cargo-owner/posts"
-                                    class="block px-4 py-1 text-sm font-medium text-gray-700 hover:bg-gray-100 w-full transition-colors">
-                                    <div class="flex items-center gap-2"><i class="pi pi-car"
-                                            style="font-size: 14px;"></i><span>İlanlarım</span></div>
+                            <div v-if="user.type == 'cargo_owner'" class="flex flex-col border-b border-gray-100">
+                                <RouterLink
+                                    to="/cargo-owner/posts"
+                                    class="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 w-full transition-colors"
+                                >
+                                    <div class="flex items-center gap-2">
+                                        <i class="pi pi-car" style="font-size: 14px;"></i>
+                                        <span>İlanlarım</span>
+                                    </div>
                                 </RouterLink>
-                                <RouterLink to="/cargo-owner/posts/create"
-                                    class="block px-4 py-1 text-sm font-medium text-gray-700 hover:bg-gray-100 w-full transition-colors">
-                                    <div class="flex items-center gap-2"><i class="pi pi-plus"
-                                            style="font-size: 14px;"></i><span>İlan Oluştur</span></div>
+                                <RouterLink
+                                    to="/cargo-owner/posts/create"
+                                    class="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 w-full transition-colors"
+                                >
+                                    <div class="flex items-center gap-2">
+                                        <i class="pi pi-plus-circle" style="font-size: 14px;"></i>
+                                        <span>İlan Oluştur</span>
+                                    </div>
                                 </RouterLink>
-                                <RouterLink to="/cargo-owner/messages"
-                                    class="block px-4 py-1 pb-3 text-sm font-medium text-gray-700 hover:bg-gray-100 w-full transition-colors">
-                                    <div class="flex items-center gap-2"><i class="pi pi-envelope"
-                                            style="font-size: 14px;"></i><span>Mesajlarım</span><span
-                                            v-if="hasUnreadMessages" class="w-2 h-2 rounded-full bg-red-400 shrink-0"
-                                            aria-hidden="true" /></div>
+                                <RouterLink
+                                    to="/cargo-owner/messages"
+                                    class="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 w-full transition-colors"
+                                >
+                                    <div class="flex items-center gap-2">
+                                        <i class="pi pi-envelope" style="font-size: 14px;"></i>
+                                        <span>Mesajlarım</span>
+                                        <span
+                                            v-if="hasUnreadMessages"
+                                            class="w-2 h-2 rounded-full bg-red-400 shrink-0"
+                                            aria-hidden="true"
+                                        />
+                                    </div>
                                 </RouterLink>
                             </div>
                             <div v-else class="flex flex-col gap-2">
@@ -187,24 +219,38 @@
                                 </li>
                                 <template v-if="user.type == 'cargo_owner'">
                                     <li>
-                                        <RouterLink to="/cargo-owner/posts"
+                                        <RouterLink
+                                            to="/cargo-owner/posts"
                                             class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors"
-                                            @click="mobileMenuOpen = false"><i
-                                                class="pi pi-car"></i><span>İlanlarım</span></RouterLink>
+                                            @click="mobileMenuOpen = false"
+                                        >
+                                            <i class="pi pi-car text-base"></i>
+                                            <span>İlanlarım</span>
+                                        </RouterLink>
                                     </li>
                                     <li>
-                                        <RouterLink to="/cargo-owner/posts/create"
+                                        <RouterLink
+                                            to="/cargo-owner/posts/create"
                                             class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors"
-                                            @click="mobileMenuOpen = false"><i class="pi pi-plus"></i><span>İlan
-                                                Oluştur</span></RouterLink>
+                                            @click="mobileMenuOpen = false"
+                                        >
+                                            <i class="pi pi-plus-circle text-base"></i>
+                                            <span>İlan Oluştur</span>
+                                        </RouterLink>
                                     </li>
                                     <li>
-                                        <RouterLink to="/cargo-owner/messages"
+                                        <RouterLink
+                                            to="/cargo-owner/messages"
                                             class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors"
-                                            @click="mobileMenuOpen = false"><i
-                                                class="pi pi-envelope"></i><span>Mesajlarım</span><span
+                                            @click="mobileMenuOpen = false"
+                                        >
+                                            <i class="pi pi-envelope"></i>
+                                            <span>Mesajlarım</span>
+                                            <span
                                                 v-if="hasUnreadMessages"
-                                                class="w-2 h-2 rounded-full bg-red-400 shrink-0" /></RouterLink>
+                                                class="w-2 h-2 rounded-full bg-red-400 shrink-0"
+                                            />
+                                        </RouterLink>
                                     </li>
                                 </template>
                                 <template v-else>
@@ -525,7 +571,8 @@
                                         />
                                         <span v-if="otpError" class="text-xs text-red-500">{{ otpError }}</span>
                                     </div>
-                                    <button type="button" @click="handleVerifyOtp"
+                                    <button
+                                        type="submit"
                                         :disabled="(!otpCode || otpCode.length !== 6) || otpVerifyLoading" :class="[
                                             'w-full h-11 font-semibold rounded-md transition-all text-sm',
                                             otpVerifyLoading

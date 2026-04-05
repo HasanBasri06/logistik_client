@@ -31,7 +31,7 @@
                             ]"
                         >
                             <i :class="['pi text-[13px]', tab.icon]"></i>
-                            <span>{{ tab.label }}</span>
+                            <span>{{ tab.label }} ({{ statusCounts[tab.value] ?? 0 }})</span>
                         </button>
                     </div>
 
@@ -47,7 +47,10 @@
                         <i class="pi pi-inbox text-4xl mb-2 text-gray-300"></i>
                         <p>{{ emptyMessage }}</p>
                     </div>
-                    <div v-else class="flex flex-col gap-4 overflow-y-auto pt-1">
+                    <div
+                        v-else
+                        class="flex flex-col gap-5 overflow-y-auto h-[calc(100vh-200px)] pb-10"
+                    >
                         <Product
                             v-for="shipment in shipments"
                             :key="shipment.id"
@@ -78,6 +81,13 @@ const loading = ref(true);
 const error = ref(null);
 const shipments = ref([]);
 const selectedStatus = ref('active');
+/** Sekme başlıklarındaki sayılar — API `status_counts` ile güncellenir */
+const statusCounts = ref({
+    active: 0,
+    accepted: 0,
+    done: 0,
+    canceled: 0,
+});
 
 const postTabs = [
     { value: 'active', label: 'İlanda Olanlar', icon: 'pi-sync' },
@@ -108,9 +118,18 @@ async function loadShipments() {
             params: { status: selectedStatus.value },
         });
         const content = res.data?.content ?? res.data;
-        // Laravel sayfalama: { data: [...], current_page, ... } veya düz dizi
+        // Laravel sayfalama: { data: [...], current_page, status_counts, ... } veya düz dizi
         const list = content?.data ?? (Array.isArray(content) ? content : []);
         shipments.value = Array.isArray(list) ? list : [];
+        const sc = content?.status_counts;
+        if (sc && typeof sc === 'object') {
+            statusCounts.value = {
+                active: Number(sc.active) || 0,
+                accepted: Number(sc.accepted) || 0,
+                done: Number(sc.done) || 0,
+                canceled: Number(sc.canceled) || 0,
+            };
+        }
     } catch (err) {
         error.value = err.response?.data?.message || err.message || 'İlanlar yüklenirken bir hata oluştu';
         shipments.value = [];

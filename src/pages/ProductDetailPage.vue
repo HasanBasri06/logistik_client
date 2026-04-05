@@ -235,10 +235,18 @@
                     >
                         <div
                             v-for="(msg, index) in panelMessages"
-                            :key="index"
-                            :class="msg.isMe ? 'flex justify-end' : 'flex justify-start'"
+                            :key="msg.id ?? index"
+                            :class="msg.type === 'system' ? 'flex justify-center' : msg.isMe ? 'flex justify-end' : 'flex justify-start'"
                         >
                             <div
+                                v-if="msg.type === 'system'"
+                                class="rounded-full border border-slate-200 bg-slate-100/90 px-3 py-2 sm:px-4 text-center max-w-[95%] shadow-sm"
+                            >
+                                <p class="text-xs sm:text-sm font-medium text-slate-700 m-0 leading-snug">{{ msg.text }}</p>
+                                <span class="text-[10px] sm:text-xs text-slate-500 mt-1 block">{{ msg.time }}</span>
+                            </div>
+                            <div
+                                v-else
                                 :class="[
                                     'max-w-[85%] px-4 py-2.5 rounded-2xl flex flex-col gap-0.5',
                                     msg.isMe
@@ -732,9 +740,29 @@ async function sendPanelMessage() {
 
 usePusherMessages(computed(() => authStore.user?.id), {
     onMessageSent(e) {
-        if (!authStore.user?.id || Number(e.receiver_id) !== Number(authStore.user.id)) return;
-        if (selectedReceiver.value?.id == null || Number(e.sender_id) !== Number(selectedReceiver.value.id)) return;
-        panelMessages.value = [...panelMessages.value, { id: e.id, text: e.message, time: formatMessageTime(e.created_at), isMe: false }];
+        const uid = authStore.user?.id;
+        if (!uid) return;
+        const isSystem = e.type === 'system';
+        const forMe =
+            Number(e.receiver_id) === Number(uid) ||
+            (isSystem && Number(e.sender_id) === Number(uid));
+        if (!forMe) return;
+        if (selectedReceiver.value?.id == null) return;
+        const o = Number(selectedReceiver.value.id);
+        const a = Number(e.sender_id);
+        const b = Number(e.receiver_id);
+        if (o !== a && o !== b) return;
+        panelMessages.value = [
+            ...panelMessages.value,
+            {
+                id: e.id,
+                text: e.message,
+                time: formatMessageTime(e.created_at),
+                isMe: !isSystem && a === Number(uid),
+                type: isSystem ? 'system' : 'message',
+                created_at: e.created_at,
+            },
+        ].sort((x, y) => new Date(x.created_at) - new Date(y.created_at));
         scrollPanelToBottom();
     },
 });

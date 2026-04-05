@@ -16,7 +16,7 @@
                 ]"
             >
                 <i :class="['pi text-[13px]', tab.icon]"></i>
-                <span>{{ tab.label }}</span>
+                <span>{{ tab.label }} ({{ statusCounts[tab.value] ?? 0 }})</span>
             </button>
         </div>
         
@@ -57,6 +57,12 @@ const loadingGifUrl = new URL('../assets/gifs/loading_gif.gif', import.meta.url)
 const selectedOrderStatus = ref('accepted');
 const orders = ref([]);
 const ordersLoading = ref(false);
+/** Sekme sayıları — API `status_counts` (getOrders ile güncellenir) */
+const statusCounts = ref({
+    accepted: 0,
+    done: 0,
+    cancelled: 0,
+});
 
 const orderTabs = [
     { value: 'accepted', label: 'Devam Eden', icon: 'pi-sync' },
@@ -80,11 +86,25 @@ function shipmentOrdersFromResponse(res) {
     return [];
 }
 
+function applyStatusCountsFromResponse(res) {
+    const root = res?.data ?? res;
+    const content = root?.content ?? root?.data?.content ?? root?.data ?? root;
+    const sc = content?.status_counts;
+    if (sc && typeof sc === 'object') {
+        statusCounts.value = {
+            accepted: Number(sc.accepted) || 0,
+            done: Number(sc.done) || 0,
+            cancelled: Number(sc.cancelled) || 0,
+        };
+    }
+}
+
 const getOrders = async () => {
     ordersLoading.value = true;
     try {
         const response = await api.get('/vehicle/orders', { params: { status: selectedOrderStatus.value } });
         orders.value = shipmentOrdersFromResponse(response);
+        applyStatusCountsFromResponse(response);
     } catch (err) {
         console.log(err);
         orders.value = [];

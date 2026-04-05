@@ -417,7 +417,15 @@
                             <div
                                 v-for="(msg, index) in offerPanelMessages"
                                 :key="msg.type === 'preview' ? 'preview' : `${msg.type}-${msg.id ?? index}`"
-                                :class="msg.type !== 'preview' && msg.isMe ? 'flex justify-end' : msg.type !== 'preview' ? 'flex justify-start' : ''"
+                                :class="
+                                    msg.type === 'preview'
+                                        ? ''
+                                        : msg.type === 'system'
+                                          ? 'flex justify-center'
+                                          : msg.isMe
+                                            ? 'flex justify-end'
+                                            : 'flex justify-start'
+                                "
                             >
                                 <div
                                     v-if="msg.type === 'preview'"
@@ -429,6 +437,17 @@
                                     </p>
                                     <p class="text-sm text-gray-600">{{ vehicleType }} · {{ capacity }}</p>
                                     <p class="text-sm font-semibold text-primary mt-2">{{ displayPrice }}</p>
+                                </div>
+                                <div
+                                    v-else-if="msg.type === 'system'"
+                                    class="w-full flex justify-center px-2"
+                                >
+                                    <div
+                                        class="rounded-full border border-slate-200 bg-slate-100/90 px-3 py-2 text-center max-w-[95%] shadow-sm"
+                                    >
+                                        <p class="text-xs font-medium text-slate-700 m-0 leading-snug">{{ msg.text }}</p>
+                                        <span class="text-[10px] text-slate-500 mt-1 block">{{ msg.time }}</span>
+                                    </div>
                                 </div>
                                 <div
                                     v-else-if="msg.type === 'teklif'"
@@ -1116,12 +1135,24 @@ const newOfferMessageText = ref('');
 usePusherMessages(computed(() => authStore.user?.id), {
     onMessageSent(e) {
         const userId = authStore.user?.id;
-        if (!userId || Number(e.receiver_id) !== Number(userId)) return;
+        if (!userId) return;
+        const isSystem = e.type === 'system';
+        const forMe =
+            Number(e.receiver_id) === Number(userId) ||
+            (isSystem && Number(e.sender_id) === Number(userId));
+        if (!forMe) return;
         const sid = shipment.value?.id;
         if (sid != null && e.shipment_id != null && Number(e.shipment_id) !== Number(sid)) return;
         if (!showMessageOfferPanel.value) return;
         const time = formatMessageTime(e.created_at);
-        const newMsg = { type: 'message', id: e.id, text: e.message, time, isMe: false, created_at: e.created_at };
+        const newMsg = {
+            type: isSystem ? 'system' : 'message',
+            id: e.id,
+            text: e.message,
+            time,
+            isMe: !isSystem && Number(e.sender_id) === Number(userId),
+            created_at: e.created_at,
+        };
         const preview = offerPanelMessages.value[0];
         const rest = offerPanelMessages.value.slice(1).filter((m) => m.type !== 'preview');
         rest.push(newMsg);

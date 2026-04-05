@@ -1,11 +1,13 @@
 <template>
   <div
-    class="w-full min-h-0 rounded-2xl bg-white border border-gray-200 overflow-hidden cursor-pointer transition-all duration-300 shadow-sm hover:border-primary hover:shadow-[0_4px_12px_rgba(57,131,140,0.15)] hover:-translate-y-0.5"
+    class="w-full min-h-fit rounded-2xl bg-white border border-gray-200 overflow-hidden cursor-pointer transition-all duration-300 shadow-sm hover:border-primary hover:shadow-[0_4px_12px_rgba(57,131,140,0.15)] hover:-translate-y-0.5"
     @click="handleClick($event, shipment)"
   >
     
     <!-- Üst Bölüm: Nereden-Nereye ve Gidiş Saati -->
-    <div class="flex flex-row justify-between items-center gap-3 py-4 px-4 sm:py-5 sm:px-6 border-b border-gray-100">
+    <div
+      class="flex flex-row justify-between items-start gap-4 py-5 px-4 sm:py-6 sm:px-6 border-b border-gray-100"
+    >
       <!-- Nereden-Nereye: mobilde [saatler] [ok] [yerler]; masaüstünde yatay -->
       <div class="flex flex-row items-stretch gap-0 sm:gap-4 flex-1 min-w-0">
         <!-- Mobil: saatler okun solunda -->
@@ -24,23 +26,27 @@
           </div>
           <ArrowDown class="w-3.5 h-3.5 text-primary/60 shrink-0  -mt-2 relative" />
         </div>
-        <!-- İçerik: mobilde sadece yerler; masaüstünde nereden + saat, çizgi, nereye + saat -->
-        <div class="flex flex-col sm:flex-row gap-2 sm:gap-4 flex-1 min-w-0 text-sm relative h-12 md:h-auto">
-          <div class="flex flex-col gap-1.5 sm:gap-2 items-start w-auto min-w-0">
-            <div class="font-semibold text-gray-900 leading-tight truncate max-w-full">{{ fromPlaceText }}</div>
-            <div class="hidden sm:inline-flex items-center py-0.5 px-2 sm:py-1 sm:px-3 rounded-full bg-primary/10">
+        <!-- İçerik: mobilde dikey; sm+ yatay — üst hizalı + orta sütun dikey ortalı (panel ile aynı okunabilirlik) -->
+        <div class="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-5 flex-1 min-w-0 text-sm relative min-h-0">
+          <div class="flex flex-col gap-2 sm:gap-2.5 items-start w-auto min-w-0">
+            <div class="font-semibold text-gray-900 leading-snug truncate max-w-full">{{ fromPlaceText }}</div>
+            <div class="hidden sm:inline-flex items-center py-1 px-2.5 sm:px-3 rounded-full bg-primary/10">
               <span class="text-xs font-semibold text-primary">{{ shipment?.departure_time ?? 'belirtilmemiş' }}</span>
             </div>
           </div>
-          <!-- Masaüstü: yatay çizgi + süre + sağ ok -->
-          <div class="hidden sm:flex flex-col items-center justify-center gap-0.5 sm:gap-1.5 shrink-0 sm:max-w-[100px] sm:flex-1">
+          <!-- Masaüstü: yatay çizgi + süre + sağ ok (yüksek sütunlar arasında görsel olarak ortada) -->
+          <div
+            class="hidden sm:flex flex-col items-center justify-center gap-1 shrink-0 w-[100px] sm:w-[120px] self-center"
+          >
             <div class="w-full h-0.5 rounded-full bg-linear-to-r from-primary to-primary/30"></div>
-            <div class="text-[10px] sm:text-xs font-medium text-gray-500 whitespace-nowrap">{{ shipment?.hours ?? 'belirtilmemiş' }}</div>
+            <div class="text-[10px] sm:text-xs font-medium text-gray-500 whitespace-nowrap text-center px-0.5">
+              {{ shipment?.hours ?? 'belirtilmemiş' }}
+            </div>
             <ArrowRight class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary shrink-0" />
           </div>
-          <div class="flex flex-col gap-1.5 sm:gap-2 items-start min-w-0 sm:flex-1 absolute bottom-0 md:relative">
-            <div class=" font-semibold text-gray-900 leading-tight truncate max-w-full">{{ toPlaceText }}</div>
-            <div class="hidden sm:inline-flex items-center py-0.5 px-2 sm:py-1 sm:px-3 rounded-full bg-primary/10">
+          <div class="flex flex-col gap-2 sm:gap-2.5 items-start min-w-0 sm:flex-1 relative">
+            <div class="font-semibold text-gray-900 leading-snug truncate max-w-full">{{ toPlaceText }}</div>
+            <div class="hidden sm:inline-flex items-center py-1 px-2.5 sm:px-3 rounded-full bg-primary/10">
               <span class="text-xs font-semibold text-primary">{{ shipment?.time_arrival ?? 'belirtilmemiş' }}</span>
             </div>
           </div>
@@ -48,7 +54,7 @@
       </div>
 
       <!-- Ücret + masaüstünde İptal (solda); mobilde yalnızca fiyat — İptal altta grid’de -->
-      <div class="flex flex-row items-center gap-2 sm:gap-3 shrink-0 self-center">
+      <div class="flex flex-row items-center gap-2 sm:gap-3 shrink-0 self-start pt-0.5 sm:pt-1">
         <button
           v-if="showOwnerCancelButton"
           type="button"

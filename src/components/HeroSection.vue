@@ -244,22 +244,27 @@ const handleSearch = () => {
                             <div v-if="carsLoading" class="flex items-center justify-center py-6">
                                 <i class="pi pi-spin pi-spinner text-primary"></i>
                             </div>
-                            <div v-else-if="cars.length" class="max-h-72 overflow-y-auto">
-                                <div class="px-3 py-2">
+                            <div v-else-if="cars.length" class="flex flex-col">
+                                <div class="px-3 py-2 shrink-0">
                                     <span class="text-[11px] font-medium text-gray-400 uppercase tracking-wide">Araç seçin</span>
                                 </div>
-                                <button
-                                    v-for="car in cars"
-                                    :key="car.id"
-                                    type="button"
-                                    @mousedown.prevent="selectCar(car)"
-                                    class="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary flex items-center gap-3 transition-colors cursor-pointer"
-                                    :class="selectedCar?.id === car.id && 'bg-primary/5 text-primary font-semibold'"
+                                <!-- Mobil: yatay kaydırma, snap ile tek araç; md+: klasik dikey liste -->
+                                <div
+                                    class="flex flex-row md:flex-col overflow-x-auto md:overflow-y-auto md:overflow-x-hidden overflow-y-hidden max-h-none md:max-h-72 max-md:snap-x max-md:snap-mandatory scroll-smooth touch-pan-x [-webkit-overflow-scrolling:touch] pb-1 md:pb-0 [scrollbar-width:thin] [&::-webkit-scrollbar]:h-1.5 md:[&::-webkit-scrollbar]:h-auto md:[&::-webkit-scrollbar]:w-1.5"
                                 >
-                                    <img :src="getCarImageUrl(car.image)" :alt="car.name" class="w-10 h-7 object-contain" />
-                                    {{ car.name }}
-                                    <i v-if="selectedCar?.id === car.id" class="pi pi-check text-xs text-primary ml-auto"></i>
-                                </button>
+                                    <button
+                                        v-for="car in cars"
+                                        :key="car.id"
+                                        type="button"
+                                        @mousedown.prevent="selectCar(car)"
+                                        class="flex-none w-full min-w-full md:min-w-0 shrink-0 max-md:snap-start text-left px-4 py-3 md:py-2.5 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary flex items-center gap-3 transition-colors cursor-pointer select-none border-b border-gray-50 md:border-b-0 last:border-b-0"
+                                        :class="selectedCar?.id === car.id && 'bg-primary/5 text-primary font-semibold'"
+                                    >
+                                        <img :src="getCarImageUrl(car.image)" :alt="car.name" class="w-12 h-8 md:w-10 md:h-7 object-contain shrink-0" />
+                                        <span class="truncate flex-1">{{ car.name }}</span>
+                                        <i v-if="selectedCar?.id === car.id" class="pi pi-check text-xs text-primary shrink-0"></i>
+                                    </button>
+                                </div>
                             </div>
                             <div v-else class="px-4 py-4 text-sm text-gray-400 text-center">Araç bulunamadı</div>
                         </div>

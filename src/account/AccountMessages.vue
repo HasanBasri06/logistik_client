@@ -1,7 +1,7 @@
 <template>
-    <div class="flex flex-row gap-4 h-full min-h-0 w-full max-w-full overflow-x-hidden">
+    <div class="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden">
         <!-- Sol: Mesaj Listesi (Mesaj seçilmediğinde görünür) -->
-        <div v-if="!route.params.id" class="w-full min-w-0 flex flex-col overflow-y-auto overflow-x-hidden min-h-0 md:p-4">
+        <div v-if="!route.params.id" class="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-y-auto overflow-x-hidden md:p-4">
             <!-- Mobil: üst bar geri butonu + başlık -->
             <div class="md:hidden flex items-center gap-3 px-1 py-3 pb-4 border-b border-gray-100 shrink-0">
                 <button
@@ -76,7 +76,10 @@
         </div>
 
         <!-- Mesaj Detayı ve Yazma Alanı (Mesaj seçildiğinde tam ekran) -->
-        <div v-if="route.params.id && selectedMessage" class="w-full max-w-full flex flex-col min-h-0 h-full max-h-full overflow-hidden">
+        <div
+            v-if="route.params.id && selectedMessage"
+            class="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden"
+        >
             <!-- Üst: Geri Butonu ve Mesaj Gönderen Bilgisi -->
             <div class="flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-2 sm:py-2.5 border-b border-gray-200 shrink-0 bg-white min-h-0">
                 <button
@@ -97,55 +100,100 @@
                 </div>
             </div>
 
-            <!-- Üst: İlan özeti + Talep (mobilde alt alta, yükseklik sınırlı) -->
-            <div
-                v-if="(conversationShipment || conversationTeklif) && !threadLoading"
-                class="mx-3 sm:mx-4 mt-1.5 mb-1.5 flex flex-col sm:flex-row gap-2 sm:gap-3 shrink-0 max-h-[28vh] sm:max-h-none overflow-y-auto overflow-x-hidden"
-            >
+            <!-- İlan özeti + Talep/Teklif: varsayılan kapalı; ortadaki ok ile aç/kapa -->
+            <div v-if="(conversationShipment || conversationTeklif) && !threadLoading" class="mx-3 sm:mx-4 mt-1.5 mb-1.5 shrink-0">
                 <div
-                    v-if="conversationShipment"
-                    role="button"
-                    tabindex="0"
-                    class="flex-1 min-h-0 rounded-xl border border-gray-200 bg-white p-3 sm:p-4 shadow-sm min-w-0 cursor-pointer hover:border-primary/40 hover:shadow-md transition-all active:scale-[0.99]"
-                    @click="conversationShipment?.slug && goToShipment(conversationShipment.slug)"
-                    @keydown.enter="conversationShipment?.slug && goToShipment(conversationShipment.slug)"
+                    class="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-2 py-2 shadow-sm sm:px-3"
                 >
-                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 sm:mb-2">İlan özeti</p>
-                    <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap text-xs sm:text-sm">
-                        <span class="font-semibold text-gray-900">{{ conversationShipment.f_where_city }} / {{ conversationShipment.f_where_district }}</span>
-                        <i class="pi pi-arrow-right text-primary text-xs shrink-0"></i>
-                        <span class="font-semibold text-gray-900">{{ conversationShipment.t_where_city }} / {{ conversationShipment.t_where_district }}</span>
+                    <div class="min-w-0 flex-1 text-left">
+                        <p
+                            v-if="conversationShipment"
+                            class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 sm:text-xs"
+                        >
+                            İlan özeti
+                        </p>
                     </div>
-                    <div class="flex items-center gap-2 sm:gap-3 mt-1.5 sm:mt-2 text-xs sm:text-sm text-gray-600 flex-wrap">
-                        <span v-if="conversationShipment.hours">{{ conversationShipment.hours }}</span>
-                        <span v-if="conversationShipment.price" class="font-semibold text-primary">{{ conversationShipment.price }}</span>
+                    <button
+                        type="button"
+                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-gray-50 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 touch-manipulation"
+                        :aria-expanded="summaryPanelExpanded"
+                        aria-label="İlan ve teklif özetini aç veya kapat"
+                        @click="toggleSummaryPanel"
+                    >
+                        <i
+                            class="pi text-lg leading-none"
+                            :class="summaryPanelExpanded ? 'pi-chevron-up' : 'pi-chevron-down'"
+                            aria-hidden="true"
+                        ></i>
+                    </button>
+                    <div class="min-w-0 flex-1 text-right">
+                        <p
+                            v-if="conversationTeklif"
+                            class="text-[11px] font-semibold uppercase tracking-wide text-primary sm:text-xs"
+                        >
+                            Talep / Teklif
+                        </p>
                     </div>
                 </div>
+
                 <div
-                    v-if="conversationTeklif"
-                    class="flex-1 min-h-0 min-w-0 rounded-xl border-2 border-primary/30 bg-white shadow-sm flex flex-col overflow-hidden"
+                    v-show="summaryPanelExpanded"
+                    class="mt-2 flex max-h-[min(42vh,320px)] flex-col gap-2 overflow-y-auto overflow-x-hidden sm:max-h-none sm:flex-row sm:gap-3"
                 >
-                    <div class="px-3 sm:px-4 pt-3 sm:pt-4 pb-2 min-h-0 flex-1 overflow-y-auto">
-                        <p class="text-xs font-semibold text-primary uppercase tracking-wide mb-1.5 sm:mb-2">Talep / Teklif</p>
-                        <p v-if="conversationTeklif.carName" class="text-xs sm:text-sm font-medium text-gray-900 mb-1">{{ conversationTeklif.carName }}</p>
-                        <p class="text-xs sm:text-sm font-semibold text-primary mb-1">{{ conversationTeklif.price }}</p>
-                        <p v-if="conversationTeklif.message" class="text-xs sm:text-sm text-gray-600 mt-2 border-t border-gray-100 pt-2 line-clamp-3 sm:line-clamp-none">{{ conversationTeklif.message }}</p>
-                        <span class="text-xs text-gray-500 mt-2 block">{{ conversationTeklif.time }}</span>
+                    <div
+                        v-if="conversationShipment"
+                        role="button"
+                        tabindex="0"
+                        class="min-h-0 min-w-0 flex-1 cursor-pointer rounded-xl border border-gray-200 bg-white p-3 shadow-sm transition-all hover:border-primary/40 hover:shadow-md active:scale-[0.99] sm:p-4"
+                        @click="conversationShipment?.slug && goToShipment(conversationShipment.slug)"
+                        @keydown.enter="conversationShipment?.slug && goToShipment(conversationShipment.slug)"
+                    >
+                        <p class="mb-1.5 text-xs font-semibold uppercase tracking-wide text-gray-500 sm:mb-2">İlan özeti</p>
+                        <div class="flex flex-wrap items-center gap-1.5 text-xs sm:gap-2 sm:text-sm">
+                            <span class="font-semibold text-gray-900"
+                                >{{ conversationShipment.f_where_city }} / {{ conversationShipment.f_where_district }}</span
+                            >
+                            <i class="pi pi-arrow-right shrink-0 text-xs text-primary"></i>
+                            <span class="font-semibold text-gray-900"
+                                >{{ conversationShipment.t_where_city }} / {{ conversationShipment.t_where_district }}</span
+                            >
+                        </div>
+                        <div class="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-gray-600 sm:mt-2 sm:gap-3 sm:text-sm">
+                            <span v-if="conversationShipment.hours">{{ conversationShipment.hours }}</span>
+                            <span v-if="conversationShipment.price" class="font-semibold text-primary">{{ conversationShipment.price }}</span>
+                        </div>
                     </div>
                     <div
-                        v-if="isShipmentOwner"
-                        class="shrink-0 px-3 sm:px-4 pb-3 sm:pb-4 pt-2 border-t border-primary/15 bg-primary/3"
+                        v-if="conversationTeklif"
+                        class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl border-2 border-primary/30 bg-white shadow-sm"
                     >
-                        <button
-                            v-if="conversationTeklif.status !== 'accepted'"
-                            type="button"
-                            class="w-full min-h-[44px] py-2.5 rounded-lg bg-primary text-white font-semibold text-sm hover:bg-primary/90 active:bg-primary/80 transition-colors disabled:opacity-60 disabled:cursor-not-allowed touch-manipulation shadow-sm"
-                            :disabled="teklifAcceptLoading === conversationTeklif.id"
-                            @click="acceptTeklif(conversationTeklif.id)"
+                        <div class="min-h-0 flex-1 overflow-y-auto px-3 pb-2 pt-3 sm:px-4 sm:pt-4">
+                            <p class="mb-1.5 text-xs font-semibold uppercase tracking-wide text-primary sm:mb-2">Talep / Teklif</p>
+                            <p v-if="conversationTeklif.carName" class="mb-1 text-xs font-medium text-gray-900 sm:text-sm">{{ conversationTeklif.carName }}</p>
+                            <p class="mb-1 text-xs font-semibold text-primary sm:text-sm">{{ conversationTeklif.price }}</p>
+                            <p
+                                v-if="conversationTeklif.message"
+                                class="mt-2 border-t border-gray-100 pt-2 text-xs text-gray-600 line-clamp-3 sm:line-clamp-none sm:text-sm"
+                            >
+                                {{ conversationTeklif.message }}
+                            </p>
+                            <span class="mt-2 block text-xs text-gray-500">{{ conversationTeklif.time }}</span>
+                        </div>
+                        <div
+                            v-if="isShipmentOwner"
+                            class="shrink-0 border-t border-primary/15 bg-primary/3 px-3 pb-3 pt-2 sm:px-4 sm:pb-4"
                         >
-                            {{ teklifAcceptLoading === conversationTeklif.id ? 'İşleniyor...' : 'Teklifi Kabul Et' }}
-                        </button>
-                        <p v-else class="text-center text-xs sm:text-sm font-medium text-green-600 py-1">Kabul edildi</p>
+                            <button
+                                v-if="conversationTeklif.status !== 'accepted'"
+                                type="button"
+                                class="min-h-[44px] w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary/90 active:bg-primary/80 disabled:cursor-not-allowed disabled:opacity-60 touch-manipulation"
+                                :disabled="teklifAcceptLoading === conversationTeklif.id"
+                                @click="acceptTeklif(conversationTeklif.id)"
+                            >
+                                {{ teklifAcceptLoading === conversationTeklif.id ? 'İşleniyor...' : 'Teklifi Kabul Et' }}
+                            </button>
+                            <p v-else class="py-1 text-center text-xs font-medium text-green-600 sm:text-sm">Kabul edildi</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -155,18 +203,34 @@
                 <p v-if="threadLoading" class="text-sm text-gray-500 py-4">Mesajlar yükleniyor...</p>
                 <div v-else class="flex flex-col gap-3 sm:gap-4">
                     <div
-                        v-for="(msg, index) in messageThread"
-                        :key="msg.type === 'teklif' ? `teklif-${msg.id}` : `msg-${msg.id ?? index}`"
+                        v-for="(msg, index) in messageThreadForDisplay"
+                        :key="msg.type === 'teklif' ? `teklif-${msg.id}` : msg.type === 'system' ? `sys-${msg.id ?? index}` : `msg-${msg.id ?? index}`"
                         :class="[
-                            'flex flex-col gap-1 py-2.5 sm:py-3 px-3 sm:px-4 rounded-2xl',
-                            'max-w-[90%] sm:max-w-[70%]',
-                            msg.isMe ? 'self-end ml-auto' : 'self-start mr-auto',
-                            msg.type !== 'teklif' && (msg.isMe
+                            msg.type === 'system'
+                                ? 'self-center max-w-[95%] sm:max-w-[90%]'
+                                : 'flex flex-col gap-1 py-2.5 sm:py-3 px-3 sm:px-4 rounded-2xl max-w-[90%] sm:max-w-[70%]',
+                            msg.type !== 'system' && msg.type !== 'teklif' && (msg.isMe ? 'self-end ml-auto' : 'self-start mr-auto'),
+                            msg.type !== 'teklif' && msg.type !== 'system' && (msg.isMe
                                 ? 'bg-primary text-white rounded-br-md'
                                 : 'bg-white text-gray-700 rounded-bl-md border border-gray-200')
                         ]"
                     >
-                        <div class="min-w-0">
+                        <template v-if="msg.type === 'system'">
+                            <div
+                                class="rounded-full border border-slate-200 bg-slate-100/90 px-3 py-2 sm:px-4 sm:py-2.5 text-center shadow-sm"
+                            >
+                                <p class="text-xs sm:text-sm font-medium text-slate-700 m-0 leading-snug">{{ msg.text }}</p>
+                                <span class="text-[10px] sm:text-xs text-slate-500 mt-1 block">{{ msg.time }}</span>
+                            </div>
+                        </template>
+                        <template v-else-if="msg.type === 'teklif'">
+                            <div class="min-w-0">
+                                <p class="text-xs font-semibold text-primary">{{ msg.price }}</p>
+                                <p v-if="msg.message" class="md:text-sm text-xs text-gray-700 mt-1 m-0">{{ msg.message }}</p>
+                                <span class="md:text-xs text-xs opacity-70 mt-1 block">{{ msg.time }}</span>
+                            </div>
+                        </template>
+                        <div v-else class="min-w-0">
                             <p class="md:text-sm text-xs leading-relaxed m-0 break-words">{{ msg.text }}</p>
                             <span class="md:text-xs text-xs opacity-70 mt-1 block">{{ msg.time }}</span>
                         </div>
@@ -174,8 +238,30 @@
                 </div>
             </div>
 
+            <!-- Araç sahibi: teklif kabul edildi (mesaj alanı ile input arasında sabit şerit) -->
+            <div
+                v-if="isVehicleOwnerMessages && shipmentAccepted"
+                class="w-full shrink-0 border-t border-emerald-200 bg-emerald-50 px-3 sm:px-4 py-3 text-center"
+                role="status"
+            >
+                <p class="text-sm text-emerald-900 m-0 leading-relaxed">
+                    <span class="font-semibold">Teklifiniz kabul edildi.</span>
+                    İlanı
+                    <RouterLink
+                        to="/vehicle-owner/orders"
+                        class="font-semibold text-primary underline decoration-primary/40 underline-offset-2 hover:text-primary/90"
+                    >
+                        Tüm Siparişlerim
+                    </RouterLink>
+                    kısmından görüntüleyebilirsiniz.
+                </p>
+            </div>
+
             <!-- Özel teklif gönder (sadece araç sahibi /vehicle-owner/messages sayfasında) -->
-            <div v-if="conversationShipment?.slug && isVehicleOwnerMessages" class="w-full shrink-0 border-t border-gray-200 p-2 sm:p-3 bg-white min-h-0">
+            <div
+                v-if="conversationShipment?.slug && isVehicleOwnerMessages && !shipmentAccepted"
+                class="w-full shrink-0 border-t border-gray-200 p-2 sm:p-3 bg-white min-h-0"
+            >
                 <button
                     type="button"
                     class="w-full min-h-[44px] py-2.5 sm:py-2.5 px-3 rounded-lg border-2 border-primary text-primary font-semibold text-sm hover:bg-primary/5 active:bg-primary/10 transition-colors touch-manipulation"
@@ -184,18 +270,31 @@
                     Özel teklif gönder
                 </button>
             </div>
-            <!-- Alt: Mesaj Inputu -->
-            <div class="px-3 sm:px-4 py-2 sm:py-3 border-t border-gray-200 shrink-0 bg-white min-h-0">
-                <form @submit.prevent="sendMessage" class="flex gap-2 sm:gap-3 items-end min-w-0">
+            <!-- Alt: Mesaj Inputu (tam genişlik, taşma yok; güvenli alan) -->
+            <div
+                class="w-full min-w-0 max-w-full shrink-0 border-t border-gray-200 bg-white px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] sm:px-4 sm:py-3"
+            >
+                <form
+                    @submit.prevent="sendMessage"
+                    class="flex w-full min-w-0 max-w-full items-stretch gap-2 sm:gap-3"
+                >
                     <input
                         v-model="newMessageText"
                         type="text"
-                        class="flex-1 min-w-0 h-11 sm:h-14 rounded-xl sm:rounded-md text-base sm:text-sm outline-none px-3 sm:px-4 bg-white border border-gray-200 text-gray-700 focus:ring-2 focus:ring-primary/20 focus:border-primary"
-                        placeholder="Mesajınızı yazın..."
+                        enterkeyhint="send"
+                        autocomplete="off"
+                        class="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-[16px] leading-snug text-gray-700 outline-none sm:rounded-lg sm:py-3 sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400"
+                        :disabled="isVehicleOwnerMessages && shipmentAccepted"
+                        :placeholder="
+                            isVehicleOwnerMessages && shipmentAccepted
+                                ? 'Bu görüşme teklif kabul edildiği için kapatıldı.'
+                                : 'Mesajınızı yazın...'
+                        "
                     />
                     <button
                         type="submit"
-                        class="shrink-0 h-11 sm:min-h-[56px] px-4 sm:px-6 py-2.5 sm:py-3 bg-primary text-white font-semibold rounded-xl sm:rounded-lg hover:bg-primary/90 active:bg-primary/80 transition-colors touch-manipulation text-sm sm:text-base"
+                        class="shrink-0 rounded-xl bg-primary px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary/90 active:bg-primary/80 disabled:cursor-not-allowed disabled:opacity-50 sm:rounded-lg sm:px-5 sm:py-3 sm:text-base touch-manipulation"
+                        :disabled="isVehicleOwnerMessages && shipmentAccepted"
                     >
                         Gönder
                     </button>
@@ -218,7 +317,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { useRoute, useRouter, RouterLink } from 'vue-router';
 import { useMessageStore, formatMessageTime } from '@/stores/message';
 import { useAuthStore } from '@/stores/auth';
 import { usePusherMessages } from '@/composables/usePusherMessages';
@@ -283,6 +382,8 @@ const conversationShipmentId = ref(null);
 const conversationShipment = ref(null);
 const teklifAcceptLoading = ref(null);
 const showTeklifModal = ref(false);
+/** İlan özeti + Talep/Teklif: varsayılan kapalı; geri ile önce açılabilir */
+const summaryPanelExpanded = ref(false);
 
 async function onTeklifModalSuccess() {
     showTeklifModal.value = false;
@@ -327,6 +428,44 @@ const conversationTeklif = computed(() => {
     return teklifs[teklifs.length - 1];
 });
 
+/** İlan anlaşmaya döndüyse (mesajlar pasif); araç sahibi için şerit + input kapatma */
+const shipmentAccepted = computed(() => {
+    const s = conversationShipment.value?.status ?? conversationShipment.value?.shipment?.status;
+    if (s === 'accepted') return true;
+    const t = conversationTeklif.value?.status;
+    return t === 'accepted';
+});
+
+/** Alt şeritteki bilgi ile aynı metin — sohbette system balonu (API’de yoksa eklenir) */
+const OFFER_ACCEPTED_SYSTEM_TEXT =
+    'Teklifiniz kabul edildi. İlanı Tüm Siparişlerim kısmından görüntüleyebilirsiniz.';
+
+const messageThreadForDisplay = computed(() => {
+    const list = messageThread.value || [];
+    if (!isVehicleOwnerMessages.value || !shipmentAccepted.value) {
+        return list;
+    }
+    const alreadyHasNotice = list.some(
+        (m) =>
+            m.type === 'system' &&
+            typeof m.text === 'string' &&
+            m.text.includes('Teklifiniz kabul edildi')
+    );
+    if (alreadyHasNotice) return list;
+    const t = conversationTeklif.value;
+    return [
+        ...list,
+        {
+            type: 'system',
+            id: 'local-offer-accepted-notice',
+            text: OFFER_ACCEPTED_SYSTEM_TEXT,
+            time: t?.status === 'accepted' && t?.time ? t.time : '—',
+            isMe: false,
+            created_at: t?.created_at || new Date().toISOString(),
+        },
+    ];
+});
+
 async function acceptTeklif(requestId) {
     const slug = conversationShipment.value?.slug;
     if (!slug) return;
@@ -337,12 +476,15 @@ async function acceptTeklif(requestId) {
         if (otherUserId) {
             const res = await messageStore.getBySenderAndReceiver(otherUserId);
             const data = res?.data ?? [];
+            conversationShipmentId.value = res?.conversationShipmentId ?? conversationShipmentId.value;
+            conversationShipment.value = res?.conversationShipment ?? conversationShipment.value;
             const reqRes = await api.get(`/shipments/${slug}/requests`).catch(() => ({ data: {} }));
             const content = reqRes.data?.content ?? reqRes.data?.data ?? reqRes.data ?? {};
             const requests = content?.shipment?.requests ?? [];
             messageThread.value = buildMessageThreadWithTeklif(data, requests, authStore.user?.id, otherUserId);
             scrollMessagesToBottom();
         }
+        emit('refresh');
     } catch (err) {
         console.warn('Teklif kabul edilemedi:', err?.response?.data?.message ?? err?.message);
     } finally {
@@ -378,9 +520,23 @@ const openMessageDetail = (message) => {
     router.push(`${props.basePath}/${message.id}`);
 };
 
+const hasConversationSummary = computed(
+    () =>
+        !threadLoading.value &&
+        (conversationShipment.value != null || conversationTeklif.value != null)
+);
+
 const goBackToMessages = () => {
+    if (hasConversationSummary.value && !summaryPanelExpanded.value) {
+        summaryPanelExpanded.value = true;
+        return;
+    }
     router.push(props.basePath);
 };
+
+function toggleSummaryPanel() {
+    summaryPanelExpanded.value = !summaryPanelExpanded.value;
+}
 
 const goToShipment = (slug) => {
     if (slug) router.push({ path: `/posts/${slug}` });
@@ -402,6 +558,7 @@ function scrollMessagesToBottom() {
 }
 
 const loadMessageDetail = async (messageId) => {
+    summaryPanelExpanded.value = false;
     const list = props.messagesList ?? messages.value;
     const message = list.find(m => m.id === messageId || m.id === parseInt(messageId, 10));
     if (message) {
@@ -444,6 +601,7 @@ const loadMessageDetail = async (messageId) => {
 const sendMessage = async () => {
     const text = newMessageText.value?.trim();
     if (!text) return;
+    if (isVehicleOwnerMessages.value && shipmentAccepted.value) return;
 
     if (props.messagesList) {
         const otherUserId = route.params.id ? parseInt(route.params.id, 10) : null;
@@ -504,6 +662,21 @@ watch(
     { immediate: true }
 );
 
+/** Socket: teklif kabul → mesajlar inactive; liste + açık sohbet anlık güncellenir */
+function handleOfferAccepted(e) {
+    emit('refresh');
+    const slug = e?.shipment_slug;
+    const sid = e?.shipment_id;
+    const matchesOpenThread =
+        route.params.id &&
+        ((slug && conversationShipment.value?.slug === slug) ||
+            (sid != null && conversationShipmentId.value != null && Number(conversationShipmentId.value) === Number(sid)));
+    if (matchesOpenThread) {
+        const id = parseInt(route.params.id, 10);
+        if (!Number.isNaN(id)) loadMessageDetail(id);
+    }
+}
+
 function handleOfferSent(e) {
     const currentOtherId = route.params.id ? parseInt(route.params.id, 10) : null;
     if (currentOtherId == null || Number(e.sender_id) !== Number(currentOtherId)) return;
@@ -530,17 +703,40 @@ const userIdRef = computed(() => authStore.user?.id);
 const { connect: connectPusher } = usePusherMessages(userIdRef, {
     onMessageSent(e) {
         const userId = authStore.user?.id;
-        if (userId == null || Number(e.receiver_id) !== Number(userId)) return;
+        if (userId == null) return;
+        const isSystem = e.type === 'system';
+        const forMe =
+            Number(e.receiver_id) === Number(userId) ||
+            (isSystem && Number(e.sender_id) === Number(userId));
+        if (!forMe) return;
         const currentOtherId = route.params.id ? parseInt(route.params.id, 10) : null;
-        if (currentOtherId !== null && Number(e.sender_id) !== Number(currentOtherId)) return;
+        if (currentOtherId !== null) {
+            const a = Number(e.sender_id);
+            const b = Number(e.receiver_id);
+            if (currentOtherId !== a && currentOtherId !== b) return;
+        }
         const time = formatMessageTime(e.created_at);
-        messageThread.value = [...messageThread.value, { id: e.id, text: e.message, time, isMe: false, type: 'message', created_at: e.created_at }];
+        const isMe = !isSystem && Number(e.sender_id) === Number(userId);
+        messageThread.value = [
+            ...messageThread.value,
+            {
+                id: e.id,
+                text: e.message,
+                time,
+                isMe,
+                type: isSystem ? 'system' : 'message',
+                created_at: e.created_at,
+            },
+        ].sort((x, y) => new Date(x.created_at) - new Date(y.created_at));
         scrollMessagesToBottom();
         emit('refresh');
     },
     onOfferSent(e) {
         handleOfferSent(e);
         emit('refresh');
+    },
+    onOfferAccepted(e) {
+        handleOfferAccepted(e);
     },
 });
 

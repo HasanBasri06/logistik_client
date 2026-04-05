@@ -65,14 +65,18 @@ export const useMessageStore = defineStore('message', () => {
             const list = Array.isArray(content) ? content : (content?.messages ?? [])
             const currentUserId = senderId
             const mapped = Array.isArray(list)
-                ? list.map((m) => ({
-                    id: m.id,
-                    text: m.message ?? m.text ?? '',
-                    time: formatMessageTime(m.created_at),
-                    isMe: Number(m.sender_id) === Number(currentUserId),
-                    type: 'message',
-                    created_at: m.created_at,
-                }))
+                ? list.map((m) => {
+                    const rawType = m.type ?? 'normal'
+                    const isSystem = rawType === 'system'
+                    return {
+                        id: m.id,
+                        text: m.message ?? m.text ?? '',
+                        time: formatMessageTime(m.created_at),
+                        isMe: isSystem ? false : Number(m.sender_id) === Number(currentUserId),
+                        type: isSystem ? 'system' : 'message',
+                        created_at: m.created_at,
+                    }
+                })
                 : []
             const firstWithShipment = Array.isArray(list) ? list.find((m) => m.shipment_id != null) : null
             const conversationShipmentId = firstWithShipment?.shipment_id ?? content?.conversation_shipment_id ?? null

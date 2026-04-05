@@ -1,8 +1,28 @@
 <script setup>
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { storeToRefs } from 'pinia';
+import { useAuthStore } from '@/stores/auth';
 import Content from './Content.vue';
 
+const router = useRouter();
+const authStore = useAuthStore();
+const { isAuthenticated } = storeToRefs(authStore);
+
 const activeTab = ref('cargo');
+
+/** İlk adım kutusu: misafirde giriş modalı, oturumda ilgili sayfa */
+function handleFirstStepClick() {
+    if (!isAuthenticated.value) {
+        authStore.openLoginModal();
+        return;
+    }
+    if (activeTab.value === 'cargo') {
+        router.push('/cargo-owner/posts/create');
+    } else {
+        router.push('/vehicle-owner');
+    }
+}
 
 const tabs = [
     { id: 'cargo', label: 'Yük Sahibi', icon: 'pi-box' },
@@ -98,7 +118,17 @@ const steps = {
                 <div
                     v-for="(step, i) in steps[activeTab]"
                     :key="`${activeTab}-${i}`"
-                    class="group relative flex flex-col gap-4 rounded-2xl border border-gray-100 bg-white p-7 transition-all duration-300 hover:shadow-lg hover:border-primary/20 hover:-translate-y-1"
+                    :role="i === 0 ? 'button' : undefined"
+                    :tabindex="i === 0 ? 0 : undefined"
+                    :class="[
+                        'group relative flex flex-col gap-4 rounded-2xl border border-gray-100 bg-white p-7 transition-all duration-300 hover:shadow-lg hover:border-primary/20 hover:-translate-y-1',
+                        i === 0
+                            ? 'cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-2'
+                            : ''
+                    ]"
+                    @click="i === 0 ? handleFirstStepClick() : undefined"
+                    @keydown.enter.prevent="i === 0 ? handleFirstStepClick() : undefined"
+                    @keydown.space.prevent="i === 0 ? handleFirstStepClick() : undefined"
                 >
                     <div class="flex items-center justify-between">
                         <div class="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center transition-colors duration-300 group-hover:bg-primary group-hover:text-white">
