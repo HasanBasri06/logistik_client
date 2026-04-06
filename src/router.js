@@ -20,7 +20,6 @@ import CargoOwnerPostsPage from "./pages/CargoOwnerPostsPage.vue";
 import CargoOwnerAddressesPage from "./pages/CargoOwnerAddressesPage.vue";
 import CargoOwnerChangePasswordPage from "./pages/CargoOwnerChangePasswordPage.vue";
 import CargoOwnerVerifyAccountPage from "./pages/CargoOwnerVerifyAccountPage.vue";
-import CargoOwnerCardsPage from "./pages/CargoOwnerCardsPage.vue";
 import PostDetail from "./posts/Detail.vue";
 import ProductDetailPage from "./pages/ProductDetailPage.vue";
 import NotFound from "./pages/NotFound.vue";
@@ -279,16 +278,6 @@ const routes = [
         meta: {
             layout: Layout,
             title: 'Hesap Doğrula | TaşıBul',
-            requiresAuth: true,
-            authorization: 'cargo_owner'
-        }
-    },
-    {
-        path: '/cargo-owner/cards',
-        component: CargoOwnerCardsPage,
-        meta: {
-            layout: Layout,
-            title: 'Kayıtlı Kartlarım | TaşıBul',
             requiresAuth: true,
             authorization: 'cargo_owner'
         }

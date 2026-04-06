@@ -446,43 +446,14 @@
                                             Şifremi Unuttum
                                         </button>
                                     </div>
-                                    <div class="flex flex-col gap-2.5 text-sm text-gray-600 -mt-1">
-                                        <label class="flex items-start gap-2.5 cursor-pointer select-none">
-                                            <input
-                                                v-model="loginAcceptUyelik"
-                                                type="checkbox"
-                                                class="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 text-primary focus:ring-primary"
-                                            />
-                                            <span class="leading-snug">
-                                                <button
-                                                    type="button"
-                                                    class="font-semibold text-primary hover:underline inline p-0 border-0 bg-transparent cursor-pointer text-left"
-                                                    @click.stop="openLegalTextModal('uyelik', true)"
-                                                >Üyelik Sözleşmesi</button>'ni okudum ve kabul ediyorum.
-                                            </span>
-                                        </label>
-                                        <label class="flex items-start gap-2.5 cursor-pointer select-none">
-                                            <input
-                                                v-model="loginAcceptKvkk"
-                                                type="checkbox"
-                                                class="mt-0.5 h-4 w-4 shrink-0 rounded border-gray-300 text-primary focus:ring-primary"
-                                            />
-                                            <span class="leading-snug">
-                                                <button
-                                                    type="button"
-                                                    class="font-semibold text-primary hover:underline inline p-0 border-0 bg-transparent cursor-pointer text-left"
-                                                    @click.stop="openLegalTextModal('kvkk', true)"
-                                                >KVKK Aydınlatma Metni</button>'ni okudum ve onaylıyorum.
-                                            </span>
-                                        </label>
-                                    </div>
+
                                     <div class="flex flex-wrap items-center gap-3">
                                         <button
                                             type="submit"
-                                            :disabled="loginLoading || !loginAcceptUyelik || !loginAcceptKvkk"
+                                            :disabled="loginLoading"
                                             :class="[
                                             'h-12 px-6 font-semibold rounded-lg transition-all duration-200 shadow-lg text-base shrink-0',
-                                            loginLoading || !loginAcceptUyelik || !loginAcceptKvkk
+                                            loginLoading
                                                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                                 : 'bg-primary text-white hover:bg-primary/90 hover:shadow-xl transform hover:-translate-y-0.5'
                                         ]">
@@ -1238,10 +1209,6 @@ const handleAuthModalSubmit = () => {
 };
 
 const handleLoginSubmit = async () => {
-    if (!loginAcceptUyelik.value || !loginAcceptKvkk.value) {
-        toast.error('Giriş için üyelik sözleşmesi ve KVKK metnini onaylamalısınız.', { duration: 4000 });
-        return;
-    }
     loginErrors.value = { phone: "", password: "" };
     loginLoading.value = true;
     try {

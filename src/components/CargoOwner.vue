@@ -103,19 +103,7 @@
                         <i class="pi pi-key mr-2 text-primary" style="font-size: 14px;"></i>
                         <span>Şifre Değiştir</span>
                     </router-link>
-                </li>
-                <li>
-                    <router-link 
-                        to="/cargo-owner/cards"
-                        :class="[
-                            'h-8 flex items-center px-3 rounded-md cursor-pointer',
-                            $route.path === '/cargo-owner/cards' ? 'bg-primary/10 font-medium' : 'text-gray-800'
-                        ]"
-                    >
-                        <i class="pi pi-credit-card mr-2 text-primary" style="font-size: 14px;"></i>
-                        <span>Kayıtlı Kartlarım</span>
-                    </router-link>
-                </li>
+                </li>                
             </ul>
         </div>
 

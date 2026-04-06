@@ -391,12 +391,15 @@ const verificationStatus = ref({
     license: false
 });
 
-const totalCount = 6;
+const totalCount = 7;
+
 
 async function fetchVerificationStatus() {
     try {
         const res = await api.get('/confirm-account/home');
         const data = res.data?.content;
+        console.log(data);
+        
         if (data?.verification) {
             verificationStatus.value = { ...verificationStatus.value, ...data.verification };
         }

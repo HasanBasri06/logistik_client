@@ -229,7 +229,6 @@
                             </div>
                         </div>
                     </div>
-
                     <!-- Teklif / İlanım butonları: sadece masaüstünde (mobilde altta fixed bar kullanılıyor) -->
                     <div
                         v-if="!is_me"
@@ -260,9 +259,10 @@
                             v-if="!isCargoOwnerViewer && shipment?.call_access == 1"
                             type="button"
                             @click="openCallModal"
-                            class="h-11 sm:h-12 px-5 rounded-xl border-2 border-primary text-primary bg-white font-semibold transition-all duration-200 text-sm sm:text-base hover:bg-primary/5 shrink-0"
+                            class="h-11 sm:h-12 px-5 w-full rounded-xl border-2 border-primary text-primary bg-white font-semibold transition-all duration-200 text-sm sm:text-base hover:bg-primary/5 shrink-0 items-center"
                         >
-                            Ara
+                            <i class="pi pi-phone text-xl mr-3"></i>
+                            <span>{{user?.phoneFormatted}}</span>
                         </button>
                     </div>
                     <div v-else class="hidden md:flex bg-gray-50 border-t border-gray-100 w-full">
@@ -590,6 +590,7 @@ import { useAuthStore } from '@/stores/auth';
 import { usePusherMessages } from '@/composables/usePusherMessages';
 import TeklifVerModal from '@/components/TeklifVerModal.vue';
 import { useHead } from '@vueuse/head';
+import { storeToRefs } from 'pinia';
 
 useHead({
     title: 'İlan Detayı | TaşıBul',
@@ -608,6 +609,7 @@ useHead({
 
 const route = useRoute();
 const authStore = useAuthStore()
+const { user } = storeToRefs(authStore)
 const messageStore = useMessageStore();
 const mapContainer = ref(null);
 const map = ref(null);
