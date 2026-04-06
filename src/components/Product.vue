@@ -286,7 +286,11 @@ const creatorAvatarUrl = computed(() => {
   const c = props.shipment?.creator;
   const profileImg = c?.profile_image;
   if (c && profileImg != null && profileImg !== '') {
-    return import.meta.env.VITE_APP_SERVER_URL + 'storage/' + profileImg;
+    const s = String(profileImg).trim();
+    if (/^https?:\/\//i.test(s)) return s;
+    const base = (import.meta.env.VITE_APP_SERVER_URL || '').replace(/\/$/, '');
+    if (s.startsWith('/')) return base + s;
+    return `${base}/storage/${s}`;
   }
   if (c?.image) return c.image;
   if (c?.avatar) return c.avatar;

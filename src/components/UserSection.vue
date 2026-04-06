@@ -45,7 +45,7 @@ onMounted(() => {
 
 onMounted(() => {
     if (user.value.image) {
-        userImage.value = import.meta.env.VITE_APP_SERVER_URL + 'storage/' + user.value.image;
+        userImage.value = import.meta.env.VITE_APP_SERVER_URL + 'storage/' + String(user.value.image).trim();
     } else {
         userImage.value = 'https://ui-avatars.com/api/?name=' + user.value.full_name + '&background=39838C&color=fff';
     }

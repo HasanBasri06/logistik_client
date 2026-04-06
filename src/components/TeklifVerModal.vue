@@ -57,6 +57,26 @@
                                 </div>
                             </Slide>
                         </Carousel>
+                        <div
+                            v-if="(teklifCurrentCar?.details?.length ?? 0) > 1"
+                            class="px-3 pt-1 pb-2"
+                        >
+                            <p class="text-xs font-medium text-gray-600 mb-2 text-center">Detay seçin</p>
+                            <div class="flex flex-wrap gap-2 justify-center">
+                                <button
+                                    v-for="d in teklifCurrentCar.details"
+                                    :key="d.id"
+                                    type="button"
+                                    class="px-3 py-2 rounded-lg text-sm font-medium border-2 transition-all"
+                                    :class="Number(teklifSelectedDetailIdForCurrentCar) === Number(d.id)
+                                        ? 'border-primary bg-primary text-white'
+                                        : 'border-gray-200 text-gray-700 hover:border-primary/50 hover:bg-primary/5'"
+                                    @click="selectTeklifDetail(d)"
+                                >
+                                    {{ d.value || d.name }}
+                                </button>
+                            </div>
+                        </div>
                         <div class="flex justify-center gap-2 pb-2">
                             <button
                                 v-for="(car, idx) in teklifCars"
@@ -211,7 +231,7 @@
                                 :key="d.id"
                                 type="button"
                                 class="px-3 py-2 rounded-lg text-sm font-medium border-2 transition-all"
-                                :class="addSelectedDetailId === d.id
+                                :class="Number(addSelectedDetailId) === Number(d.id)
                                     ? 'border-primary bg-primary text-white'
                                     : 'border-gray-200 text-gray-700 hover:border-primary/50 hover:bg-primary/5'"
                                 @click="selectAddDetail(d)"
@@ -286,6 +306,20 @@ const teklifMessage = ref('');
 const teklifFiyatRaw = ref('');
 const teklifSubmitLoading = ref(false);
 const teklifSubmitError = ref(null);
+/** Her araç id → seçilen car_detail id (ilk detay varsayılan) */
+const teklifSelectedDetailIdByCarId = ref({});
+
+const teklifCurrentCar = computed(() => {
+    const list = teklifCars.value;
+    const idx = teklifActiveCarIndex.value;
+    return list[idx] ?? null;
+});
+
+const teklifSelectedDetailIdForCurrentCar = computed(() => {
+    const car = teklifCurrentCar.value;
+    if (!car?.id) return null;
+    return teklifSelectedDetailIdByCarId.value[car.id] ?? null;
+});
 
 function onTeklifFiyatInput(e) {
     const v = (e.target?.value ?? '').replace(/\D/g, '');
@@ -307,7 +341,11 @@ const teklifSeciliAracLabel = computed(() => {
     const car = list[idx];
     if (!car) return '—';
     const name = car.name ?? '';
-    const detailVal = car.carDetail?.value ?? car.car_detail?.value ?? car.details?.[0]?.value ?? '';
+    const details = car.details ?? [];
+    const selId = teklifSelectedDetailIdByCarId.value[car.id];
+    let row = selId ? details.find((x) => Number(x.id) === Number(selId)) : null;
+    if (!row) row = details[0] ?? car.carDetail ?? car.car_detail;
+    const detailVal = row?.value ?? row?.name ?? '';
     const d = String(detailVal).trim();
     if (!d) return name || '—';
     return `${name} ${d}`.trim() || '—';
@@ -322,25 +360,54 @@ const teklifAracIlanUyumlu = computed(() => {
     const ilanCarId = s.car_id ?? s.car?.id;
     const ilanCarDetailId = s.car_detail_id ?? s.get_car_detail?.id ?? s.getCarDetail?.id;
     const secilenCarId = car.id;
-    const secilenCarDetailId = car.carDetail?.id ?? car.car_detail?.id;
+    const details = car.details ?? [];
+    const selId = teklifSelectedDetailIdByCarId.value[car.id];
+    const fromDetail = selId ? details.find((x) => Number(x.id) === Number(selId)) : null;
+    const secilenCarDetailId =
+        fromDetail?.id ?? car.carDetail?.id ?? car.car_detail?.id ?? details[0]?.id;
     if (ilanCarId != null && Number(secilenCarId) !== Number(ilanCarId)) return false;
     if (ilanCarDetailId != null && Number(secilenCarDetailId) !== Number(ilanCarDetailId)) return false;
     return true;
 });
 
+function toVehicleImageUrl(img) {
+    if (!img || typeof img !== 'string') return '';
+    if (img.startsWith('http')) return img;
+    try {
+        return new URL(`../assets/images/vehicles/${img}`, import.meta.url).href;
+    } catch {
+        return '';
+    }
+}
+
 function getTeklifCarImageUrl(car) {
-    const toUrl = (img) => {
-        if (!img || typeof img !== 'string') return '';
-        if (img.startsWith('http')) return img;
-        try {
-            return new URL(`../assets/images/vehicles/${img}`, import.meta.url).href;
-        } catch {
-            return '';
-        }
+    if (!car?.id) return '';
+    const details = car.details ?? [];
+    const selId = teklifSelectedDetailIdByCarId.value[car.id];
+    let detail = selId ? details.find((x) => Number(x.id) === Number(selId)) : null;
+    if (!detail) detail = details[0] ?? car.carDetail ?? car.car_detail;
+    if (detail?.image) return toVehicleImageUrl(detail.image);
+    return toVehicleImageUrl(car?.image);
+}
+
+function initTeklifDetailDefaultsForAllCars() {
+    const next = {};
+    for (const car of teklifCars.value) {
+        if (!car?.id) continue;
+        const details = car.details ?? [];
+        const first = details[0];
+        next[car.id] = first?.id ?? car.carDetail?.id ?? car.car_detail?.id ?? null;
+    }
+    teklifSelectedDetailIdByCarId.value = next;
+}
+
+function selectTeklifDetail(d) {
+    const car = teklifCurrentCar.value;
+    if (!car?.id || d?.id == null) return;
+    teklifSelectedDetailIdByCarId.value = {
+        ...teklifSelectedDetailIdByCarId.value,
+        [car.id]: d.id,
     };
-    const detail = car?.carDetail ?? car?.car_detail;
-    if (detail?.image) return toUrl(detail.image);
-    return toUrl(car?.image);
 }
 
 // ===== Araç ekleme (ilan detayında inline modal) =====
@@ -358,21 +425,23 @@ const addVehicleLoading = ref(false);
 const addSelectedCarLabel = computed(() => addSelectedCar.value?.name ?? '—');
 
 function getAddCarImageUrl(car) {
-    const toUrl = (img) => {
-        if (!img || typeof img !== 'string') return '';
-        if (img.startsWith('http')) return img;
-        try {
-            return new URL(`../assets/images/vehicles/${img}`, import.meta.url).href;
-        } catch {
-            return '';
-        }
-    };
-    return toUrl(car?.image);
+    if (!car) return '';
+    const details = car.details ?? [];
+    const isSelected = addSelectedCar.value?.id === car.id;
+    if (isSelected && details.length) {
+        const sid = addSelectedDetailId.value;
+        const picked = sid ? details.find((x) => Number(x.id) === Number(sid)) : details[0];
+        if (picked?.image) return toVehicleImageUrl(picked.image);
+        if (details[0]?.image) return toVehicleImageUrl(details[0].image);
+    }
+    return toVehicleImageUrl(car?.image);
 }
 
 function selectAddCar(car) {
     addSelectedCar.value = car;
-    addSelectedDetailId.value = null;
+    const details = car?.details ?? [];
+    const first = details[0];
+    addSelectedDetailId.value = first?.id ?? null;
 }
 
 function selectAddDetail(d) {
@@ -418,8 +487,10 @@ async function fetchAddVehicles() {
         const content = res.data?.content ?? res.data;
         addVehicles.value = Array.isArray(content?.cars) ? content.cars : [];
         addActiveCarIndex.value = 0;
-        addSelectedCar.value = addVehicles.value[0] ?? null;
-        addSelectedDetailId.value = null;
+        const firstCar = addVehicles.value[0] ?? null;
+        addSelectedCar.value = firstCar;
+        const d0 = firstCar?.details?.[0];
+        addSelectedDetailId.value = d0?.id ?? null;
     } catch (err) {
         addVehiclesError.value = err?.response?.data?.message ?? err?.message ?? 'Araçlar yüklenemedi';
         addVehicles.value = [];
@@ -543,6 +614,7 @@ async function fetchTeklifCars() {
             return { ...car, carDetail };
         }).filter(Boolean);
         teklifActiveCarIndex.value = 0;
+        initTeklifDetailDefaultsForAllCars();
     } catch (err) {
         teklifCarsError.value = err?.response?.data?.message ?? err?.message ?? 'Araçlar yüklenemedi';
         teklifCars.value = [];

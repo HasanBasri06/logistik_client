@@ -710,9 +710,10 @@
                             </div>
                         </div>
                         <template v-else>
-                            <!-- Sevkiyat başlığı: mobilde justify-between + Filtrele butonu -->
-                            <div class="flex items-center justify-between w-full md:justify-start">
-                                <span class="text-sm text-gray-500"><!-- {{ shipmentsStore.total }} sevkiyat -->Sevkiyatlar</span>
+                            <!-- Sevkiyat başlığı: araç sahibi → Sevkiyatlar; yük sahibi → bölüm başlıkları (Benim / Diğer) -->
+                            <div class="flex items-center justify-between w-full md:justify-start gap-3">
+                                <span v-if="!isCargoOwner" class="text-sm text-gray-500">Sevkiyatlar</span>
+                                <span v-else class="flex-1 min-w-0 shrink" aria-hidden="true" />
                                 <button
                                     type="button"
                                     class="md:hidden flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 text-sm font-medium hover:border-primary hover:bg-primary/5 hover:text-primary transition-colors"
@@ -723,6 +724,7 @@
                             </div>
 
                             <section v-if="myPostList.length" class="flex flex-col gap-3">
+                                <h3 v-if="isCargoOwner" class="text-sm font-semibold text-gray-800">Benim sevkiyatlarım</h3>
                                 <Product
                                     v-for="item in myPostList"
                                     :key="'my-' + item.id"
@@ -734,15 +736,17 @@
                                 <div class="bg-gray-200 w-full h-px mt-1"></div>
                             </section>
 
-                            <!-- Diğer İlanlar -->
-                            <section v-if="otherPostList.length" class="flex flex-col space-y-8">
-                                <Product
-                                    v-for="item in otherPostList"
-                                    :key="'other-' + item.id"
-                                    :slug="item.slug"
-                                    :shipment="item"
-                                    @canceled="handleShipmentCanceled"
-                                />
+                            <section v-if="otherPostList.length" class="flex flex-col gap-3">
+                                <h3 v-if="isCargoOwner" class="text-sm font-semibold text-gray-800">Diğer sevkiyatlar</h3>
+                                <div class="flex flex-col space-y-8">
+                                    <Product
+                                        v-for="item in otherPostList"
+                                        :key="'other-' + item.id"
+                                        :slug="item.slug"
+                                        :shipment="item"
+                                        @canceled="handleShipmentCanceled"
+                                    />
+                                </div>
                             </section>
 
                             <button
@@ -1426,6 +1430,9 @@ const panelRouter = useRouter();
 const authStore = useAuthStore();
 const shipmentsStore = useShipmentsStore();
 const { list: shipmentsList, myPostList, otherPostList, loading: shipmentsLoading, loadingMore, error: shipmentsError, hasMore } = storeToRefs(shipmentsStore);
+
+/** Panel ilan başlıkları: yük sahibi → Benim / Diğer sevkiyatlar; araç sahibi → tek başlık Sevkiyatlar */
+const isCargoOwner = computed(() => authStore.user?.type === 'cargo_owner');
 const locationStore = useLocationStore();
 const { locationError, userCoords, locationRequesting } = storeToRefs(locationStore);
 const { requestUserLocation } = locationStore;

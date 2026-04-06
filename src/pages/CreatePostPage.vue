@@ -226,45 +226,46 @@
                 </Transition>
               </Teleport>
 
-              <!-- Kalkış / Varış saati + Tarih (3 grid, PrimeVue) -->
-              <div class="w-full rounded-xl border border-blue-100 bg-blue-50/40 p-3 sm:p-4">
+              <!-- Kalkış / Varış saati + Arama ile iletişime geçilebilir (md+ yan yana) -->
+              <div class="flex flex-col md:flex-row gap-4 w-full items-stretch">
+              <div class="w-full flex-1 min-w-0 rounded-xl border border-blue-100 bg-blue-50/40 p-4 sm:p-5">
                 <div class="flex items-start gap-3 w-full">
-                  <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-700 items-center justify-center shrink-0 mt-0.5 hidden md:flex">
-                    <i class="pi pi-clock" style="font-size: 13px;"></i>
+                  <div class="w-9 h-9 rounded-full bg-blue-100 text-blue-700 items-center justify-center shrink-0 mt-0.5 hidden md:flex">
+                    <i class="pi pi-clock" style="font-size: 15px;"></i>
                   </div>
-                  <div class="w-full">
-                    <label class="block text-sm font-semibold text-gray-800 mb-0.5">Kalkış ve Varış Saati</label>
-                    <p class="text-xs text-gray-500 mb-3">Saatleri seçin, isterseniz kalkış tarihi de ekleyin.</p>
-                    <div class="flex items-center justify-between w-full mb-3 rounded-xl border border-white bg-white px-3 py-2 shadow-sm">
-                      <div class="flex flex-col gap-0.5">
-                        <span class="text-sm font-medium text-gray-800">Kalkış tarihi belirt</span>
-                        <span class="text-xs text-gray-500">
+                  <div class="w-full min-w-0">
+                    <label class="block text-base font-semibold text-gray-800 mb-1">Kalkış ve Varış Saati</label>
+                    <p class="text-sm text-gray-500 mb-3">Saatleri seçin, isterseniz kalkış tarihi de ekleyin.</p>
+                    <div class="flex items-center justify-between w-full mb-3 rounded-xl border border-white bg-white px-3 py-2.5 shadow-sm gap-3">
+                      <div class="flex flex-col gap-0.5 min-w-0">
+                        <span class="text-base font-medium text-gray-800">Kalkış tarihi belirt</span>
+                        <span class="text-sm text-gray-500">
                           {{ departureDateEnabled ? 'İlan tarihiniz bitiminde ilandan kaldırılır' : 'İlanınız 3 hafta açık kalır' }}
                         </span>
                       </div>
                     <button
                       type="button"
-                      class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                      class="relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                       :class="departureDateEnabled ? 'bg-primary' : 'bg-gray-300'"
                       @click="onToggleDepartureDate"
                     >
                       <span
                         class="inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200"
-                        :class="departureDateEnabled ? 'translate-x-5' : 'translate-x-1'"
+                        :class="departureDateEnabled ? 'translate-x-6' : 'translate-x-1'"
                       />
                     </button>
                   </div>
                     <div class="flex-1 flex flex-col md:flex-row gap-2">
                       <DatePicker
-                        class="w-full flex-1 h-12 px-4 py-3 rounded-xl border border-white bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                        class="w-full flex-1 h-12 px-4 py-3 rounded-xl border border-white bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-base"
                         v-model="departure_time"
                         time-only
                         hour-format="24"
                         :manualInput="false"
                         placeholder="Kalkış saati"
                         :pt="{
-                          root: { class: 'flex-1 !text-sm' },
-                          input: { class: 'h-12 px-4 !rounded-xl !border !border-gray-200 !focus:outline-none !focus:ring-2 !focus:ring-primary/20 focus:border-primary !text-sm placeholder:text-sm w-full !bg-white' },
+                          root: { class: 'flex-1 !text-base' },
+                          input: { class: 'h-12 px-4 !rounded-xl !border !border-gray-200 !focus:outline-none !focus:ring-2 !focus:ring-primary/20 focus:border-primary !text-base placeholder:text-base w-full !bg-white' },
                           panel: { class: '!bg-white !mt-2 !border !text-sm !border-gray-200 shadow-lg !rounded-lg' },
                           calendarContainer: { class: '!bg-white' },
                           timePicker: { class: '!bg-white' }
@@ -272,15 +273,15 @@
                         fluid
                       />
                       <DatePicker
-                        class="w-full flex-1 h-12 px-4 py-3 rounded-xl border border-white bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
+                        class="w-full flex-1 h-12 px-4 py-3 rounded-xl border border-white bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-base"
                         v-model="time_arrival"
                         time-only
                         hour-format="24"
                         :manualInput="false"
                         placeholder="Varış saati"
                         :pt="{
-                          root: { class: 'flex-1 !text-sm' },
-                          input: { class: 'h-12 px-4 !rounded-xl !border !border-gray-200 !focus:outline-none !focus:ring-2 !focus:ring-primary/20 focus:border-primary !text-sm placeholder:text-sm w-full !bg-white' },
+                          root: { class: 'flex-1 !text-base' },
+                          input: { class: 'h-12 px-4 !rounded-xl !border !border-gray-200 !focus:outline-none !focus:ring-2 !focus:ring-primary/20 focus:border-primary !text-base placeholder:text-base w-full !bg-white' },
                           panel: { class: '!bg-white !mt-2 !border !text-sm !border-gray-200 shadow-lg !rounded-lg' },
                           calendarContainer: { class: '!bg-white' },
                           timePicker: { class: '!bg-white' }
@@ -289,15 +290,15 @@
                       />
                       <DatePicker
                         v-if="departureDateEnabled"
-                        class="w-full flex-1 h-12 px-4 py-3 rounded-xl border border-white bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
+                        class="w-full flex-1 h-12 px-4 py-3 rounded-xl border border-white bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-base"
                         v-model="shipment_date"
                         date-format="dd.mm.yy"
                         placeholder="Tarih seçin"
                         :pt="{
-                          root: { class: 'flex-1 !text-sm' },
+                          root: { class: 'flex-1 !text-base' },
                           input: {
                             class: [
-                              'h-12 !p-4 !rounded-xl !border !border-gray-200 !focus:outline-none !focus:ring-2 !focus:ring-primary/20 focus:border-primary !text-sm placeholder:text-sm w-full',
+                              'h-12 !p-4 !rounded-xl !border !border-gray-200 !focus:outline-none !focus:ring-2 !focus:ring-primary/20 focus:border-primary !text-base placeholder:text-base w-full',
                               shipment_date ? '!bg-primary/10 cursor-not-allowed' : '!bg-white'
                             ]
                           },
@@ -338,7 +339,7 @@
                           }
                         }"
                         :min-date="new Date()"
-                        :max-date="new Date(new Date().setDate(new Date().getDate() + 14))"
+                        :max-date="new Date(new Date().setDate(new Date().getDate() + 20))"
                         :manualInput="false"
                         fluid
                       />
@@ -347,34 +348,36 @@
                 </div>
               </div>
 
-              <!-- Arama ile iletişime geçilebilir switch -->
-              <div class="w-full mt-4 pt-4 border-t border-gray-100">
-                <div class="rounded-2xl border border-violet-100 bg-linear-to-br from-white to-violet-50/60 px-4 py-3 sm:px-5 sm:py-4">
-                  <div class="flex items-center justify-between gap-3">
-                    <div class="flex items-start gap-3">
-                      <span class="w-8 h-8 rounded-xl bg-violet-100 text-violet-700 flex items-center justify-center shrink-0 mt-0.5">
-                        <i class="pi pi-phone text-xs"></i>
+              <div class="w-full flex-1 min-w-0 flex md:max-w-none">
+                <div
+                  class="rounded-2xl border border-red-200 bg-linear-to-br from-white to-red-50/70 px-5 py-4 sm:px-6 sm:py-5 w-full flex flex-col justify-center min-h-[132px]"
+                >
+                  <div class="flex items-center justify-between gap-4">
+                    <div class="flex items-start gap-3 min-w-0">
+                      <span class="w-10 h-10 rounded-xl bg-red-100 text-red-700 flex items-center justify-center shrink-0 mt-0.5">
+                        <i class="pi pi-phone text-[1.05rem]"></i>
                       </span>
-                      <div class="flex flex-col gap-0.5">
-                        <span class="text-sm font-semibold text-gray-800">Arama ile iletişime geçilebilir</span>
-                        <span class="text-xs text-gray-500">
+                      <div class="flex flex-col gap-1 min-w-0">
+                        <span class="text-base font-semibold text-gray-800 leading-snug">Arama ile iletişime geçilebilir</span>
+                        <span class="text-sm text-gray-500 leading-snug">
                           {{ canContactByCall ? 'Taşıyıcıların sizi telefonla aramasına izin verin.' : 'Taşıyıcılar size teklif gönderebilir' }}
                         </span>
                       </div>
                     </div>
                     <button
                       type="button"
-                      class="relative inline-flex h-7 w-12 items-center rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 shrink-0"
+                      class="relative inline-flex h-8 w-14 items-center rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 shrink-0"
                       :class="canContactByCall ? 'bg-primary' : 'bg-gray-300'"
                       @click="canContactByCall = !canContactByCall"
                     >
                       <span
-                        class="inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200"
+                        class="inline-block h-6 w-6 transform rounded-full bg-white shadow transition-transform duration-200"
                         :class="canContactByCall ? 'translate-x-6' : 'translate-x-1'"
                       />
                     </button>
                   </div>
                 </div>
+              </div>
               </div>
 
               <!-- Mesafe ve süre (her iki yer seçildiğinde) -->
@@ -486,12 +489,10 @@
               @click="handlePublishOrNext"
               type="button"
               :disabled="!canGoNext || publishLoading"
-              class="flex-1 sm:flex-none px-4 sm:px-5 py-2 rounded-lg border-2 transition-all text-sm sm:text-base"
-              :class="(!canGoNext || publishLoading)
-                ? 'cursor-not-allowed border-gray-200 text-gray-400 opacity-60'
-                : 'cursor-pointer border-primary text-primary font-medium hover:bg-primary hover:text-white'"
+              class="flex-1 sm:flex-none transition-all duration-200 text-sm sm:text-base"
+              :class="publishActionButtonClass"
             >
-              <span v-if="publishLoading" class="flex items-center gap-2">
+              <span v-if="publishLoading" class="flex items-center justify-center gap-2">
                 <i class="pi pi-spin pi-spinner text-sm"></i> Yayınlanıyor...
               </span>
               <span v-else>{{ page === limit ? 'Yayınla' : 'Sonraki →' }}</span>
@@ -968,6 +969,28 @@ const canGoNext = computed(() => {
     );
   }
   return true;
+});
+
+/** Son adımdaki «Yayınla» için belirgin dolu CTA; «Sonraki» eski çerçeveli stilde kalır. */
+const publishActionButtonClass = computed(() => {
+  const isPublish = page.value === limit.value;
+
+  if (isPublish) {
+    const base =
+      'rounded-2xl border-0 font-semibold px-7 sm:min-w-[11rem] sm:px-12 py-3.5 text-base sm:text-lg tracking-tight';
+    if (publishLoading.value) {
+      return `${base} bg-primary text-white cursor-wait shadow-lg shadow-primary/30`;
+    }
+    if (!canGoNext.value) {
+      return `${base} bg-gray-100 text-gray-400 cursor-not-allowed shadow-none ring-1 ring-inset ring-gray-200`;
+    }
+    return `${base} cursor-pointer bg-primary text-white shadow-[0_10px_32px_-8px] shadow-primary/45 hover:shadow-[0_14px_36px_-10px] hover:shadow-primary/55 hover:brightness-[1.03] active:scale-[0.985] ring-1 ring-white/20`;
+  }
+
+  if (!canGoNext.value || publishLoading.value) {
+    return 'cursor-not-allowed rounded-lg border-2 border-gray-200 text-gray-400 opacity-60 px-4 sm:px-5 py-2';
+  }
+  return 'cursor-pointer rounded-lg border-2 border-primary text-primary font-medium hover:bg-primary hover:text-white px-4 sm:px-5 py-2';
 });
 
 function getShipmentFormData() {

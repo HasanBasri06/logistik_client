@@ -100,100 +100,55 @@
                 </div>
             </div>
 
-            <!-- İlan özeti + Talep/Teklif: varsayılan kapalı; ortadaki ok ile aç/kapa -->
-            <div v-if="(conversationShipment || conversationTeklif) && !threadLoading" class="mx-3 sm:mx-4 mt-1.5 mb-1.5 shrink-0">
+            <!-- Üst: İlan özeti + Talep (mobilde alt alta, yükseklik sınırlı) -->
+            <div
+                v-if="(conversationShipment || conversationTeklif) && !threadLoading"
+                class="mx-3 sm:mx-4 mt-1.5 mb-1.5 flex flex-col sm:flex-row gap-2 sm:gap-3 shrink-0 max-h-[28vh] sm:max-h-none overflow-y-auto overflow-x-hidden"
+            >
                 <div
-                    class="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-2 py-2 shadow-sm sm:px-3"
+                    v-if="conversationShipment"
+                    role="button"
+                    tabindex="0"
+                    class="flex-1 min-h-0 rounded-xl border border-gray-200 bg-white p-3 sm:p-4 shadow-sm min-w-0 cursor-pointer hover:border-primary/40 hover:shadow-md transition-all active:scale-[0.99]"
+                    @click="conversationShipment?.slug && goToShipment(conversationShipment.slug)"
+                    @keydown.enter="conversationShipment?.slug && goToShipment(conversationShipment.slug)"
                 >
-                    <div class="min-w-0 flex-1 text-left">
-                        <p
-                            v-if="conversationShipment"
-                            class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 sm:text-xs"
-                        >
-                            İlan özeti
-                        </p>
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 sm:mb-2">İlan özeti</p>
+                    <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap text-xs sm:text-sm">
+                        <span class="font-semibold text-gray-900">{{ conversationShipment.f_where_city }} / {{ conversationShipment.f_where_district }}</span>
+                        <i class="pi pi-arrow-right text-primary text-xs shrink-0"></i>
+                        <span class="font-semibold text-gray-900">{{ conversationShipment.t_where_city }} / {{ conversationShipment.t_where_district }}</span>
                     </div>
-                    <button
-                        type="button"
-                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-gray-200 bg-gray-50 text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 active:bg-gray-200 touch-manipulation"
-                        :aria-expanded="summaryPanelExpanded"
-                        aria-label="İlan ve teklif özetini aç veya kapat"
-                        @click="toggleSummaryPanel"
-                    >
-                        <i
-                            class="pi text-lg leading-none"
-                            :class="summaryPanelExpanded ? 'pi-chevron-up' : 'pi-chevron-down'"
-                            aria-hidden="true"
-                        ></i>
-                    </button>
-                    <div class="min-w-0 flex-1 text-right">
-                        <p
-                            v-if="conversationTeklif"
-                            class="text-[11px] font-semibold uppercase tracking-wide text-primary sm:text-xs"
-                        >
-                            Talep / Teklif
-                        </p>
+                    <div class="flex items-center gap-2 sm:gap-3 mt-1.5 sm:mt-2 text-xs sm:text-sm text-gray-600 flex-wrap">
+                        <span v-if="conversationShipment.hours">{{ conversationShipment.hours }}</span>
+                        <span v-if="conversationShipment.price" class="font-semibold text-primary">{{ conversationShipment.price }}</span>
                     </div>
                 </div>
-
                 <div
-                    v-show="summaryPanelExpanded"
-                    class="mt-2 flex max-h-[min(42vh,320px)] flex-col gap-2 overflow-y-auto overflow-x-hidden sm:max-h-none sm:flex-row sm:gap-3"
+                    v-if="conversationTeklif"
+                    class="flex-1 min-h-0 min-w-0 rounded-xl border-2 border-primary/30 bg-white shadow-sm flex flex-col overflow-hidden"
                 >
-                    <div
-                        v-if="conversationShipment"
-                        role="button"
-                        tabindex="0"
-                        class="min-h-0 min-w-0 flex-1 cursor-pointer rounded-xl border border-gray-200 bg-white p-3 shadow-sm transition-all hover:border-primary/40 hover:shadow-md active:scale-[0.99] sm:p-4"
-                        @click="conversationShipment?.slug && goToShipment(conversationShipment.slug)"
-                        @keydown.enter="conversationShipment?.slug && goToShipment(conversationShipment.slug)"
-                    >
-                        <p class="mb-1.5 text-xs font-semibold uppercase tracking-wide text-gray-500 sm:mb-2">İlan özeti</p>
-                        <div class="flex flex-wrap items-center gap-1.5 text-xs sm:gap-2 sm:text-sm">
-                            <span class="font-semibold text-gray-900"
-                                >{{ conversationShipment.f_where_city }} / {{ conversationShipment.f_where_district }}</span
-                            >
-                            <i class="pi pi-arrow-right shrink-0 text-xs text-primary"></i>
-                            <span class="font-semibold text-gray-900"
-                                >{{ conversationShipment.t_where_city }} / {{ conversationShipment.t_where_district }}</span
-                            >
-                        </div>
-                        <div class="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-gray-600 sm:mt-2 sm:gap-3 sm:text-sm">
-                            <span v-if="conversationShipment.hours">{{ conversationShipment.hours }}</span>
-                            <span v-if="conversationShipment.price" class="font-semibold text-primary">{{ conversationShipment.price }}</span>
-                        </div>
+                    <div class="px-3 sm:px-4 pt-3 sm:pt-4 pb-2 min-h-0 flex-1 overflow-y-auto">
+                        <p class="text-xs font-semibold text-primary uppercase tracking-wide mb-1.5 sm:mb-2">Talep / Teklif</p>
+                        <p v-if="conversationTeklif.carName" class="text-xs sm:text-sm font-medium text-gray-900 mb-1">{{ conversationTeklif.carName }}</p>
+                        <p class="text-xs sm:text-sm font-semibold text-primary mb-1">{{ conversationTeklif.price }}</p>
+                        <p v-if="conversationTeklif.message" class="text-xs sm:text-sm text-gray-600 mt-2 border-t border-gray-100 pt-2 line-clamp-3 sm:line-clamp-none">{{ conversationTeklif.message }}</p>
+                        <span class="text-xs text-gray-500 mt-2 block">{{ conversationTeklif.time }}</span>
                     </div>
                     <div
-                        v-if="conversationTeklif"
-                        class="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-xl border-2 border-primary/30 bg-white shadow-sm"
+                        v-if="isShipmentOwner"
+                        class="shrink-0 px-3 sm:px-4 pb-3 sm:pb-4 pt-2 border-t border-primary/15 bg-primary/3"
                     >
-                        <div class="min-h-0 flex-1 overflow-y-auto px-3 pb-2 pt-3 sm:px-4 sm:pt-4">
-                            <p class="mb-1.5 text-xs font-semibold uppercase tracking-wide text-primary sm:mb-2">Talep / Teklif</p>
-                            <p v-if="conversationTeklif.carName" class="mb-1 text-xs font-medium text-gray-900 sm:text-sm">{{ conversationTeklif.carName }}</p>
-                            <p class="mb-1 text-xs font-semibold text-primary sm:text-sm">{{ conversationTeklif.price }}</p>
-                            <p
-                                v-if="conversationTeklif.message"
-                                class="mt-2 border-t border-gray-100 pt-2 text-xs text-gray-600 line-clamp-3 sm:line-clamp-none sm:text-sm"
-                            >
-                                {{ conversationTeklif.message }}
-                            </p>
-                            <span class="mt-2 block text-xs text-gray-500">{{ conversationTeklif.time }}</span>
-                        </div>
-                        <div
-                            v-if="isShipmentOwner"
-                            class="shrink-0 border-t border-primary/15 bg-primary/3 px-3 pb-3 pt-2 sm:px-4 sm:pb-4"
+                        <button
+                            v-if="conversationTeklif.status !== 'accepted'"
+                            type="button"
+                            class="w-full min-h-[44px] py-2.5 rounded-lg bg-primary text-white font-semibold text-sm hover:bg-primary/90 active:bg-primary/80 transition-colors disabled:opacity-60 disabled:cursor-not-allowed touch-manipulation shadow-sm"
+                            :disabled="teklifAcceptLoading === conversationTeklif.id"
+                            @click="acceptTeklif(conversationTeklif.id)"
                         >
-                            <button
-                                v-if="conversationTeklif.status !== 'accepted'"
-                                type="button"
-                                class="min-h-[44px] w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary/90 active:bg-primary/80 disabled:cursor-not-allowed disabled:opacity-60 touch-manipulation"
-                                :disabled="teklifAcceptLoading === conversationTeklif.id"
-                                @click="acceptTeklif(conversationTeklif.id)"
-                            >
-                                {{ teklifAcceptLoading === conversationTeklif.id ? 'İşleniyor...' : 'Teklifi Kabul Et' }}
-                            </button>
-                            <p v-else class="py-1 text-center text-xs font-medium text-green-600 sm:text-sm">Kabul edildi</p>
-                        </div>
+                            {{ teklifAcceptLoading === conversationTeklif.id ? 'İşleniyor...' : 'Teklifi Kabul Et' }}
+                        </button>
+                        <p v-else class="text-center text-xs sm:text-sm font-medium text-green-600 py-1">Kabul edildi</p>
                     </div>
                 </div>
             </div>
@@ -203,8 +158,8 @@
                 <p v-if="threadLoading" class="text-sm text-gray-500 py-4">Mesajlar yükleniyor...</p>
                 <div v-else class="flex flex-col gap-3 sm:gap-4">
                     <div
-                        v-for="(msg, index) in messageThreadForDisplay"
-                        :key="msg.type === 'teklif' ? `teklif-${msg.id}` : msg.type === 'system' ? `sys-${msg.id ?? index}` : `msg-${msg.id ?? index}`"
+                        v-for="(msg, index) in messageThread"
+                        :key="msg.type === 'teklif' ? `teklif-${msg.id}` : msg.type === 'system' ? `sys-${msg.id}` : `msg-${msg.id ?? index}`"
                         :class="[
                             msg.type === 'system'
                                 ? 'self-center max-w-[95%] sm:max-w-[90%]'
@@ -382,8 +337,6 @@ const conversationShipmentId = ref(null);
 const conversationShipment = ref(null);
 const teklifAcceptLoading = ref(null);
 const showTeklifModal = ref(false);
-/** İlan özeti + Talep/Teklif: varsayılan kapalı; geri ile önce açılabilir */
-const summaryPanelExpanded = ref(false);
 
 async function onTeklifModalSuccess() {
     showTeklifModal.value = false;
@@ -434,36 +387,6 @@ const shipmentAccepted = computed(() => {
     if (s === 'accepted') return true;
     const t = conversationTeklif.value?.status;
     return t === 'accepted';
-});
-
-/** Alt şeritteki bilgi ile aynı metin — sohbette system balonu (API’de yoksa eklenir) */
-const OFFER_ACCEPTED_SYSTEM_TEXT =
-    'Teklifiniz kabul edildi. İlanı Tüm Siparişlerim kısmından görüntüleyebilirsiniz.';
-
-const messageThreadForDisplay = computed(() => {
-    const list = messageThread.value || [];
-    if (!isVehicleOwnerMessages.value || !shipmentAccepted.value) {
-        return list;
-    }
-    const alreadyHasNotice = list.some(
-        (m) =>
-            m.type === 'system' &&
-            typeof m.text === 'string' &&
-            m.text.includes('Teklifiniz kabul edildi')
-    );
-    if (alreadyHasNotice) return list;
-    const t = conversationTeklif.value;
-    return [
-        ...list,
-        {
-            type: 'system',
-            id: 'local-offer-accepted-notice',
-            text: OFFER_ACCEPTED_SYSTEM_TEXT,
-            time: t?.status === 'accepted' && t?.time ? t.time : '—',
-            isMe: false,
-            created_at: t?.created_at || new Date().toISOString(),
-        },
-    ];
 });
 
 async function acceptTeklif(requestId) {
@@ -520,23 +443,9 @@ const openMessageDetail = (message) => {
     router.push(`${props.basePath}/${message.id}`);
 };
 
-const hasConversationSummary = computed(
-    () =>
-        !threadLoading.value &&
-        (conversationShipment.value != null || conversationTeklif.value != null)
-);
-
 const goBackToMessages = () => {
-    if (hasConversationSummary.value && !summaryPanelExpanded.value) {
-        summaryPanelExpanded.value = true;
-        return;
-    }
     router.push(props.basePath);
 };
-
-function toggleSummaryPanel() {
-    summaryPanelExpanded.value = !summaryPanelExpanded.value;
-}
 
 const goToShipment = (slug) => {
     if (slug) router.push({ path: `/posts/${slug}` });
@@ -558,7 +467,6 @@ function scrollMessagesToBottom() {
 }
 
 const loadMessageDetail = async (messageId) => {
-    summaryPanelExpanded.value = false;
     const list = props.messagesList ?? messages.value;
     const message = list.find(m => m.id === messageId || m.id === parseInt(messageId, 10));
     if (message) {

@@ -3,9 +3,9 @@ import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import api from '@/api';
-import heroWallBackground from '@/assets/images/wall.png';
 
 const router = useRouter();
+
 const authStore = useAuthStore();
 
 const fromQuery = ref('');
@@ -146,9 +146,8 @@ const handleSearch = () => {
 </script>
 
 <template>
-    <div class="w-full min-h-[500px] md:h-[700px] relative -mt-16 pt-16 px-4 lg:px-0 flex  justify-center items-center">
-    
-        <div class="w-full max-w-[900px] h-full min-h-[500px] md:min-h-0 flex flex-col justify-center items-center gap-8 md:gap-14 py-10 md:py-16 z-10 relative">
+    <div class="w-full min-h-[500px] md:h-[700px] relative -mt-16 pt-16 px-4 lg:px-0 flex justify-center items-center overflow-hidden">
+        <div class="relative z-10 flex h-full min-h-[500px] w-full max-w-[900px] flex-col items-center justify-center gap-8 py-10 md:min-h-0 md:gap-14 md:py-16">
             <div class="flex flex-col w-full max-w-[700px] text-center gap-4 mx-auto">
                 <h1 class="text-3xl md:text-5xl lg:text-6xl font-black leading-tight md:leading-normal">Yüklerinizi kolayca yönetin ve takip edin</h1>
                 <p class="text-sm md:text-lg">Yüklerinizi tek platform üzerinden oluşturun, taşıyıcılarla eşleşin ve sevkiyat sürecini kolayca yönetin.</p>

@@ -13,8 +13,6 @@ import AccountMessagesPage from "./pages/AccountMessagesPage.vue";
 import AccountVehiclesPage from "./pages/AccountVehiclesPage.vue";
 import AccountChangePasswordPage from "./pages/AccountChangePasswordPage.vue";
 import AccountVerifyPage from "./pages/AccountVerifyPage.vue";
-import AccountCardsPage from "./pages/AccountCardsPage.vue";
-import AccountAddressesPage from "./pages/AccountAddressesPage.vue";
 import CargoOwnerPage from "./pages/CargoOwnerPage.vue";
 import CargoOwnerReviewsPage from "./pages/CargoOwnerReviewsPage.vue";
 import CargoOwnerMessagesPage from "./pages/CargoOwnerMessagesPage.vue";
@@ -192,26 +190,6 @@ const routes = [
         meta: {
             layout: Layout,
             title: 'Hesap Doğrula | TaşıBul',
-            requiresAuth: true,
-            authorization: 'vehicle_owner'
-        }
-    },
-    {
-        path: '/vehicle-owner/cards',
-        component: AccountCardsPage,
-        meta: {
-            layout: Layout,
-            title: 'Kayıtlı Kartlarım | TaşıBul',
-            requiresAuth: true,
-            authorization: 'vehicle_owner'
-        }
-    },
-    {
-        path: '/vehicle-owner/addresses',
-        component: AccountAddressesPage,
-        meta: {
-            layout: Layout,
-            title: 'Adreslerim | TaşıBul',
             requiresAuth: true,
             authorization: 'vehicle_owner'
         }
