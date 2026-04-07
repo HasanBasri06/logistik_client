@@ -37,7 +37,10 @@
                     >
                         <router-link
                             to="/panel"
-                            class="inline-flex items-center gap-1.5 hover:text-primary transition-colors"
+                            :class="[
+                                'inline-flex items-center gap-1.5 transition-colors',
+                                route.path === '/panel' ? 'text-primary font-semibold' : 'hover:text-primary'
+                            ]"
                         >
                             <i class="pi pi-search text-sm opacity-90" aria-hidden="true"></i>
                             İlanlar
@@ -45,7 +48,10 @@
                         <router-link
                             v-if="user?.type === 'cargo_owner'"
                             to="/cargo-owner/posts/create"
-                            class="inline-flex items-center gap-1.5 hover:text-primary transition-colors"
+                            :class="[
+                                'inline-flex items-center gap-1.5 transition-colors',
+                                route.path === '/cargo-owner/posts/create' ? 'text-primary font-semibold' : 'hover:text-primary'
+                            ]"
                         >
                             <i class="pi pi-plus-circle text-sm opacity-90" aria-hidden="true"></i>
                             İlan Oluştur
@@ -208,7 +214,12 @@
                                 </li>
                                 <li>
                                     <RouterLink to="/panel"
-                                        class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors"
+                                        :class="[
+                                            'flex items-center gap-3 px-4 py-3 transition-colors',
+                                            route.path === '/panel'
+                                                ? 'text-primary bg-primary/10 font-semibold'
+                                                : 'text-gray-700 hover:bg-gray-50 hover:text-primary'
+                                        ]"
                                         @click="mobileMenuOpen = false"><i
                                         class="pi pi-search text-base"></i><span>İlanlar</span></RouterLink>
                                 </li>
@@ -231,7 +242,12 @@
                                     <li>
                                         <RouterLink
                                             to="/cargo-owner/posts/create"
-                                            class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors"
+                                            :class="[
+                                                'flex items-center gap-3 px-4 py-3 transition-colors',
+                                                route.path === '/cargo-owner/posts/create'
+                                                    ? 'text-primary bg-primary/10 font-semibold'
+                                                    : 'text-gray-700 hover:bg-gray-50 hover:text-primary'
+                                            ]"
                                             @click="mobileMenuOpen = false"
                                         >
                                             <i class="pi pi-plus-circle text-base"></i>
@@ -1109,6 +1125,20 @@ watch(requestShowLoginModal, (v) => {
         requestShowLoginModal.value = false;
     }
 });
+
+watch(
+    () => route.query?.via,
+    (via) => {
+        if (via !== 'whatsapp') return;
+        if (!authStore.isAuthenticated) {
+            openLogin();
+        }
+        const nextQuery = { ...route.query };
+        delete nextQuery.via;
+        router.replace({ path: route.path, query: nextQuery });
+    },
+    { immediate: true }
+);
 
 watch(showLogin, (isOpen) => {
     document.body.style.overflow = isOpen ? 'hidden' : 'auto';

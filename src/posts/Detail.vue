@@ -96,7 +96,7 @@
                     class="rounded-md border border-gray-200 shadow-sm p-4 sm:p-6 transition-colors duration-200"
                     :class="shipmentLoading ? 'bg-gray-200 animate-pulse' : 'bg-white'"
                 >
-                    <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-3">Yol Üzerindeki İlanlar</h3>
+                    <h3 class="text-base sm:text-lg font-semibold text-primary mb-3">Yol Üzerindeki İlanlar</h3>
                     <p v-if="routeCities.length" class="text-sm text-gray-500 mb-4">
                         <span class="font-medium text-gray-700">Yol üzerindeki şehirler:</span>
                         {{ routeCities.join(', ') }}
@@ -106,24 +106,41 @@
                             v-for="(listing, idx) in routeListings"
                             :key="listing.slug || idx"
                             :to="listing.slug ? { path: `/posts/${listing.slug}` } : {}"
-                            class="flex items-center gap-4 rounded-lg border border-gray-100 bg-gray-50/80 p-3 hover:border-primary/30 hover:bg-primary/5 transition-colors"
+                            class="group rounded-xl border border-gray-200 bg-white p-3.5 hover:border-primary/35 hover:bg-primary/[0.03] hover:shadow-sm transition-all"
                         >
-                            <div class="flex-1 min-w-0">
-                                <p class="text-sm font-semibold text-gray-900 truncate">
-                                    {{ listing.from }} → {{ listing.to }}
-                                </p>
-                                <div class="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-1 text-xs text-gray-600">
-                                    <span class="flex items-center gap-1">
-                                        <i class="pi pi-clock text-primary" style="font-size: 0.7rem"></i>
-                                        {{ listing.time }}
-                                    </span>
-                                    <span class="flex items-center gap-1">
-                                        <i class="pi pi-box text-primary" style="font-size: 0.7rem"></i>
-                                        {{ listing.loadAmount }}
-                                    </span>
+                            <div class="flex items-start gap-3">
+                                <div class="w-9 h-9 rounded-lg bg-primary/10 border border-primary/15 flex items-center justify-center shrink-0">
+                                    <i class="pi pi-map text-primary" style="font-size: 0.9rem"></i>
                                 </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-semibold text-gray-900 truncate">
+                                        {{ listing.from }} → {{ listing.to }}
+                                    </p>
+                                    <div class="mt-2 flex flex-wrap items-center gap-1.5">
+                                        <span class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-[11px] font-medium text-gray-700">
+                                            <i class="pi pi-clock text-primary" style="font-size: 0.65rem"></i>
+                                            {{ listing.time }}
+                                        </span>
+                                        <span class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-[11px] font-medium text-gray-700">
+                                            <i class="pi pi-box text-primary" style="font-size: 0.65rem"></i>
+                                            {{ listing.loadAmount }}
+                                        </span>
+                                        <span v-if="listing.postType" class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-[11px] font-medium text-gray-700">
+                                            <i class="pi pi-tag text-primary" style="font-size: 0.65rem"></i>
+                                            {{ listing.postType }}
+                                        </span>
+                                        <span v-if="listing.vehicle" class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-[11px] font-medium text-gray-700">
+                                            <i class="pi pi-car text-primary" style="font-size: 0.65rem"></i>
+                                            {{ listing.vehicle }}
+                                        </span>
+                                    </div>
+                                    <div class="mt-2 flex items-center justify-between gap-2">
+                                        <p class="text-sm font-semibold text-primary truncate">{{ listing.price || 'Fiyat belirtilmemiş' }}</p>
+                                        <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">#{{ (listing.slug || '').slice(0, 6) }}</span>
+                                    </div>
+                                </div>
+                                <span class="text-xs font-semibold text-primary shrink-0 self-center group-hover:translate-x-0.5 transition-transform">İlana git</span>
                             </div>
-                            <span class="text-xs font-medium text-primary shrink-0">İlana git</span>
                         </RouterLink>
                     </div>
                     <p v-if="routeListingsLoading" class="text-sm text-gray-500 py-2">
@@ -323,7 +340,7 @@
         <!-- Mobil: sabit alt bar (Teklif Ver / Mesaj ile Teklif / Ara) -->
         <div
             v-if="!shipmentLoading && !is_me"
-            class="fixed bottom-0 left-0 right-0 z-40 flex md:hidden bg-white border-t border-gray-200 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] pb-[env(safe-area-inset-bottom)]"
+            class="fixed bottom-0 left-0 right-0 z-40 flex md:hidden bg-white/95 backdrop-blur-md border-t border-gray-100 shadow-[0_-8px_28px_rgba(15,23,42,0.12)] pb-[env(safe-area-inset-bottom)]"
         >
             <button
                 v-if="isCargoOwnerViewer"
@@ -350,11 +367,15 @@
                 v-if="!isCargoOwnerViewer && shipment?.call_access == 1"
                 type="button"
                 @click="openCallModal"
-                class="flex-1 h-14 py-3 px-3 md:border-t md:border-l md:border-gray-200 md:text-primary md:font-semibold md:text-sm md:bg-white bg-primary text-white font-semibold text-md flex items-center justify-center gap-4"
+                class="group flex-1 h-16 py-3 px-4 rounded-2xl border border-primary/30 bg-gradient-to-r from-primary via-[#2f7f88] to-[#266a72] text-white font-semibold text-sm flex items-center justify-between gap-3 shadow-[0_10px_24px_rgba(57,131,140,0.28)] active:scale-[0.99] transition-all"
             >
-                <i class="pi pi-phone text-xl"></i>
-                <span v-text="shipment?.call_access == 1 ? formatPhoneTR(shipment?.creator?.phone) : ''"></span>
-                <span>Ara</span>
+                <span class="flex items-center gap-2.5 min-w-0">
+                    <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/20 ring-1 ring-white/30">
+                        <i class="pi pi-phone text-md"></i>
+                    </span>
+                    <span class="truncate text-md" v-text="shipment?.call_access == 1 ? shipment?.creator?.phoneFormatted : ''"></span>
+                </span>
+                <span class="inline-flex items-center justify-center rounded-full bg-white px-5 py-1 text-md font-bold tracking-wide text-primary shadow-sm">Ara</span>
             </button>
         </div>
         <div
@@ -552,17 +573,17 @@
                             <p class="text-sm text-gray-600">{{ ilanAracTipi }} · {{ ilanKapasite }}</p>
                             <p class="text-sm font-semibold text-primary mt-2">{{ displayPrice }}</p>
                         </div>
-                        <div class="flex gap-3 justify-end">
+                        <div class="flex gap-3">
                             <button
                                 type="button"
-                                class="px-4 py-2.5 rounded-lg border border-gray-200 text-gray-700 font-medium text-sm hover:bg-gray-50 transition-colors"
+                                class="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 font-medium text-sm hover:bg-gray-50 transition-colors"
                                 @click="showCallModal = false"
                             >
                                 Vazgeç
                             </button>
                             <button
                                 type="button"
-                                class="px-4 py-2.5 rounded-lg bg-primary text-white font-semibold text-sm hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                                class="flex-1 px-4 py-2.5 bg-gradient-to-r from-primary to-[#2f7f88] text-white font-semibold text-sm hover:opacity-95 transition-opacity disabled:opacity-60 disabled:cursor-not-allowed"
                                 :disabled="!creatorPhone"
                                 @click="confirmCall"
                             >
@@ -671,12 +692,20 @@ const displayPrice = computed(() => {
 
 // Paylaşım linkleri (Bu ilanı paylaş)
 const shareUrls = computed(() => {
-    const url = typeof window !== 'undefined' ? encodeURIComponent(window.location.href) : '';
+    let whatsappTarget = '';
+    let genericUrl = '';
+    if (typeof window !== 'undefined') {
+        const current = new URL(window.location.href);
+        genericUrl = current.toString();
+        current.searchParams.set('via', 'whatsapp');
+        whatsappTarget = current.toString();
+    }
+    const url = encodeURIComponent(genericUrl);
     const text = encodeURIComponent('TaşıBul üzerinden bu ilanı buldum:');
 
     return {
         facebook: `https://www.facebook.com/sharer/sharer.php?u=${url}&quote=${text}`,
-        whatsapp: `https://wa.me/?text=${text}%20${url}`
+        whatsapp: `https://wa.me/?text=${text}%20${encodeURIComponent(whatsappTarget)}`
     };
 });
 

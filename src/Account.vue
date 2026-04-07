@@ -122,15 +122,15 @@
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <router-link
-                            to="/vehicle-owner/cards"
+                            to="/vehicle-owner/verify"
                             class="bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4 hover:border-primary/50 hover:bg-primary/5 transition-all"
                         >
-                            <div class="w-10 h-10 rounded-lg bg-rose-50 flex items-center justify-center shrink-0">
-                                <i class="pi pi-credit-card text-rose-600" style="font-size: 18px;"></i>
+                            <div class="w-10 h-10 rounded-lg bg-sky-50 flex items-center justify-center shrink-0">
+                                <i class="pi pi-user text-sky-600" style="font-size: 18px;"></i>
                             </div>
                             <div>
-                                <h3 class="text-sm font-semibold text-gray-900">Kayıtlı Kartlarım</h3>
-                                <p class="text-xs text-gray-500 mt-0.5">Ödeme yöntemlerini düzenle</p>
+                                <h3 class="text-sm font-semibold text-gray-900">Hesap Doğrula</h3>
+                                <p class="text-xs text-gray-500 mt-0.5">Hesap doğrulama adımlarını tamamla</p>
                             </div>
                         </router-link>
 

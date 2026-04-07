@@ -55,7 +55,11 @@
                                 </p>
                             </div>
                         </div>
-                        <div v-if="!verificationStatus.email" class="flex flex-col gap-3">
+                        <form
+                            v-if="!verificationStatus.email"
+                            class="flex flex-col gap-3"
+                            @submit.prevent="verifyEmailCode"
+                        >
                             <label class="text-sm font-medium text-gray-700">Doğrulama Kodu</label>
                             <div class="flex gap-2 flex-wrap">
                                 <InputOtp
@@ -69,9 +73,8 @@
                                     }"
                                 />
                                 <button
-                                    type="button"
+                                    type="submit"
                                     :disabled="verifyEmailLoading || !emailVerificationCode || emailVerificationCode.length !== 6"
-                                    @click="verifyEmailCode"
                                     class="px-4 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shrink-0"
                                 >
                                     <span v-if="verifyEmailLoading">Kontrol ediliyor...</span>
@@ -84,12 +87,12 @@
                                     type="button"
                                     :disabled="sendCodeLoading"
                                     @click="sendEmailVerificationCode"
-                                    class="text-primary font-medium hover:underline disabled:opacity-50"
+                                    class="text-primary font-medium text-md hover:underline disabled:opacity-50"
                                 >
-                                    {{ sendCodeLoading ? 'Gönderiliyor...' : 'Tekrar kod gönder' }}
+                                    {{ sendCodeLoading ? 'Gönderiliyor...' : 'Doğrulama kodu gönder' }}
                                 </button>
                             </p>
-                        </div>
+                        </form>
                     </div>
                     
                     <!-- Profil Fotoğrafı -->

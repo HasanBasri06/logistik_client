@@ -114,7 +114,7 @@
                     >
                         <div class="grid grid-cols-3 w-full h-full divide-x divide-gray-200">
                             <div class="flex flex-col overflow-hidden">
-                                <h3 class="px-3 py-2 text-xs font-semibold text-gray-500 border-b border-gray-100">Şehirler</h3>
+                                <h3 class="px-3 py-2.5 text-sm font-semibold text-gray-800 border-b border-gray-200 bg-gray-50/70">Şehirler</h3>
                                 <div class="p-2 border-b border-gray-100 shrink-0">
                                     <input
                                         v-model="fromCitySearch"
@@ -131,14 +131,14 @@
                                         :key="c.id"
                                         type="button"
                                         @click="selectFromCityTemp(c)"
-                                        :class="['w-full text-left px-2 py-1.5 rounded text-sm', fromTempCity?.id === c.id ? 'bg-primary/10 text-primary font-medium' : 'text-gray-700 hover:bg-gray-100']"
+                                        :class="['w-full text-left px-2 py-1.5 rounded text-sm font-semibold', fromTempCity?.id === c.id ? 'bg-primary/10 text-primary' : 'text-gray-700 hover:bg-gray-100']"
                                     >
                                         {{ c.name }}
                                     </button>
                                 </div>
                             </div>
                             <div class="flex flex-col overflow-hidden">
-                                <h3 class="px-3 py-2 text-xs font-semibold text-gray-500 border-b border-gray-100">İlçeler</h3>
+                                <h3 class="px-3 py-2.5 text-sm font-semibold text-gray-800 border-b border-gray-200 bg-gray-50/70">İlçeler</h3>
                                 <div class="p-2 border-b border-gray-100 shrink-0">
                                     <input
                                         v-model="fromDistrictSearch"
@@ -157,7 +157,7 @@
                                         :key="d.id == null ? 'her-yer' : d.id"
                                         type="button"
                                         @click="applyFromLocation(d)"
-                                        :class="['w-full text-left px-2 py-1.5 rounded text-sm', isFromDistrictSelected(d) ? 'bg-primary/10 text-primary font-medium' : 'text-gray-700 hover:bg-gray-100']"
+                                        :class="['w-full text-left px-2 py-1.5 rounded text-sm font-semibold', isFromDistrictSelected(d) ? 'bg-primary/10 text-primary' : 'text-gray-700 hover:bg-gray-100']"
                                     >
                                         {{ d.name }}
                                     </button>
@@ -201,7 +201,7 @@
                     >
                         <div class="grid grid-cols-3 w-full h-full divide-x divide-gray-200">
                             <div class="flex flex-col overflow-hidden">
-                                <h3 class="px-3 py-2 text-xs font-semibold text-gray-500 border-b border-gray-100">Şehirler</h3>
+                                <h3 class="px-3 py-2.5 text-sm font-semibold text-gray-800 border-b border-gray-200 bg-gray-50/70">Şehirler</h3>
                                 <div class="p-2 border-b border-gray-100 shrink-0">
                                     <input
                                         v-model="toCitySearch"
@@ -218,14 +218,14 @@
                                         :key="c.id"
                                         type="button"
                                         @click="selectToCityTemp(c)"
-                                        :class="['w-full text-left px-2 py-1.5 rounded text-sm', toTempCity?.id === c.id ? 'bg-primary/10 text-primary font-medium' : 'text-gray-700 hover:bg-gray-100']"
+                                        :class="['w-full text-left px-2 py-1.5 rounded text-sm font-semibold', toTempCity?.id === c.id ? 'bg-primary/10 text-primary' : 'text-gray-700 hover:bg-gray-100']"
                                     >
                                         {{ c.name }}
                                     </button>
                                 </div>
                             </div>
                             <div class="flex flex-col overflow-hidden">
-                                <h3 class="px-3 py-2 text-xs font-semibold text-gray-500 border-b border-gray-100">İlçeler</h3>
+                                <h3 class="px-3 py-2.5 text-sm font-semibold text-gray-800 border-b border-gray-200 bg-gray-50/70">İlçeler</h3>
                                 <div class="p-2 border-b border-gray-100 shrink-0">
                                     <input
                                         v-model="toDistrictSearch"
@@ -244,7 +244,7 @@
                                         :key="d.id == null ? 'her-yer' : d.id"
                                         type="button"
                                         @click="applyToLocation(d)"
-                                        :class="['w-full text-left px-2 py-1.5 rounded text-sm', isToDistrictSelected(d) ? 'bg-primary/10 text-primary font-medium' : 'text-gray-700 hover:bg-gray-100']"
+                                        :class="['w-full text-left px-2 py-1.5 rounded text-sm font-semibold', isToDistrictSelected(d) ? 'bg-primary/10 text-primary' : 'text-gray-700 hover:bg-gray-100']"
                                     >
                                         {{ d.name }}
                                     </button>
@@ -515,7 +515,7 @@
                                             :key="c.id"
                                             type="button"
                                             @click="selectFromCityTemp(c)"
-                                            :class="['w-full text-left px-2 py-2.5 rounded text-sm', fromTempCity?.id === c.id ? 'bg-primary/10 text-primary font-medium' : 'text-gray-700 hover:bg-gray-100']"
+                                            :class="['w-full text-left px-2 py-2.5 rounded text-sm font-semibold', fromTempCity?.id === c.id ? 'bg-primary/10 text-primary' : 'text-gray-700 hover:bg-gray-100']"
                                         >
                                             {{ c.name }}
                                         </button>
@@ -526,7 +526,7 @@
                                             :key="c.id"
                                             type="button"
                                             @click="selectToCityTemp(c)"
-                                            :class="['w-full text-left px-2 py-2.5 rounded text-sm', toTempCity?.id === c.id ? 'bg-primary/10 text-primary font-medium' : 'text-gray-700 hover:bg-gray-100']"
+                                            :class="['w-full text-left px-2 py-2.5 rounded text-sm font-semibold', toTempCity?.id === c.id ? 'bg-primary/10 text-primary' : 'text-gray-700 hover:bg-gray-100']"
                                         >
                                             {{ c.name }}
                                         </button>
@@ -565,7 +565,7 @@
                                             :key="d.id == null ? 'her-yer' : d.id"
                                             type="button"
                                             @click="applyFromLocationAndCloseMobilePicker(d)"
-                                            :class="['w-full text-left px-2 py-2.5 rounded text-sm', isFromDistrictSelected(d) ? 'bg-primary/10 text-primary font-medium' : 'text-gray-700 hover:bg-gray-100']"
+                                            :class="['w-full text-left px-2 py-2.5 rounded text-sm font-semibold', isFromDistrictSelected(d) ? 'bg-primary/10 text-primary' : 'text-gray-700 hover:bg-gray-100']"
                                         >
                                             {{ d.name }}
                                         </button>
@@ -576,7 +576,7 @@
                                             :key="d.id == null ? 'her-yer' : d.id"
                                             type="button"
                                             @click="applyToLocationAndCloseMobilePicker(d)"
-                                            :class="['w-full text-left px-2 py-2.5 rounded text-sm', isToDistrictSelected(d) ? 'bg-primary/10 text-primary font-medium' : 'text-gray-700 hover:bg-gray-100']"
+                                            :class="['w-full text-left px-2 py-2.5 rounded text-sm font-semibold', isToDistrictSelected(d) ? 'bg-primary/10 text-primary' : 'text-gray-700 hover:bg-gray-100']"
                                         >
                                             {{ d.name }}
                                         </button>
@@ -895,6 +895,7 @@ const toDistrictsLoading = ref(false);
 
 // İlçe kısmında "Her yer" seçeneği (tüm ilçeler = arama kriteri yok)
 const herYerOption = { id: null, name: 'Her yer' };
+const herYerCityOption = { id: null, name: 'Her yer' };
 
 // Arama çubukları (Nereden/Nereye dropdown)
 const fromCitySearch = ref('');
@@ -904,6 +905,8 @@ const toDistrictSearch = ref('');
 
 const isFromHerYer = computed(() => fromDistrict.value?.name === 'Her yer' && fromDistrict.value?.id == null);
 const isToHerYer = computed(() => toDistrict.value?.name === 'Her yer' && toDistrict.value?.id == null);
+const isFromCityHerYer = computed(() => fromCity.value?.name === 'Her yer' && fromCity.value?.id == null);
+const isToCityHerYer = computed(() => toCity.value?.name === 'Her yer' && toCity.value?.id == null);
 
 // İlk üç: İstanbul, Ankara, İzmir (bu sıra); geri kalanı alfabetik
 const cityPriorityLower = ['istanbul', 'ankara', 'izmir'];
@@ -923,9 +926,17 @@ function sortCitiesWithPriority(list) {
 const fromCitiesForList = computed(() => {
     let list = apiCities.value;
     const q = (fromCitySearch.value || '').trim().toLowerCase();
-    if (q) list = list.filter(c => (c.name || '').toLowerCase().includes(q));
+    if (q) {
+        list = list.filter(c => (c.name || '').toLowerCase().includes(q));
+        if ('her yer'.includes(q)) {
+            return [herYerCityOption, ...sortCitiesWithPriority([...list])];
+        }
+    }
     list = sortCitiesWithPriority([...list]);
     const sel = fromTempCity.value;
+    if (sel?.id == null && sel?.name === 'Her yer') {
+        return [herYerCityOption, ...list];
+    }
     if (sel?.id) {
         const i = list.findIndex(c => c.id === sel.id);
         if (i > 0) {
@@ -934,14 +945,22 @@ const fromCitiesForList = computed(() => {
             list.unshift(sel);
         }
     }
-    return list;
+    return [herYerCityOption, ...list];
 });
 const toCitiesForList = computed(() => {
     let list = apiCities.value;
     const q = (toCitySearch.value || '').trim().toLowerCase();
-    if (q) list = list.filter(c => (c.name || '').toLowerCase().includes(q));
+    if (q) {
+        list = list.filter(c => (c.name || '').toLowerCase().includes(q));
+        if ('her yer'.includes(q)) {
+            return [herYerCityOption, ...sortCitiesWithPriority([...list])];
+        }
+    }
     list = sortCitiesWithPriority([...list]);
     const sel = toTempCity.value;
+    if (sel?.id == null && sel?.name === 'Her yer') {
+        return [herYerCityOption, ...list];
+    }
     if (sel?.id) {
         const i = list.findIndex(c => c.id === sel.id);
         if (i > 0) {
@@ -950,7 +969,7 @@ const toCitiesForList = computed(() => {
             list.unshift(sel);
         }
     }
-    return list;
+    return [herYerCityOption, ...list];
 });
 
 // İlçeler: arama + Her yer ve seçili en üstte
@@ -1136,6 +1155,17 @@ const openFromDropdown = async () => {
 
 const selectFromCityTemp = async (city) => {
     fromTempCity.value = city;
+    if (city?.id == null && city?.name === 'Her yer') {
+        fromDistricts.value = [];
+        fromCity.value = herYerCityOption;
+        fromDistrict.value = null;
+        fromLocationDisplayName.value = null;
+        fromDropdownOpen.value = false;
+        if (mobileLocationPickerOpen.value && mobileLocationPickerFor.value === 'from') {
+            mobileLocationPickerOpen.value = false;
+        }
+        return;
+    }
     try {
         fromDistrictsLoading.value = true;
         const res = await api.get(`/locations/cities/${city.id}/districts`);
@@ -1347,6 +1377,17 @@ const openToDropdown = async () => {
 
 const selectToCityTemp = async (city) => {
     toTempCity.value = city;
+    if (city?.id == null && city?.name === 'Her yer') {
+        toDistricts.value = [];
+        toCity.value = herYerCityOption;
+        toDistrict.value = null;
+        toLocationDisplayName.value = null;
+        toDropdownOpen.value = false;
+        if (mobileLocationPickerOpen.value && mobileLocationPickerFor.value === 'to') {
+            mobileLocationPickerOpen.value = false;
+        }
+        return;
+    }
     try {
         toDistrictsLoading.value = true;
         const res = await api.get(`/locations/cities/${city.id}/districts`);
@@ -1626,6 +1667,10 @@ onBeforeUnmount(() => {
 });
 
 function getSearchFormData() {
+    const normalizedFromCity = isFromCityHerYer.value ? null : (fromCity.value?.name ?? null);
+    const normalizedFromDistrict = (isFromCityHerYer.value || isFromHerYer.value) ? null : (fromDistrict.value?.name ?? null);
+    const normalizedToCity = isToCityHerYer.value ? null : (toCity.value?.name ?? null);
+    const normalizedToDistrict = (isToCityHerYer.value || isToHerYer.value) ? null : (toDistrict.value?.name ?? null);
     const f_where = fromCity.value && fromDistrict.value
         ? `${fromCity.value.name} / ${fromDistrict.value.name}`
         : fromCity.value?.name ?? null;
@@ -1635,10 +1680,10 @@ function getSearchFormData() {
     return {
         f_where,
         t_where,
-        f_where_city: fromCity.value?.name ?? null,
-        f_where_district: fromDistrict.value?.name ?? null,
-        t_where_city: toCity.value?.name ?? null,
-        t_where_district: toDistrict.value?.name ?? null,
+        f_where_city: normalizedFromCity,
+        f_where_district: normalizedFromDistrict,
+        t_where_city: normalizedToCity,
+        t_where_district: normalizedToDistrict,
         departureTime: departureTime.value,
         returnTime: returnTime.value,
         filters: { ...filters },

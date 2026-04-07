@@ -374,7 +374,13 @@ router.beforeEach(async (to, from, next) => {
     if (to.path !== '/' && to.meta.requiresAuth !== false) {
         // Token yoksa anasayfaya yönlendir
         if (!token) {
-            next('/')
+            next({
+                path: '/',
+                query: {
+                    ...to.query,
+                    ...(to.query?.via === 'whatsapp' ? { via: 'whatsapp' } : {}),
+                },
+            })
             return
         }
 
