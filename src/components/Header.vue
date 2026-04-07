@@ -525,7 +525,7 @@
                                                 <i class="pi pi-pencil" style="font-size: 14px;"></i>
                                             </button>
                                         </span>
-                                        <span class="mt-1 block">numarasına gönderilen 6 haneli kodu girin.</span>
+                                        <span class="mt-1 block">numarasına kod önce <strong class="font-semibold text-gray-800">SMS</strong> ile gönderilir; hesabınızda e-posta kayıtlıysa aynı kod ardından <strong class="font-semibold text-gray-800">e-posta</strong> ile de iletilir.</span>
                                     </p>
                                     <div class="flex flex-col gap-1">
                                         <label class="text-sm font-medium text-gray-700">Doğrulama Kodu</label>
@@ -555,10 +555,15 @@
                                         </span>
                                         <span v-else>Doğrula</span>
                                     </button>
-                                    <button type="button" @click="handleResendOtp" :disabled="resendOtpLoading"
-                                        class="text-sm text-primary font-medium hover:underline disabled:opacity-50">
-                                        <span v-if="resendOtpLoading" class="inline-flex items-center gap-1"><i
-                                                class="pi pi-spin pi-spinner text-xs"></i> Gönderiliyor...</span>
+                                    <button
+                                        type="button"
+                                        @click="handleResendOtp"
+                                        :disabled="resendOtpLoading"
+                                        class="text-sm text-primary font-medium hover:underline disabled:opacity-50 text-left"
+                                    >
+                                        <span v-if="resendOtpLoading" class="inline-flex items-center gap-1">
+                                            <i class="pi pi-spin pi-spinner text-xs"></i> Gönderiliyor...
+                                        </span>
                                         <span v-else>Kodu tekrar gönder</span>
                                     </button>
                                     <button type="button" @click="handleOtpBack"
@@ -1030,7 +1035,7 @@ async function submitLoginOtpChangePhone() {
             registerForm.value.phone = masked;
         }
         toast.success('Telefon güncellendi', {
-            description: 'Yeni doğrulama kodu SMS ile gönderildi.',
+            description: 'Yeni kod önce SMS, ardından e-posta ile gönderildi.',
             duration: 5000,
         });
     } else {
@@ -1233,7 +1238,7 @@ const handleLoginSubmit = async () => {
             pendingRegisterEmail.value = result.email;
             otpCode.value = "";
             otpError.value = "";
-            toast.info('Telefon doğrulaması gerekli. Lütfen telefonunuza gelen kodu girin.', {
+            toast.info(result.error || 'Telefon doğrulaması gerekli.', {
                 description: 'Doğrulama kodu',
                 duration: 5000
             });
@@ -1351,7 +1356,7 @@ const handleRegisterSubmit = async () => {
             pendingRegisterEmail.value = result.email ?? registerForm.value.email;
             otpCode.value = "";
             otpError.value = "";
-            toast.success('Doğrulama kodu telefonunuza gönderildi.', {
+            toast.success('Doğrulama kodu önce SMS ile, ardından e-posta adresinize gönderildi.', {
                 description: 'Kodu girin',
                 duration: 5000
             });
@@ -1509,7 +1514,10 @@ const handleResendOtp = async () => {
     const result = await authStore.resendOtp(pendingRegisterEmail.value);
     resendOtpLoading.value = false;
     if (result.success) {
-        toast.success('Yeni doğrulama kodu telefon numaranıza gönderildi.', { duration: 5000 });
+        toast.success(result.message || 'Kod gönderildi.', {
+            description: 'SMS ve e-postanızı kontrol edin.',
+            duration: 5000,
+        });
         otpCode.value = '';
     } else {
         toast.error(result.error || 'Kod gönderilemedi.', { duration: 5000 });

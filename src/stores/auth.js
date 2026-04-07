@@ -72,7 +72,12 @@ export const useAuthStore = defineStore('auth', () => {
             const response = await api.post('/auth/register', userData)
             const content = response.data?.content ?? response.data
             if (content?.need_otp && content?.email) {
-                return { success: true, needOtp: true, email: content.email, data: response.data }
+                return {
+                    success: true,
+                    needOtp: true,
+                    email: content.email,
+                    data: response.data
+                }
             }
             if (content?.token) {
                 const authToken = content.token
@@ -119,7 +124,11 @@ export const useAuthStore = defineStore('auth', () => {
     const resendOtp = async (email) => {
         try {
             const response = await api.post('/auth/resend-otp', { email })
-            return { success: true, message: response.data?.message || 'Kod gönderildi.' }
+            const content = response.data?.content ?? {}
+            return {
+                success: true,
+                message: content.message || response.data?.message || 'Kod gönderildi.'
+            }
         } catch (error) {
             const errorMessage = error.response?.data?.message || error.message
             return { success: false, error: errorMessage }
