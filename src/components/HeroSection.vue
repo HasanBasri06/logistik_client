@@ -40,8 +40,10 @@ const onEscape = (e) => {
 onMounted(() => {
     document.addEventListener('click', closeAllDropdowns);
     document.addEventListener('keydown', onEscape);
+    startHeroStatsAnimation();
 });
 onUnmounted(() => {
+    stopHeroStatsAnimation();
     document.removeEventListener('click', closeAllDropdowns);
     document.removeEventListener('keydown', onEscape);
 });
@@ -143,13 +145,56 @@ const handleSearch = () => {
 
     router.push({ path: '/panel', query });
 };
+
+/** Hero istatistikleri: sayfa açılışında 0'dan hedefe */
+const statPercent = ref(0);
+const statMultiplier = ref(0);
+const statReviews = ref(0);
+
+let statsAnimActive = false;
+let statsRafId = 0;
+
+function easeOutCubic(t) {
+    return 1 - (1 - t) ** 3;
+}
+
+function startHeroStatsAnimation() {
+    statsAnimActive = true;
+    const durationMs = 2200;
+    const targets = { percent: 30, multiplier: 2.5, reviews: 99 };
+    const start = performance.now();
+
+    function frame(now) {
+        if (!statsAnimActive) return;
+        const t = Math.min(1, (now - start) / durationMs);
+        const e = easeOutCubic(t);
+        statPercent.value = Math.round(targets.percent * e);
+        statMultiplier.value = Math.round(targets.multiplier * e * 10) / 10;
+        statReviews.value = Math.round(targets.reviews * e);
+        if (t < 1) {
+            statsRafId = requestAnimationFrame(frame);
+        } else {
+            statPercent.value = targets.percent;
+            statMultiplier.value = targets.multiplier;
+            statReviews.value = targets.reviews;
+            statsAnimActive = false;
+        }
+    }
+    statsRafId = requestAnimationFrame(frame);
+}
+
+function stopHeroStatsAnimation() {
+    statsAnimActive = false;
+    if (statsRafId) cancelAnimationFrame(statsRafId);
+    statsRafId = 0;
+}
 </script>
 
 <template>
-    <div class="w-full min-h-[500px] md:h-[700px] relative -mt-16 pt-16 px-4 lg:px-0 flex justify-center items-center overflow-hidden">
+    <div class="w-full min-h-[500px] md:h-auto relative -mt-16 pt-16 px-4 lg:px-0 flex justify-center items-center overflow-hidden">
         <div class="relative z-10 flex h-full min-h-[500px] w-full max-w-[900px] flex-col items-center justify-center gap-8 py-10 md:min-h-0 md:gap-14 md:py-16">
             <div class="flex flex-col w-full max-w-[700px] text-center gap-4 mx-auto">
-                <h1 class="text-3xl md:text-5xl lg:text-6xl font-black leading-tight md:leading-normal">Yüklerinizi kolayca yönetin ve takip edin</h1>
+                <h1 class="text-3xl md:text-5xl lg:text-6xl font-black leading-tight md:leading-normal">Yüklerinizi <span class="text-primary">kolayca yönetin ve takip edin</span></h1>
                 <p class="text-sm md:text-lg">Yüklerinizi tek platform üzerinden oluşturun, taşıyıcılarla eşleşin ve sevkiyat sürecini kolayca yönetin.</p>
             </div>
 
@@ -274,15 +319,15 @@ const handleSearch = () => {
 
             <div class="flex flex-wrap justify-center gap-6 md:gap-10">
                 <div class="flex flex-col gap-2 text-center">
-                    <h3 class="text-2xl md:text-4xl font-bold">30%</h3>
+                    <h3 class="text-2xl md:text-4xl font-bold tabular-nums">{{ statPercent }}%</h3>
                     <p class="text-xs md:text-sm text-gray-600">Daha ucuz</p>
                 </div>
                 <div class="flex flex-col gap-2 text-center">
-                    <h3 class="text-2xl md:text-4xl font-bold">2.5X</h3>
+                    <h3 class="text-2xl md:text-4xl font-bold tabular-nums">{{ statMultiplier.toFixed(1) }}X</h3>
                     <p class="text-xs md:text-sm text-gray-600">Fazla sonuç alma</p>
                 </div>
                 <div class="flex flex-col gap-2 text-center">
-                    <h3 class="text-2xl md:text-4xl font-bold">99+</h3>
+                    <h3 class="text-2xl md:text-4xl font-bold tabular-nums">{{ statReviews }}+</h3>
                     <p class="text-xs md:text-sm text-gray-600">Pozitif yorum</p>
                 </div>
             </div>
