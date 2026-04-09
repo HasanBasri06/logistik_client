@@ -753,7 +753,7 @@
                                 v-if="hasMore"
                                 @click="loadMore"
                                 :disabled="loadingMore"
-                                class="flex items-center justify-center gap-2 w-full px-4 py-3.5 mt-2 rounded-lg border border-gray-200 bg-white text-gray-700 text-sm font-semibold cursor-pointer transition-all duration-200 hover:border-primary hover:bg-primary/5 hover:text-primary active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                                class="flex items-center justify-center gap-2 w-full px-4 py-3.5 mt-2 rounded-lg border border-primary bg-primary text-white text-sm font-semibold cursor-pointer transition-all duration-200 hover:bg-primary/90 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 <i v-if="loadingMore" class="pi pi-spin pi-spinner text-sm"></i>
                                 <ChevronDown v-else size="20" />

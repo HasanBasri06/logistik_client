@@ -13,7 +13,7 @@
                         ]"
                     >
                         <i class="pi pi-shopping-bag mr-2 text-primary" style="font-size: 14px;"></i>
-                        <span>Tüm Siparişlerim</span>
+                        <span>Tüm İşlerim</span>
                     </router-link>
                 </li>
                 <li>

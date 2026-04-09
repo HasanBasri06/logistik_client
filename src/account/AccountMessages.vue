@@ -17,6 +17,23 @@
 
             <h2 class="hidden md:block text-xl sm:text-2xl font-semibold text-gray-900 mb-4 sm:mb-6">Yük Sahibi Mesajları</h2>
 
+            <div
+                v-if="isVehicleOwnerMessages && !hasVehicle"
+                class="mb-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3"
+            >
+                <p class="text-sm text-amber-900">
+                    Mesaj göndermek için önce bir araç eklemelisiniz.
+                </p>
+                <button
+                    type="button"
+                    class="mt-2 inline-flex items-center gap-2 rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm font-semibold text-amber-800 hover:bg-amber-100 transition-colors"
+                    @click="router.push('/vehicle-owner/vehicles')"
+                >
+                    <i class="pi pi-car" aria-hidden="true"></i>
+                    Araç Ekle
+                </button>
+            </div>
+
             <div class="flex flex-col gap-2 sm:gap-3 pt-2 md:pt-0">
                 <div
                     v-for="message in displayMessages"
@@ -206,7 +223,7 @@
                         to="/vehicle-owner/orders"
                         class="font-semibold text-primary underline decoration-primary/40 underline-offset-2 hover:text-primary/90"
                     >
-                        Tüm Siparişlerim
+                        Tüm İşlerim
                     </RouterLink>
                     kısmından görüntüleyebilirsiniz.
                 </p>
@@ -219,7 +236,8 @@
             >
                 <button
                     type="button"
-                    class="w-full min-h-[44px] py-2.5 sm:py-2.5 px-3 rounded-lg border-2 border-primary text-primary font-semibold text-sm hover:bg-primary/5 active:bg-primary/10 transition-colors touch-manipulation"
+                    class="w-full min-h-[44px] py-2.5 sm:py-2.5 px-3 rounded-lg border-2 border-primary text-primary font-semibold text-sm hover:bg-primary/5 active:bg-primary/10 transition-colors touch-manipulation disabled:opacity-50 disabled:cursor-not-allowed"
+                    :disabled="!canSendMessage"
                     @click="showTeklifModal = true"
                 >
                     Özel teklif gönder
@@ -239,17 +257,17 @@
                         enterkeyhint="send"
                         autocomplete="off"
                         class="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-[16px] leading-snug text-gray-700 outline-none sm:rounded-lg sm:py-3 sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400"
-                        :disabled="isVehicleOwnerMessages && shipmentAccepted"
+                        :disabled="!canSendMessage"
                         :placeholder="
-                            isVehicleOwnerMessages && shipmentAccepted
-                                ? 'Bu görüşme teklif kabul edildiği için kapatıldı.'
+                            !canSendMessage
+                                ? 'Mesaj göndermek için önce araç ekleyin.'
                                 : 'Mesajınızı yazın...'
                         "
                     />
                     <button
                         type="submit"
                         class="shrink-0 rounded-xl bg-primary px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary/90 active:bg-primary/80 disabled:cursor-not-allowed disabled:opacity-50 sm:rounded-lg sm:px-5 sm:py-3 sm:text-base touch-manipulation"
-                        :disabled="isVehicleOwnerMessages && shipmentAccepted"
+                        :disabled="!canSendMessage"
                     >
                         Gönder
                     </button>
@@ -337,6 +355,22 @@ const conversationShipmentId = ref(null);
 const conversationShipment = ref(null);
 const teklifAcceptLoading = ref(null);
 const showTeklifModal = ref(false);
+const hasVehicle = ref(true);
+
+const canSendMessage = computed(() => {
+    if (!isVehicleOwnerMessages.value) return true;
+    return hasVehicle.value;
+});
+
+function pickSystemMessageText(payload, userId) {
+    const isSender = Number(payload?.sender_id) === Number(userId);
+    if (payload?.type === 'system') {
+        return isSender
+            ? (payload?.sender_message ?? payload?.message ?? '')
+            : (payload?.receiver_message ?? payload?.message ?? '');
+    }
+    return payload?.message ?? '';
+}
 
 async function onTeklifModalSuccess() {
     showTeklifModal.value = false;
@@ -381,7 +415,7 @@ const conversationTeklif = computed(() => {
     return teklifs[teklifs.length - 1];
 });
 
-/** İlan anlaşmaya döndüyse (mesajlar pasif); araç sahibi için şerit + input kapatma */
+/** İlan anlaşmaya döndüyse (bilgilendirme amaçlı) */
 const shipmentAccepted = computed(() => {
     const s = conversationShipment.value?.status ?? conversationShipment.value?.shipment?.status;
     if (s === 'accepted') return true;
@@ -509,7 +543,7 @@ const loadMessageDetail = async (messageId) => {
 const sendMessage = async () => {
     const text = newMessageText.value?.trim();
     if (!text) return;
-    if (isVehicleOwnerMessages.value && shipmentAccepted.value) return;
+    if (!canSendMessage.value) return;
 
     if (props.messagesList) {
         const otherUserId = route.params.id ? parseInt(route.params.id, 10) : null;
@@ -553,6 +587,20 @@ const sendMessage = async () => {
         scrollMessagesToBottom();
     }
 };
+
+async function checkVehicleOwnerCars() {
+    if (!isVehicleOwnerMessages.value) {
+        hasVehicle.value = true;
+        return;
+    }
+    try {
+        const res = await api.get('/cars/my');
+        const cars = res.data?.content?.cars;
+        hasVehicle.value = Array.isArray(cars) && cars.length > 0;
+    } catch {
+        hasVehicle.value = false;
+    }
+}
 
 watch(
     () => [route.params.id, route.path],
@@ -629,7 +677,7 @@ const { connect: connectPusher } = usePusherMessages(userIdRef, {
             ...messageThread.value,
             {
                 id: e.id,
-                text: e.message,
+                text: pickSystemMessageText(e, userId),
                 time,
                 isMe,
                 type: isSystem ? 'system' : 'message',
@@ -652,6 +700,7 @@ onMounted(() => {
     if (route.path.includes('/messages') && route.params.id) {
         loadMessageDetail(parseInt(route.params.id));
     }
+    void checkVehicleOwnerCars();
     connectPusher();
     document.body.style.overflow = 'hidden';
 });

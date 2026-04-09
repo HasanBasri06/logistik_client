@@ -9,7 +9,10 @@
                 aria-labelledby="premium-modal-title"
                 @click.self="close"
             >
-                <div class="relative bg-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden">
+                <form
+                    class="relative bg-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden"
+                    @submit.prevent="handleSubmit"
+                >
                     <div class="p-6 pb-4">
                         <div class="flex items-start justify-between gap-4 mb-4">
                             <div>
@@ -204,24 +207,22 @@
 
                         <button
                             v-if="step === 1"
-                            type="button"
+                            type="submit"
                             class="px-4 py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                             :disabled="!selectedPlan"
-                            @click="goToPayment"
                         >
                             Premium'a geç
                         </button>
                         <button
                             v-else
-                            type="button"
+                            type="submit"
                             class="px-4 py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                             :disabled="paymentSubmitting"
-                            @click="submitPayment"
                         >
                             {{ paymentSubmitting ? 'İşleniyor...' : 'Ödemeyi tamamla' }}
                         </button>
                     </div>
-                </div>
+                </form>
             </div>
         </Transition>
     </Teleport>
@@ -298,6 +299,14 @@ function close() {
 function goToPayment() {
     if (!selectedPlan.value) return;
     step.value = 2;
+}
+
+function handleSubmit() {
+    if (step.value === 1) {
+        goToPayment();
+        return;
+    }
+    void submitPayment();
 }
 
 function validatePaymentForm() {

@@ -13,6 +13,16 @@ export function formatMessageTime(createdAt) {
     return `${day}.${month}.${year} ${hours}:${minutes}`
 }
 
+function pickMessageText(m, currentUserId) {
+    const isSender = Number(m.sender_id) === Number(currentUserId)
+    if (m.type === 'system') {
+        return isSender
+            ? (m.sender_message ?? m.message ?? '')
+            : (m.receiver_message ?? m.message ?? '')
+    }
+    return m.message ?? m.text ?? ''
+}
+
 export const useMessageStore = defineStore('message', () => {
     const authStore = useAuthStore()
 
@@ -70,7 +80,7 @@ export const useMessageStore = defineStore('message', () => {
                     const isSystem = rawType === 'system'
                     return {
                         id: m.id,
-                        text: m.message ?? m.text ?? '',
+                        text: pickMessageText(m, currentUserId),
                         time: formatMessageTime(m.created_at),
                         isMe: isSystem ? false : Number(m.sender_id) === Number(currentUserId),
                         type: isSystem ? 'system' : 'message',

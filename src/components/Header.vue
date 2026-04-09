@@ -394,7 +394,9 @@
                                                     loginErrors.phone
                                                         ? 'border-red-400 focus:border-red-500 focus:ring-red-200'
                                                         : 'border-gray-200 focus:border-primary'
-                                                ]" />
+                                                ]"
+                                                :pt="{ pcInputText: { root: { inputmode: 'text', enterkeyhint: 'done' } } }"
+                                            />
                                             <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
@@ -431,7 +433,10 @@
                                                     loginErrors.password
                                                         ? 'border-red-400 focus:border-red-500 focus:ring-red-200'
                                                         : 'border-gray-200 focus:border-primary'
-                                                ]" placeholder="Şifrenizi girin" />
+                                                ]" placeholder="Şifrenizi girin"
+                                                inputmode="text"
+                                                enterkeyhint="done"
+                                            />
                                             <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
                                                 <svg class="w-5 h-5" fill="none" stroke="currentColor"
                                                     viewBox="0 0 24 24">
@@ -553,7 +558,7 @@
                                             :unstyled="true"
                                             :pt="{
                                                 root: { class: 'flex gap-2' },
-                                                pcInputText: { root: { class: 'w-12 h-14 rounded-md text-lg text-center tracking-[0.4em] font-semibold border border-gray-200 bg-white text-gray-700 outline-none focus:ring-2 focus:ring-primary/20' } }
+                                                pcInputText: { root: { class: 'w-12 h-14 rounded-md text-lg text-center tracking-[0.4em] font-semibold border border-gray-200 bg-white text-gray-700 outline-none focus:ring-2 focus:ring-primary/20', inputmode: 'text', enterkeyhint: 'done' } }
                                             }"
                                         />
                                         <span v-if="otpError" class="text-xs text-red-500">{{ otpError }}</span>
@@ -620,7 +625,10 @@
                                         <label class="text-sm font-medium text-gray-700">İsim</label>
                                         <input type="text" v-model="registerForm.firstName"
                                             :class="['input', registerErrors.firstName ? 'border-red-400' : '']"
-                                            placeholder="İsminiz" />
+                                            placeholder="İsminiz"
+                                            inputmode="text"
+                                            enterkeyhint="done"
+                                        />
                                         <span v-if="registerErrors.firstName" class="text-xs text-red-500 mt-0.5">
                                             {{ registerErrors.firstName }}
                                         </span>
@@ -629,7 +637,10 @@
                                         <label class="text-sm font-medium text-gray-700">Soyisim</label>
                                         <input type="text" v-model="registerForm.lastName"
                                             :class="['input', registerErrors.lastName ? 'border-red-400' : '']"
-                                            placeholder="Soyisminiz" />
+                                            placeholder="Soyisminiz"
+                                            inputmode="text"
+                                            enterkeyhint="done"
+                                        />
                                         <span v-if="registerErrors.lastName" class="text-xs text-red-500 mt-0.5">
                                             {{ registerErrors.lastName }}
                                         </span>
@@ -639,7 +650,10 @@
                                     <label class="text-sm font-medium text-gray-700">E-posta</label>
                                     <input type="email" v-model="registerForm.email"
                                         :class="['input', registerErrors.email ? 'border-red-400' : '']"
-                                        placeholder="ornek@mail.com" />
+                                        placeholder="ornek@mail.com"
+                                        inputmode="text"
+                                        enterkeyhint="done"
+                                    />
                                     <span v-if="registerErrors.email" class="text-xs text-red-500 mt-0.5">
                                         {{ registerErrors.email }}
                                     </span>
@@ -654,7 +668,9 @@
                                             loginErrors.phone
                                                 ? 'border-red-400 focus:border-red-500 focus:ring-red-200'
                                                 : 'border-gray-200 focus:border-primary'
-                                        ]" />
+                                        ]"
+                                        :pt="{ pcInputText: { root: { inputmode: 'text', enterkeyhint: 'done' } } }"
+                                    />
                                     <span v-if="registerErrors.phone" class="text-xs text-red-500 mt-0.5">
                                         {{ registerErrors.phone }}
                                     </span>
@@ -666,7 +682,10 @@
                                             v-model="registerForm.password"
                                             :class="['input pr-24', registerErrors.password ? 'border-red-400' : '']"
                                             placeholder="Şifrenizi oluşturun"
-                                            autocomplete="new-password" />
+                                            autocomplete="new-password"
+                                            inputmode="text"
+                                            enterkeyhint="done"
+                                        />
                                         <div
                                             class="absolute inset-y-0 right-2 z-10 flex items-center gap-0.5"
                                             role="presentation"
@@ -703,7 +722,10 @@
                                         <input :type="showRegisterConfirmPassword ? 'text' : 'password'"
                                             v-model="registerForm.confirmPassword"
                                             :class="['input pr-12', registerErrors.confirmPassword ? 'border-red-400' : '']"
-                                            placeholder="Şifrenizi tekrar girin" />
+                                            placeholder="Şifrenizi tekrar girin"
+                                            inputmode="text"
+                                            enterkeyhint="done"
+                                        />
                                         <button type="button"
                                             @click="showRegisterConfirmPassword = !showRegisterConfirmPassword"
                                             class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
@@ -806,6 +828,7 @@
                                 '!border-gray-200 focus:border-primary',
                                 'placeholder:text-gray-300',
                             ]"
+                            :pt="{ pcInputText: { root: { inputmode: 'text', enterkeyhint: 'done' } } }"
                         />
                         <div class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

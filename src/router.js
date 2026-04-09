@@ -128,7 +128,7 @@ const routes = [
         component: AccountOrdersPage,
         meta: {
             layout: Layout,
-            title: 'Tüm Siparişlerim | TaşıBul',
+            title: 'Tüm İşlerim | TaşıBul',
             requiresAuth: true,
             authorization: 'vehicle_owner'
         }

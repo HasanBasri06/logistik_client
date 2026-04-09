@@ -46,6 +46,16 @@ function formatTime(createdAt) {
     return d.toLocaleDateString('tr-TR');
 }
 
+function getMessagePreview(m, userId) {
+    const isSender = Number(m.sender_id) === Number(userId);
+    if (m.type === 'system') {
+        return isSender
+            ? (m.sender_message || m.message || '')
+            : (m.receiver_message || m.message || '');
+    }
+    return m.message || '';
+}
+
 const messagesList = computed(() => {
     const userId = authStore.user?.id;
     if (!userId || !rawMessages.value.length) return [];
@@ -64,7 +74,7 @@ const messagesList = computed(() => {
             id: m.otherId,
             name: otherName || `Kullanıcı #${m.otherId}`,
             time: formatTime(m.created_at),
-            lastMessage: m.message || '',
+            lastMessage: getMessagePreview(m, userId),
             isRead: !!m.is_read,
         };
     });

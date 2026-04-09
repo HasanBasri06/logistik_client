@@ -85,7 +85,7 @@
             <img :src="creatorAvatarUrl" :alt="shipment.creator?.full_name" class="w-full rounded-full h-full object-cover" />
           </div>
 
-          <span class="text-sm font-medium text-gray-600 truncate">{{ shipment.creator?.full_name }}</span>
+          <span class="text-sm font-medium text-gray-600 truncate">{{ creatorDisplayName }}</span>
         </div>
         <div class="w-px h-5 bg-gray-200 shrink-0"></div>
         <div class="flex items-center gap-1 shrink-0">
@@ -145,7 +145,7 @@
         </div>
         <div class="min-w-0 flex-1">
           <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Yayınlayan</p>
-          <p class="text-sm font-semibold text-gray-900 truncate">{{ shipment.creator?.full_name }}</p>
+          <p class="text-sm font-semibold text-gray-900 truncate">{{ creatorDisplayName }}</p>
         </div>
         <div class="flex items-center gap-1 shrink-0">
           <Star size="14" class="w-3.5 h-3.5 text-primary fill-primary" />
@@ -231,7 +231,7 @@ import api from '@/api';
 const authStore = useAuthStore();
 const {user} = storeToRefs(authStore);
 
-const emit = defineEmits(['canceled']);
+const emit = defineEmits(['canceled', 'card-click']);
 
 const props = defineProps({
     slug: {
@@ -241,6 +241,10 @@ const props = defineProps({
     shipment: {
         type: Object,
         default: () => ({})
+    },
+    preventNavigation: {
+        type: Boolean,
+        default: false,
     }
 });
 
@@ -299,6 +303,10 @@ const creatorAvatarUrl = computed(() => {
 });
 
 const handleClick = (e, shipment) => {
+    if (props.preventNavigation) {
+        emit('card-click', shipment);
+        return;
+    }
     const isOwner = user.value?.id == shipment?.creater_id;
     if (isOwner) {
         router.push(`/product/${props.slug}`);
@@ -321,6 +329,14 @@ const creatorScoreText = computed(() => {
   const num = Number(score);
   if (Number.isNaN(num)) return '—';
   return num.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+});
+
+const creatorDisplayName = computed(() => {
+  const creator = props.shipment?.creator;
+  if (!creator) return '—';
+  return Number(creator.payment_confirm) === 1
+    ? (creator.full_name || creator.fullNameOnlyFirstChars || '—')
+    : (creator.fullNameOnlyFirstChars || creator.full_name || '—');
 });
 
 function formatWeight(weight) {

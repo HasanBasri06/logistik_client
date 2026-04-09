@@ -106,40 +106,39 @@
                             v-for="(listing, idx) in routeListings"
                             :key="listing.slug || idx"
                             :to="listing.slug ? { path: `/posts/${listing.slug}` } : {}"
-                            class="group rounded-xl border border-gray-200 bg-white p-3.5 hover:border-primary/35 hover:bg-primary/[0.03] hover:shadow-sm transition-all"
+                            class="group rounded-xl border border-gray-200 bg-white p-3 sm:p-3.5 hover:border-primary/35 hover:bg-primary/[0.03] hover:shadow-sm transition-all"
                         >
-                            <div class="flex items-start gap-3">
-                                <div class="w-9 h-9 rounded-lg bg-primary/10 border border-primary/15 flex items-center justify-center shrink-0">
+                            <div class="flex items-start gap-2.5 sm:gap-3">
+                                <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-primary/10 border border-primary/15 flex items-center justify-center shrink-0">
                                     <i class="pi pi-map text-primary" style="font-size: 0.9rem"></i>
                                 </div>
                                 <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-semibold text-gray-900 truncate">
+                                    <p class="text-[13px] sm:text-sm font-semibold text-gray-900 leading-snug line-clamp-2 sm:line-clamp-1">
                                         {{ listing.from }} → {{ listing.to }}
                                     </p>
-                                    <div class="mt-2 flex flex-wrap items-center gap-1.5">
-                                        <span class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-[11px] font-medium text-gray-700">
+                                    <div class="mt-2 flex flex-wrap items-center gap-1">
+                                        <span class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-[10px] sm:text-[11px] font-medium text-gray-700">
                                             <i class="pi pi-clock text-primary" style="font-size: 0.65rem"></i>
                                             {{ listing.time }}
                                         </span>
-                                        <span class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-[11px] font-medium text-gray-700">
+                                        <span class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-[10px] sm:text-[11px] font-medium text-gray-700">
                                             <i class="pi pi-box text-primary" style="font-size: 0.65rem"></i>
                                             {{ listing.loadAmount }}
                                         </span>
-                                        <span v-if="listing.postType" class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-[11px] font-medium text-gray-700">
+                                        <span v-if="listing.postType" class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-[10px] sm:text-[11px] font-medium text-gray-700">
                                             <i class="pi pi-tag text-primary" style="font-size: 0.65rem"></i>
                                             {{ listing.postType }}
                                         </span>
-                                        <span v-if="listing.vehicle" class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-[11px] font-medium text-gray-700">
+                                        <span v-if="listing.vehicle" class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-[10px] sm:text-[11px] font-medium text-gray-700">
                                             <i class="pi pi-car text-primary" style="font-size: 0.65rem"></i>
                                             {{ listing.vehicle }}
                                         </span>
                                     </div>
-                                    <div class="mt-2 flex items-center justify-between gap-2">
+                                    <div class="mt-2 flex items-end justify-between gap-2">
                                         <p class="text-sm font-semibold text-primary truncate">{{ listing.price || 'Fiyat belirtilmemiş' }}</p>
-                                        <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">#{{ (listing.slug || '').slice(0, 6) }}</span>
                                     </div>
                                 </div>
-                                <span class="text-xs font-semibold text-primary shrink-0 self-center group-hover:translate-x-0.5 transition-transform">İlana git</span>
+                                <span class="text-[11px] sm:text-xs font-semibold text-primary shrink-0 self-end sm:self-center group-hover:translate-x-0.5 transition-transform">İlana git</span>
                             </div>
                         </RouterLink>
                     </div>
@@ -156,46 +155,44 @@
 
                 <!-- İlan Açıklaması -->
                 <div
-                    class="rounded-md p-4 sm:p-6 border border-gray-200 shadow-sm transition-colors duration-200"
+                    class="relative overflow-hidden rounded-3xl border border-gray-200/80 shadow-[0_12px_34px_rgba(15,23,42,0.08)] transition-colors duration-200"
                     :class="shipmentLoading ? 'bg-gray-200 animate-pulse' : 'bg-white'"
                 >
-                    <h3 class="text-base sm:text-lg font-semibold text-gray-900 mb-4">İlan Açıklaması</h3>
+                    <div class="absolute -top-20 -right-14 w-52 h-52 rounded-full bg-primary/10 blur-3xl pointer-events-none"></div>
+                    <div class="relative px-4 sm:px-6 pt-5 pb-4 border-b border-gray-100 bg-gradient-to-r from-primary/[0.08] via-white to-white">
+                        <div class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white/80 px-3 py-1 text-[11px] font-semibold text-primary tracking-wide uppercase">
+                            <i class="pi pi-file-edit"></i>
+                            İlan Detayı
+                        </div>
+                        <h3 class="text-lg sm:text-xl font-semibold text-gray-900 mt-2">İlan Açıklaması</h3>
+                        <p class="text-xs sm:text-sm text-gray-500 mt-1">Taşıma detayları, kapasite bilgileri ve özel notlar</p>
+                    </div>
                     
                     <!-- Açıklama Metni -->
-                    <div class="mb-6">
-                        <p class="text-sm text-gray-700 leading-relaxed">
-                            {{ postDescription || 'İlan açıklaması buraya gelecek. Taşımacılık detayları, özel istekler ve diğer önemli bilgiler bu bölümde yer alacak.' }}
+                    <div class="relative p-4 sm:p-6 pb-4">
+                        <p class="text-sm text-gray-700 leading-relaxed rounded-2xl bg-gray-50/90 border border-gray-100 px-4 py-3.5">
+                            {{ postDescription || 'İlan açıklaması yok.' }}
                         </p>
                     </div>
 
-                    <!-- Tablo: mobilde yatay kaydırma -->
-                    <div class="overflow-x-auto -mx-1">
-                        <table class="w-full min-w-[280px] border-collapse">
-                            <thead>
-                                <tr class="bg-gray-50">
-                                    <th class="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-gray-700 border-b border-gray-200">Özellik</th>
-                                    <th class="px-3 sm:px-4 py-2 sm:py-3 text-left text-xs sm:text-sm font-semibold text-gray-700 border-b border-gray-200">Değer</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr class="border-b border-gray-100">
-                                    <td class="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-600">Araç Tipi</td>
-                                    <td class="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 font-medium">{{ ilanAracTipi }}</td>
-                                </tr>
-                                <tr class="border-b border-gray-100">
-                                    <td class="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-600">Kapasite</td>
-                                    <td class="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 font-medium">{{ ilanKapasite }}</td>
-                                </tr>
-                                <tr class="border-b border-gray-100">
-                                    <td class="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-600">Yük Tipi</td>
-                                    <td class="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 font-medium">{{ ilanYukTipi }}</td>
-                                </tr>
-                                <tr class="border-b border-gray-100">
-                                    <td class="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-600">Özel İstek</td>
-                                    <td class="px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-gray-900 font-medium">{{ ilanOzelIstek }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                    <!-- Özellik kartları -->
+                    <div class="px-4 sm:px-6 pb-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="rounded-xl border border-gray-100 bg-white p-3.5">
+                            <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Araç Tipi</p>
+                            <p class="text-sm font-semibold text-gray-900 mt-1">{{ ilanAracTipi }}</p>
+                        </div>
+                        <div class="rounded-xl border border-gray-100 bg-white p-3.5">
+                            <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Kapasite</p>
+                            <p class="text-sm font-semibold text-gray-900 mt-1">{{ ilanKapasite }}</p>
+                        </div>
+                        <div class="rounded-xl border border-gray-100 bg-white p-3.5">
+                            <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Yük Tipi</p>
+                            <p class="text-sm font-semibold text-gray-900 mt-1">{{ ilanYukTipi }}</p>
+                        </div>
+                        <div class="rounded-xl border border-gray-100 bg-white p-3.5">
+                            <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Özel İstek</p>
+                            <p class="text-sm font-semibold text-gray-900 mt-1">{{ ilanOzelIstek }}</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -513,10 +510,25 @@
                             </p>
                         </div>
                         <!-- Özel teklif gönder (mesaj inputunun üstünde) -->
+                        <div
+                            v-if="!canSendOfferMessage"
+                            class="w-full shrink-0 border-t border-amber-200 bg-amber-50 p-3"
+                        >
+                            <p class="text-sm text-amber-900">Mesaj veya teklif göndermek için önce bir araç eklemelisiniz.</p>
+                            <button
+                                type="button"
+                                class="mt-2 inline-flex items-center gap-2 rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm font-semibold text-amber-800 hover:bg-amber-100 transition-colors"
+                                @click="router.push('/vehicle-owner/vehicles')"
+                            >
+                                <i class="pi pi-car" aria-hidden="true"></i>
+                                Araç Ekle
+                            </button>
+                        </div>
                         <div class="w-full shrink-0 border-t border-gray-200 p-3 bg-white">
                             <button
                                 type="button"
-                                class="w-full py-2.5 px-3 rounded-lg border-2 border-primary text-primary font-semibold text-sm hover:bg-primary/5 transition-colors"
+                                class="w-full py-2.5 px-3 rounded-lg border-2 border-primary text-primary font-semibold text-sm hover:bg-primary/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                :disabled="!canSendOfferMessage"
                                 @click="showTeklifModal = true"
                             >
                                 Özel teklif gönder
@@ -529,13 +541,15 @@
                                     v-model="newOfferMessageText"
                                     type="text"
                                     ref="message_input"
-                                    placeholder="Mesajınızı yazın..."
+                                    :placeholder="canSendOfferMessage ? 'Mesajınızı yazın...' : 'Mesaj için önce araç ekleyin.'"
                                     class="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+                                    :disabled="!canSendOfferMessage"
                                 />
                                 <button
                                     type="submit"
                                     class="flex items-center justify-center w-10 h-10 shrink-0 rounded-lg bg-primary text-white hover:bg-primary/90 transition-colors"
                                     aria-label="Gönder"
+                                    :disabled="!canSendOfferMessage"
                                 >
                                     <i class="pi pi-send text-sm"></i>
                                 </button>
@@ -1162,6 +1176,9 @@ const offerMessagesContainer = ref(null);
 
 const offerPanelMessages = ref([]);
 const newOfferMessageText = ref('');
+const hasVehicleForOfferPanel = ref(true);
+const isVehicleOwnerViewer = computed(() => authStore.user?.type === 'vehicle_owner');
+const canSendOfferMessage = computed(() => !isVehicleOwnerViewer.value || hasVehicleForOfferPanel.value);
 
 usePusherMessages(computed(() => authStore.user?.id), {
     onMessageSent(e) {
@@ -1228,6 +1245,7 @@ function buildOfferPanelMessages(messages, requests, currentUserId) {
 }
 
 async function openMessageOfferPanel() {
+    await checkVehicleForOfferPanel();
     const receiverId = shipment.value?.creater_id ?? shipment.value?.creator?.id;
     const slug = route.params?.slug;
     const currentUserId = authStore.user?.id;
@@ -1300,6 +1318,7 @@ async function acceptTeklif(requestId) {
 }
 
 async function sendOfferMessage() {
+    if (!canSendOfferMessage.value) return;
     const text = newOfferMessageText.value?.trim();
     if (!text) return;
 
@@ -1339,6 +1358,20 @@ async function sendOfferMessage() {
             if (el) el.scrollTop = el.scrollHeight;
         }, 50);
     });
+}
+
+async function checkVehicleForOfferPanel() {
+    if (!isVehicleOwnerViewer.value) {
+        hasVehicleForOfferPanel.value = true;
+        return;
+    }
+    try {
+        const res = await api.get('/cars/my');
+        const cars = res.data?.content?.cars;
+        hasVehicleForOfferPanel.value = Array.isArray(cars) && cars.length > 0;
+    } catch {
+        hasVehicleForOfferPanel.value = false;
+    }
 }
 
 async function refreshOfferPanelMessages() {

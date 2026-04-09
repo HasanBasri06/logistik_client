@@ -142,7 +142,7 @@
                                             <p class="mb-2 text-sm text-gray-500">
                                                 <span class="font-semibold text-primary">Fotoğraf seçin</span> veya sürükleyip bırakın
                                             </p>
-                                            <p class="text-xs text-gray-500">JPG, PNG, WEBP (MAX. 5MB)</p>
+                                            <p class="text-xs text-gray-500">JPG, PNG, WEBP</p>
                                         </div>
                                     </label>
                                 </div>
@@ -198,7 +198,7 @@
                                         <p class="mb-2 text-sm text-gray-500">
                                             <span class="font-semibold text-primary">Dosya seçin</span> veya sürükleyip bırakın
                                         </p>
-                                        <p class="text-xs text-gray-500">PDF, JPG, JPEG, PNG (MAX. 10MB)</p>
+                                        <p class="text-xs text-gray-500">PDF, JPG, JPEG, PNG</p>
                                     </div>
                                 </label>
                             </div>
@@ -253,7 +253,7 @@
                                         <p class="mb-2 text-sm text-gray-500">
                                             <span class="font-semibold text-primary">Dosya seçin</span> veya sürükleyip bırakın
                                         </p>
-                                        <p class="text-xs text-gray-500">PDF, JPG, JPEG, PNG (MAX. 10MB)</p>
+                                        <p class="text-xs text-gray-500">PDF, JPG, JPEG, PNG</p>
                                     </div>
                                 </label>
                             </div>
@@ -308,7 +308,7 @@
                                         <p class="mb-2 text-sm text-gray-500">
                                             <span class="font-semibold text-primary">Dosya seçin</span> veya sürükleyip bırakın
                                         </p>
-                                        <p class="text-xs text-gray-500">PDF, JPG, JPEG, PNG (MAX. 10MB)</p>
+                                        <p class="text-xs text-gray-500">PDF, JPG, JPEG, PNG</p>
                                     </div>
                                 </label>
                             </div>
@@ -363,7 +363,7 @@
                                         <p class="mb-2 text-sm text-gray-500">
                                             <span class="font-semibold text-primary">Dosya seçin</span> veya sürükleyip bırakın
                                         </p>
-                                        <p class="text-xs text-gray-500">PDF, JPG, JPEG, PNG (MAX. 10MB)</p>
+                                        <p class="text-xs text-gray-500">PDF, JPG, JPEG, PNG</p>
                                     </div>
                                 </label>
                             </div>
@@ -472,7 +472,7 @@ const psychotechnicalProgress = ref(0);
 const licenseProgress = ref(0);
 
 const MAX_PROFILE_PHOTO_MB = 5;
-const MAX_DOC_MB = 10;
+const MAX_DOC_MB = 5;
 
 /** Belge yükleme: API'ye gönderir, başarıda progress bar ilerler ve "Doğrulandı" gösterilir */
 async function uploadDocument(type, file, progressRef) {
