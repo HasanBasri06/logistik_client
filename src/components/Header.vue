@@ -6,6 +6,7 @@
                 <!-- Logo (Sol) -->
                 <RouterLink to="/" class="flex items-center gap-2">
                     <img src="@/assets/images/logo.png" alt="TaşıBul Logo" class="h-7 w-auto object-contain" />
+                    <span class="text-primary font-bold text-2xl">TaşıBul</span>
                 </RouterLink>
 
                 <!-- Sağ taraf: mobilde hamburger, masaüstünde menü -->

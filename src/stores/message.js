@@ -62,14 +62,18 @@ export const useMessageStore = defineStore('message', () => {
         }
     }
 
-    async function getBySenderAndReceiver(receiverId) {
+    async function getBySenderAndReceiver(receiverId, shipmentId = null) {
         const senderId = authStore.user?.id
         if (!senderId || !receiverId) {
             return { success: false, error: 'Gönderen veya alıcı bilgisi eksik.', data: [] }
         }
         try {
+            const params = { sender_id: senderId, receiver_id: receiverId }
+            if (shipmentId != null && shipmentId !== '') {
+                params.shipment_id = shipmentId
+            }
             const { data } = await api.get('/messages/conversation', {
-                params: { sender_id: senderId, receiver_id: receiverId },
+                params,
             })
             const content = data?.content ?? data?.data ?? data
             const list = Array.isArray(content) ? content : (content?.messages ?? [])
@@ -85,6 +89,8 @@ export const useMessageStore = defineStore('message', () => {
                         isMe: isSystem ? false : Number(m.sender_id) === Number(currentUserId),
                         type: isSystem ? 'system' : 'message',
                         created_at: m.created_at,
+                        shipment_id: m.shipment_id ?? null,
+                        shipment: m.shipment ?? null,
                     }
                 })
                 : []

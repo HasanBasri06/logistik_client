@@ -34,22 +34,29 @@
                 </button>
             </div>
 
-            <div class="flex flex-col gap-2 sm:gap-3 pt-2 md:pt-0">
+            <div class="flex flex-col gap-5 sm:gap-7 pt-2 md:pt-0">
                 <div
                     v-for="message in displayMessages"
-                    :key="message.id"
+                    :key="message.rowKey ?? `${message.id}-${message.shipmentId ?? 'none'}`"
                     :class="[
-                        'group w-full rounded-2xl overflow-hidden cursor-pointer transition-all duration-200',
-                        'bg-white border border-gray-100 hover:border-primary/30 hover:shadow-md hover:shadow-primary/5',
+                        'group relative w-full rounded-2xl  cursor-pointer transition-all duration-200',
+                        'bg-white border border-gray-300 hover:border-primary/30 hover:shadow-md hover:shadow-primary/5',
                         'active:scale-[0.99] sm:active:scale-100',
                         message.isRead ? 'opacity-75' : 'opacity-100'
                     ]"
                     @click="openMessageDetail(message)"
                 >
+                    <div
+                        v-if="message.shipmentRoute"
+                        class="absolute right-2 -top-3 z-1 max-w-[62%] rounded-md bg-primary px-2 py-1 text-[10px] font-semibold text-white shadow-sm truncate"
+                        :title="message.shipmentRoute"
+                    >
+                        {{ message.shipmentRoute }}
+                    </div>
                     <div class="flex items-center gap-4 p-4 sm:p-5">
                         <div class="relative shrink-0">
                             <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl overflow-hidden bg-primary/10 text-primary flex items-center justify-center ring-2 ring-gray-100 group-hover:ring-primary/20 transition-all font-semibold text-sm sm:text-base">
-                                {{ getInitials(message.name) }}
+                                <span>{{ getInitials(message.name) }}</span>
                             </div>
                             <span
                                 v-if="!message.isRead"
@@ -80,7 +87,22 @@
                                 {{ message.lastMessage || 'Mesaj yok' }}
                             </p>
                         </div>
-                        <i class="pi pi-chevron-right text-gray-300 group-hover:text-primary text-sm shrink-0 transition-colors" aria-hidden="true"></i>
+                        <div class="shrink-0">
+                            <img
+                                v-if="message.avatarUrl"
+                                :src="message.avatarUrl"
+                                :alt="message.name"
+                                class="h-10 w-10 rounded-full object-cover ring-2 ring-primary/15"
+                                loading="lazy"
+                                referrerpolicy="no-referrer"
+                                @error="message.avatarUrl = null"
+                            />
+                            <i
+                                v-else
+                                class="pi pi-chevron-right text-gray-300 group-hover:text-primary text-sm transition-colors"
+                                aria-hidden="true"
+                            ></i>
+                        </div>
                     </div>
                 </div>
                 <p
@@ -126,12 +148,12 @@
                     v-if="conversationShipment"
                     role="button"
                     tabindex="0"
-                    class="flex-1 min-h-0 rounded-xl border border-gray-200 bg-white p-3 sm:p-4 shadow-sm min-w-0 cursor-pointer hover:border-primary/40 hover:shadow-md transition-all active:scale-[0.99]"
+                    class="flex-1 min-h-0 rounded-xl border border-gray-200 bg-white p-3 sm:p-4 shadow-sm min-w-0 cursor-pointer hover:border-primary/40 hover:shadow-md transition-all active:scale-[0.99] relative"
                     @click="conversationShipment?.slug && goToShipment(conversationShipment.slug)"
                     @keydown.enter="conversationShipment?.slug && goToShipment(conversationShipment.slug)"
                 >
-                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 sm:mb-2">İlan özeti</p>
-                    <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap text-xs sm:text-sm">
+                    <p class="text-xs font-semibold text-gray-500  tracking-wide mb-1.5 sm:mb-2">İlan özeti</p>
+                    <div class="flex items-center  gap-1.5 sm:gap-2 flex-wrap text-xs sm:text-sm">
                         <span class="font-semibold text-gray-900">{{ conversationShipment.f_where_city }} / {{ conversationShipment.f_where_district }}</span>
                         <i class="pi pi-arrow-right text-primary text-xs shrink-0"></i>
                         <span class="font-semibold text-gray-900">{{ conversationShipment.t_where_city }} / {{ conversationShipment.t_where_district }}</span>
@@ -146,7 +168,7 @@
                     class="flex-1 min-h-0 min-w-0 rounded-xl border-2 border-primary/30 bg-white shadow-sm flex flex-col overflow-hidden"
                 >
                     <div class="px-3 sm:px-4 pt-3 sm:pt-4 pb-2 min-h-0 flex-1 overflow-y-auto">
-                        <p class="text-xs font-semibold text-primary uppercase tracking-wide mb-1.5 sm:mb-2">Talep / Teklif</p>
+                        <p class="text-xs font-semibold text-primary tracking-wide mb-1.5 sm:mb-2">Talep / Teklif</p>
                         <p v-if="conversationTeklif.carName" class="text-xs sm:text-sm font-medium text-gray-900 mb-1">{{ conversationTeklif.carName }}</p>
                         <p class="text-xs sm:text-sm font-semibold text-primary mb-1">{{ conversationTeklif.price }}</p>
                         <p v-if="conversationTeklif.message" class="text-xs sm:text-sm text-gray-600 mt-2 border-t border-gray-100 pt-2 line-clamp-3 sm:line-clamp-none">{{ conversationTeklif.message }}</p>
@@ -377,7 +399,7 @@ async function onTeklifModalSuccess() {
     const otherUserId = route.params.id ? parseInt(route.params.id, 10) : null;
     const slug = conversationShipment.value?.slug;
     if (otherUserId && slug) {
-        const res = await messageStore.getBySenderAndReceiver(otherUserId);
+        const res = await messageStore.getBySenderAndReceiver(otherUserId, conversationShipmentId.value);
         const data = res?.data ?? [];
         try {
             const requestsRes = await api.get(`/shipments/${slug}/requests`);
@@ -431,7 +453,7 @@ async function acceptTeklif(requestId) {
         await api.post(`/shipments/${slug}/requests/${requestId}/accept`);
         const otherUserId = route.params.id ? parseInt(route.params.id, 10) : null;
         if (otherUserId) {
-            const res = await messageStore.getBySenderAndReceiver(otherUserId);
+            const res = await messageStore.getBySenderAndReceiver(otherUserId, conversationShipmentId.value);
             const data = res?.data ?? [];
             conversationShipmentId.value = res?.conversationShipmentId ?? conversationShipmentId.value;
             conversationShipment.value = res?.conversationShipment ?? conversationShipment.value;
@@ -474,7 +496,11 @@ function buildMessageThreadWithTeklif(messages, requests, currentUserId, otherUs
 }
 
 const openMessageDetail = (message) => {
-    router.push(`${props.basePath}/${message.id}`);
+    const query = {};
+    if (message?.shipmentId != null) {
+        query.shipment_id = String(message.shipmentId);
+    }
+    router.push({ path: `${props.basePath}/${message.id}`, query });
 };
 
 const goBackToMessages = () => {
@@ -502,17 +528,25 @@ function scrollMessagesToBottom() {
 
 const loadMessageDetail = async (messageId) => {
     const list = props.messagesList ?? messages.value;
-    const message = list.find(m => m.id === messageId || m.id === parseInt(messageId, 10));
+    const shipmentIdFromRoute = route.query?.shipment_id != null ? Number(route.query.shipment_id) : null;
+    const normalizedMessageId = typeof messageId === 'string' ? parseInt(messageId, 10) : messageId;
+    const message = list.find((m) => {
+        const sameUser = m.id === messageId || m.id === normalizedMessageId;
+        if (!sameUser) return false;
+        if (shipmentIdFromRoute == null) return true;
+        return Number(m.shipmentId) === shipmentIdFromRoute;
+    });
     if (message) {
         selectedMessage.value = message;
         if (props.messagesList) {
             threadLoading.value = true;
             conversationShipmentId.value = null;
             conversationShipment.value = null;
-            const otherUserId = typeof messageId === 'string' ? parseInt(messageId, 10) : messageId;
-            const result = await messageStore.getBySenderAndReceiver(otherUserId);
+            const otherUserId = normalizedMessageId;
+            const currentShipmentId = shipmentIdFromRoute ?? message.shipmentId ?? null;
+            const result = await messageStore.getBySenderAndReceiver(otherUserId, currentShipmentId);
             const data = result?.data ?? [];
-            conversationShipmentId.value = result?.conversationShipmentId ?? null;
+            conversationShipmentId.value = currentShipmentId ?? result?.conversationShipmentId ?? null;
             conversationShipment.value = result?.conversationShipment ?? null;
             const slug = conversationShipment.value?.slug;
             let thread = Array.isArray(data) ? data : [];
@@ -563,7 +597,7 @@ const sendMessage = async () => {
             messageThread.value = messageThread.value.filter((m) => m.id !== tempId);
             return;
         }
-        const res = await messageStore.getBySenderAndReceiver(otherUserId);
+        const res = await messageStore.getBySenderAndReceiver(otherUserId, conversationShipmentId.value);
         const data = res?.data ?? [];
         conversationShipmentId.value = res?.conversationShipmentId ?? conversationShipmentId.value;
         conversationShipment.value = res?.conversationShipment ?? conversationShipment.value;
@@ -603,7 +637,7 @@ async function checkVehicleOwnerCars() {
 }
 
 watch(
-    () => [route.params.id, route.path],
+    () => [route.params.id, route.path, route.query.shipment_id],
     ([messageId, path]) => {
         if (path.includes('/messages') && messageId) {
             loadMessageDetail(parseInt(messageId));

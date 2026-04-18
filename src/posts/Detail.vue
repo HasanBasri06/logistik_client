@@ -263,7 +263,6 @@
                             Teklif Ver
                         </button>
                         <button
-                            v-if="shipment?.call_access !== 1"
                             @click="openMessageOfferPanel"
                             class="flex-1 h-11 sm:h-12 rounded-xl border-2 border-primary text-primary bg-white font-semibold transition-all duration-200 text-sm sm:text-base hover:bg-primary/5"
                         >
@@ -273,10 +272,10 @@
                             v-if="!isCargoOwnerViewer && shipment?.call_access == 1"
                             type="button"
                             @click="openCallModal"
-                            class="h-11 sm:h-12 px-5 w-full rounded-xl border-2 border-primary text-primary bg-white font-semibold transition-all duration-200 text-sm sm:text-base hover:bg-primary/5 shrink-0 items-center"
+                            class="h-11 sm:h-12 px-5 flex-1 rounded-xl border-2 bg-primary text-white font-semibold transition-all duration-200 text-sm sm:text-base  shrink-0 items-center"
                         >
                             <i class="pi pi-phone text-xl mr-3"></i>
-                            <span>{{user?.phoneFormatted}}</span>
+                            <span>Ara</span>
                         </button>
                     </div>
                     <div v-else class="hidden md:flex bg-gray-50 border-t border-gray-100 w-full">

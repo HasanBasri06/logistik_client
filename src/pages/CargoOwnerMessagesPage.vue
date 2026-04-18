@@ -56,28 +56,68 @@ function getMessagePreview(m, userId) {
     return m.message || '';
 }
 
+function buildShipmentRouteLabel(shipment) {
+    if (!shipment) return null;
+    const fromCity = shipment.f_where_city ?? '';
+    const fromDistrict = shipment.f_where_district ?? '';
+    const toCity = shipment.t_where_city ?? '';
+    const toDistrict = shipment.t_where_district ?? '';
+    if (!fromCity || !toCity) return null;
+    const from = fromDistrict ? `${fromCity} / ${fromDistrict}` : fromCity;
+    const to = toDistrict ? `${toCity} / ${toDistrict}` : toCity;
+    return `${from} -> ${to}`;
+}
+
+function buildUserAvatarUrl(user) {
+    const profileImage = String(user?.profile_image ?? '').trim();
+    if (profileImage) {
+        if (/^https?:\/\//i.test(profileImage)) return profileImage;
+        const base = (import.meta.env.VITE_APP_SERVER_URL || '').replace(/\/$/, '');
+        if (profileImage.startsWith('/')) return `${base}${profileImage}`;
+        return `${base}/storage/${profileImage}`;
+    }
+    const image = String(user?.image ?? '').trim();
+    if (image) {
+        if (/^https?:\/\//i.test(image)) return image;
+        const base = (import.meta.env.VITE_APP_SERVER_URL || '').replace(/\/$/, '');
+        if (image.startsWith('/')) return `${base}${image}`;
+        return `${base}/storage/${image}`;
+    }
+    return null;
+}
+
 const messagesList = computed(() => {
     const userId = authStore.user?.id;
     if (!userId || !rawMessages.value.length) return [];
-    const byOther = new Map();
+    const byOtherAndShipment = new Map();
     for (const m of rawMessages.value) {
         const otherId = Number(m.sender_id) === Number(userId) ? m.receiver_id : m.sender_id;
-        const existing = byOther.get(otherId);
+        const shipmentId = m.shipment_id ?? 'none';
+        const key = `${otherId}-${shipmentId}`;
+        const existing = byOtherAndShipment.get(key);
         if (!existing || new Date(m.created_at) > new Date(existing.created_at)) {
-            byOther.set(otherId, { ...m, otherId });
+            byOtherAndShipment.set(key, { ...m, otherId });
         }
     }
-    return Array.from(byOther.values()).map((m) => {
+    return Array.from(byOtherAndShipment.values())
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        .map((m) => {
         const isCurrentUserSender = Number(m.sender_id) === Number(userId);
-        const otherName = isCurrentUserSender ? m.receiver?.full_name : m.sender?.full_name;
+        const otherUser = isCurrentUserSender ? m.receiver : m.sender;
+        const otherName = otherUser?.full_name;
+        const shipmentId = m.shipment_id ?? null;
         return {
             id: m.otherId,
+            rowKey: `${m.otherId}-${shipmentId ?? 'none'}`,
+            shipmentId,
+            shipmentRoute: buildShipmentRouteLabel(m.shipment),
+            avatarUrl: buildUserAvatarUrl(otherUser),
             name: otherName || `Kullanıcı #${m.otherId}`,
             time: formatTime(m.created_at),
             lastMessage: getMessagePreview(m, userId),
             isRead: !!m.is_read,
         };
-    });
+        });
 });
 
 async function refetchMessages() {
