@@ -60,14 +60,14 @@ onMounted(getCars);
             <div v-else-if="cars.length" class="w-full relative">
                 <button
                     @click="scrollBy(-1)"
-                    class="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 z-20 w-11 h-11 rounded-full bg-white border border-gray-200 shadow-lg items-center justify-center text-gray-600 hover:bg-primary hover:text-white hover:border-primary transition-all duration-200 cursor-pointer"
+                    class="flex absolute left-2 md:left-0 top-1/2 -translate-y-1/2 md:-translate-x-1/2 z-20 w-10 h-10 md:w-11 md:h-11 rounded-full bg-white border border-gray-200 shadow-lg items-center justify-center text-gray-600 hover:bg-primary hover:text-white hover:border-primary transition-all duration-200 cursor-pointer"
                 >
                     <i class="pi pi-arrow-left text-sm"></i>
                 </button>
 
                 <button
                     @click="scrollBy(1)"
-                    class="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 z-20 w-11 h-11 rounded-full bg-white border border-gray-200 shadow-lg items-center justify-center text-gray-600 hover:bg-primary hover:text-white hover:border-primary transition-all duration-200 cursor-pointer"
+                    class="flex absolute right-2 md:right-0 top-1/2 -translate-y-1/2 md:translate-x-1/2 z-20 w-10 h-10 md:w-11 md:h-11 rounded-full bg-white border border-gray-200 shadow-lg items-center justify-center text-gray-600 hover:bg-primary hover:text-white hover:border-primary transition-all duration-200 cursor-pointer"
                 >
                     <i class="pi pi-arrow-right text-sm"></i>
                 </button>

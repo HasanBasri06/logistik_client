@@ -52,8 +52,8 @@ const steps = {
         {
             number: '04',
             icon: 'pi-map-marker',
-            title: 'Canlı Takip Edin',
-            description: 'Yükünüzü harita üzerinden gerçek zamanlı olarak takip edin, teslimatı güvenle tamamlayın.',
+            title: 'Yüklerinizi Takip Edin',
+            description: 'Yükünüz indirildiğinde size bilgilendirme gelsin.',
         },
     ],
     vehicle: [
@@ -79,7 +79,7 @@ const steps = {
             number: '04',
             icon: 'pi-wallet',
             title: 'Kazancınızı Alın',
-            description: 'Teslimatı tamamlayın, yük sahibinin onayı ile ödemenizi güvenli şekilde alın.',
+            description: 'Teslimatı tamamlayın, yük sahibine bilgilendirme gönder.',
         },
     ],
 };

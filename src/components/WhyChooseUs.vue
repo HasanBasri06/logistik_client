@@ -39,7 +39,7 @@ const chartBars = [
                 <div class="flex flex-col gap-5">
                     <span class="text-sm font-semibold text-primary tracking-wide uppercase">Neden Biz?</span>
                     <h2 class="text-2xl md:text-4xl font-bold tracking-tight leading-tight">
-                        Yük Sahipleri ve Araç<br class="hidden md:block" />Sahiplerini Buluşturuyoruz
+                        Yük Sahipleri ve Araç Sahiplerini Buluşturuyoruz
                     </h2>
                     <p class="text-gray-500 text-base leading-relaxed max-w-md">
                         Yükünüzü oluşturun, taşıyıcılarla eşleşin ve sevkiyat sürecini tek platform üzerinden kolayca yönetin.
