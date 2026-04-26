@@ -691,7 +691,75 @@
                 <div class="flex-1 flex flex-col gap-5  overflow-y-auto pb-10 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
                     <p v-if="shipmentsError" class="text-sm text-red-600">{{ shipmentsError }}</p>
                     <template v-else-if="shipmentsLoading">
-                        <p class="text-sm text-gray-500">Yükleniyor...</p>
+                        <div class="flex flex-col gap-3">
+                            <div
+                                v-for="n in 2"
+                                :key="`shipment-skeleton-${n}`"
+                                class="w-full min-h-fit rounded-2xl bg-white border border-gray-200 overflow-hidden shadow-sm animate-pulse"
+                            >
+                                <div class="flex flex-row justify-between items-start gap-4 py-5 px-4 sm:py-6 sm:px-6 border-b border-gray-100">
+                                    <div class="flex flex-row items-stretch gap-0 sm:gap-4 flex-1 min-w-0">
+                                        <div class="flex flex-col justify-between gap-2 shrink-0 sm:hidden py-0.5 text-xs">
+                                            <div class="h-5 w-14 rounded-full bg-gray-200"></div>
+                                            <div class="h-5 w-14 rounded-full bg-gray-200"></div>
+                                        </div>
+                                        <div class="flex flex-col items-center shrink-0 w-5 sm:hidden">
+                                            <div class="flex-1 min-h-5 flex justify-center">
+                                                <div class="w-0.5 h-full rounded-full bg-gray-200"></div>
+                                            </div>
+                                            <div class="w-3.5 h-3.5 rounded bg-gray-200 -mt-2"></div>
+                                        </div>
+                                        <div class="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-5 flex-1 min-w-0 relative min-h-0">
+                                            <div class="flex flex-col gap-2 sm:gap-2.5 items-start w-auto min-w-0">
+                                                <div class="h-4 w-32 sm:w-44 rounded bg-gray-200"></div>
+                                                <div class="hidden sm:inline-flex h-6 w-24 rounded-full bg-gray-200"></div>
+                                            </div>
+                                            <div class="hidden sm:flex flex-col items-center justify-center gap-1 shrink-0 w-[100px] sm:w-[120px] self-center">
+                                                <div class="w-full h-0.5 rounded-full bg-gray-200"></div>
+                                                <div class="h-3 w-14 rounded bg-gray-200"></div>
+                                                <div class="w-4 h-4 rounded bg-gray-200"></div>
+                                            </div>
+                                            <div class="flex flex-col gap-2 sm:gap-2.5 items-start min-w-0 sm:flex-1 relative">
+                                                <div class="h-4 w-28 sm:w-40 rounded bg-gray-200"></div>
+                                                <div class="hidden sm:inline-flex h-6 w-24 rounded-full bg-gray-200"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="inline-flex h-8 w-20 sm:w-24 rounded-full bg-gray-200 shrink-0"></div>
+                                </div>
+                                <div class="border-t border-gray-100 py-3 px-4 sm:px-6 sm:py-0 sm:h-20 min-h-0 sm:min-h-[72px] flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                                    <div class="hidden sm:flex flex-wrap items-center gap-x-4 gap-y-0 flex-1 min-w-0">
+                                        <div class="flex items-center gap-2 min-w-0">
+                                            <div class="w-8 h-8 rounded-full bg-gray-200 shrink-0"></div>
+                                            <div class="h-4 w-28 rounded bg-gray-200"></div>
+                                        </div>
+                                        <div class="w-px h-5 bg-gray-200 shrink-0"></div>
+                                        <div class="h-4 w-10 rounded bg-gray-200"></div>
+                                        <div class="w-px h-5 bg-gray-200 shrink-0"></div>
+                                        <div class="h-4 w-16 rounded bg-gray-200"></div>
+                                        <div class="w-px h-5 bg-gray-200 shrink-0"></div>
+                                        <div class="h-4 w-20 rounded bg-gray-200"></div>
+                                    </div>
+                                    <div class="hidden sm:flex items-center min-w-0 shrink-0">
+                                        <div class="h-4 w-24 rounded bg-gray-200"></div>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-x-3 gap-y-2 order-1 min-w-0 sm:hidden">
+                                        <div class="h-4 w-20 rounded bg-gray-200"></div>
+                                        <div class="h-7 w-20 rounded-full bg-gray-200 justify-self-end"></div>
+                                        <div class="h-4 w-24 rounded bg-gray-200"></div>
+                                        <div class="h-4 w-20 rounded bg-gray-200 justify-self-end"></div>
+                                    </div>
+                                    <div class="flex items-center gap-3 py-2.5 px-3 rounded-xl bg-gray-50/80 border border-gray-100 order-2 sm:hidden">
+                                        <div class="w-9 h-9 rounded-full bg-gray-200 shrink-0"></div>
+                                        <div class="min-w-0 flex-1">
+                                            <div class="h-3 w-20 rounded bg-gray-200"></div>
+                                            <div class="h-4 w-24 rounded bg-gray-200 mt-2"></div>
+                                        </div>
+                                        <div class="h-4 w-8 rounded bg-gray-200"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </template>
                     <template v-else>
                         <div
