@@ -10,10 +10,10 @@
                 @click.self="close"
             >
                 <form
-                    class="relative bg-white rounded-2xl shadow-xl max-w-lg w-full overflow-hidden"
+                    class="relative bg-white rounded-2xl shadow-xl max-w-lg w-full max-h-[92vh] overflow-hidden flex flex-col"
                     @submit.prevent="handleSubmit"
                 >
-                    <div class="p-6 pb-4">
+                    <div class="p-3 sm:p-6 pb-4 overflow-y-auto">
                         <div class="flex items-start justify-between gap-4 mb-4">
                             <div>
                                 <h2 id="premium-modal-title" class="text-xl font-bold text-gray-900">
@@ -37,12 +37,12 @@
                         </div>
 
                         <!-- Step 1: Plan selection -->
-                        <div v-if="step === 1" class="grid grid-cols-2 auto-rows-fr gap-3 items-stretch">
+                        <div v-if="step === 1" class="grid grid-cols-2 auto-rows-fr gap-2 sm:gap-3 items-stretch">
                             <button
                                 v-for="plan in plans"
                                 :key="plan.id"
                                 type="button"
-                                class="relative h-[225px] flex flex-col items-start justify-between p-4 rounded-2xl border-2 transition-all text-left shadow-sm"
+                                class="relative min-h-[168px] sm:h-[225px] flex flex-col items-start justify-between p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border-2 transition-all text-left shadow-sm"
                                 :class="selectedPlan?.id === plan.id
                                     ? 'border-primary bg-primary/10 ring-2 ring-primary/20'
                                     : 'border-gray-200 bg-white hover:border-primary/40 hover:bg-primary/5 hover:shadow-md'"
@@ -50,7 +50,7 @@
                             >
                                 <div
                                     v-if="plan.badge"
-                                    class="absolute -top-2 right-3 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider z-10 shadow-sm"
+                                    class="absolute -top-2 right-2 sm:right-3 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider z-10 shadow-sm"
                                     :class="plan.badge === 'Popüler'
                                         ? 'border border-red-200 bg-red-50 text-red-600'
                                         : 'border border-blue-200 bg-blue-50 text-blue-700'"
@@ -59,20 +59,20 @@
                                     <span v-else-if="plan.badge === 'Popüler'" class="text-red-500 text-[11px] leading-none">🔥</span>
                                     {{ plan.badge }}
                                 </div>
-                                <div class="flex items-start justify-between w-full gap-3 pt-7">
-                                    <div class="pr-6">
-                                        <div class="text-base font-bold leading-tight text-gray-900">{{ plan.name }}</div>
-                                        <div class="text-sm font-semibold text-gray-700 mt-1">{{ plan.totalPrice }}</div>
+                                <div class="flex items-start justify-between w-full gap-2 pt-6 sm:pt-7">
+                                    <div class="pr-1 sm:pr-6 min-w-0">
+                                        <div class="text-sm sm:text-base font-bold leading-tight text-gray-900 wrap-break-word">{{ plan.name }}</div>
+                                        <div class="text-xs sm:text-sm font-semibold text-gray-700 mt-1 wrap-break-word">{{ plan.totalPrice }}</div>
                                     </div>
                                     <i v-if="selectedPlan?.id === plan.id" class="pi pi-check-circle text-primary text-xl"></i>
                                 </div>
-                                <div class="mt-4 w-full rounded-xl border border-gray-100 bg-gray-50/80 px-3 py-2.5">
+                                <div class="mt-3 sm:mt-4 w-full rounded-lg sm:rounded-xl border border-gray-100 bg-gray-50/80 px-2.5 sm:px-3 py-2">
                                     <div class="flex items-center gap-2 flex-wrap">
-                                        <p class="text-sm font-semibold text-primary leading-snug whitespace-nowrap">
+                                        <p class="text-[11px] sm:text-sm font-semibold text-primary leading-snug">
                                             Aylık maliyet: {{ plan.monthlyCost }}
                                         </p>
                                     </div>
-                                    <div v-if="plan.showDiscount" class="text-xs text-emerald-600 font-semibold mt-1 leading-snug">
+                                    <div v-if="plan.showDiscount" class="text-[11px] sm:text-xs text-emerald-600 font-semibold mt-1 leading-snug">
                                         İndirim: {{ plan.discountAmount }} ({{ plan.discountRate }})
                                     </div>
                                 </div>
@@ -194,7 +194,7 @@
                         </div>
                     </div>
 
-                    <div class="px-6 py-4 border-t border-gray-100 flex justify-between gap-2">
+                    <div class="px-4 sm:px-6 py-4 border-t border-gray-100 flex justify-between gap-2">
                         <button
                             v-if="step === 2"
                             type="button"
@@ -208,7 +208,7 @@
                         <button
                             v-if="step === 1"
                             type="submit"
-                            class="px-4 py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                            class="px-4 py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed w-full sm:w-auto"
                             :disabled="!selectedPlan"
                         >
                             Premium'a geç
@@ -216,7 +216,7 @@
                         <button
                             v-else
                             type="submit"
-                            class="px-4 py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                            class="px-4 py-2.5 rounded-lg bg-primary text-white font-semibold hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed w-full sm:w-auto"
                             :disabled="paymentSubmitting"
                         >
                             {{ paymentSubmitting ? 'İşleniyor...' : 'Ödemeyi tamamla' }}
