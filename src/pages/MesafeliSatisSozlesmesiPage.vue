@@ -31,7 +31,7 @@
                             </ul>
                             <p class="mt-4 text-gray-700 leading-relaxed"><strong class="text-gray-900">1.2. Alıcı / Tüketici:</strong></p>
                             <p class="mt-1 text-gray-600 text-sm md:text-base pl-4">
-                                Sözleşme konusu hizmeti platform üzerinden sipariş veren veya üyelik oluşturan gerçek veya tüzel kişi. Alıcı, platforma kayıt sırasında ve sipariş öncesi bildirdiği bilgilerle tanımlanır.
+                                Sözleşme konusu hizmeti platform üzerinden İlan veren veya üyelik oluşturan gerçek veya tüzel kişi. Alıcı, platforma kayıt sırasında ve İlan öncesi bildirdiği bilgilerle tanımlanır.
                             </p>
                         </div>
                     </section>
@@ -92,7 +92,7 @@
                             </div>
                             <div class="space-y-3 text-gray-600 text-sm md:text-base leading-relaxed">
                                 <p><strong class="text-gray-800">6.1. Satıcı:</strong> Hizmeti, mevzuata ve sözleşmeye uygun şekilde sunar; genel bilgilendirme ve ön bilgilendirme formlarını sağlar; tüketici taleplerini değerlendirir ve şikâyetleri yanıtlar.</p>
-                                <p><strong class="text-gray-800">6.2. Alıcı:</strong> Kayıt ve sipariş sırasında verdiği bilgilerin doğru ve güncel olmasından sorumludur; platformu mevzuata ve kullanım koşullarına aykırı şekilde kullanmaz; şifre ve hesap güvenliğini sağlar.</p>
+                                <p><strong class="text-gray-800">6.2. Alıcı:</strong> Kayıt ve İlan sırasında verdiği bilgilerin doğru ve güncel olmasından sorumludur; platformu mevzuata ve kullanım koşullarına aykırı şekilde kullanmaz; şifre ve hesap güvenliğini sağlar.</p>
                             </div>
                         </div>
                     </section>
@@ -116,7 +116,7 @@
                                 <h2 class="text-lg md:text-xl font-bold text-gray-900">Yürürlük</h2>
                             </div>
                             <p class="text-gray-600 text-sm md:text-base leading-relaxed">
-                                İşbu Mesafeli Satış Sözleşmesi, Alıcı'nın platform üzerinden üyelik veya sipariş onayı vermesi ile kurulur ve taraflarca elektronik ortamda kabul edilmiş sayılır. Sözleşmede yer almayan konularda 6502 sayılı Kanun, Mesafeli Sözleşmeler Yönetmeliği ve ilgili diğer mevzuat hükümleri uygulanır. Satıcı, yürürlükteki mevzuata uyum için sözleşme metninde güncelleme yapma hakkını saklı tutar; önemli değişiklikler kullanıcıya duyurulur.
+                                İşbu Mesafeli Satış Sözleşmesi, Alıcı'nın platform üzerinden üyelik veya İlan onayı vermesi ile kurulur ve taraflarca elektronik ortamda kabul edilmiş sayılır. Sözleşmede yer almayan konularda 6502 sayılı Kanun, Mesafeli Sözleşmeler Yönetmeliği ve ilgili diğer mevzuat hükümleri uygulanır. Satıcı, yürürlükteki mevzuata uyum için sözleşme metninde güncelleme yapma hakkını saklı tutar; önemli değişiklikler kullanıcıya duyurulur.
                             </p>
                         </div>
                     </section>

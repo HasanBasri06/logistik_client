@@ -1,0 +1,16 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appIDs": ["6765674499.com.tasibul.app"],
+        "components": [
+          {
+            "/": "/*",
+            "comment": "Tüm site yolları — Apple Team ID değilse developer.apple.com üyelik Team ID ile güncelleyin"
+          }
+        ]
+      }
+    ]
+  }
+}

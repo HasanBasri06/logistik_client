@@ -72,15 +72,15 @@
                             <div class="flex items-center gap-3 rounded-lg bg-white/5 px-4 py-3 opacity-50">
                                 <i class="pi pi-apple text-lg text-white"></i>
                                 <div>
-                                    <p class="text-[10px] text-gray-400 leading-none">Çok yakında</p>
                                     <p class="text-sm text-white font-medium">App Store</p>
+                                    <p class="text-[10px] text-gray-400 leading-none">İle indirin</p>
                                 </div>
                             </div>
                             <div class="flex items-center gap-3 rounded-lg bg-white/5 px-4 py-3 opacity-50">
                                 <i class="pi pi-android text-lg text-white"></i>
                                 <div>
-                                    <p class="text-[10px] text-gray-400 leading-none">Çok yakında</p>
                                     <p class="text-sm text-white font-medium">Google Play</p>
+                                    <p class="text-[10px] text-gray-400 leading-none">İle indirin</p>
                                 </div>
                             </div>
                         </div>

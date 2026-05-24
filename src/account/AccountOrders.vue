@@ -20,7 +20,7 @@
             </button>
         </div>
         
-        <!-- Sipariş Listesi -->
+        <!-- İlan Listesi -->
         <div class="flex-1 overflow-y-auto pr-2">
             <div v-if="ordersLoading" class="flex flex-col items-center justify-center py-16 gap-3">
                 <img
@@ -28,11 +28,11 @@
                     alt=""
                     class="w-16 h-16 object-contain"
                 />
-                <p class="text-sm text-gray-600">Siparişler yükleniyor…</p>
+                <p class="text-sm text-gray-600">İlanlar yükleniyor…</p>
             </div>
             <div v-else class="flex flex-col gap-5 pt-4">
                 <template v-if="!orders.length">
-                    <p class="text-gray-500">Henüz sipariş bulunmuyor.</p>
+                    <p class="text-gray-500">Henüz İlan bulunmuyor.</p>
                 </template>
                 <template v-else>
                     <Product

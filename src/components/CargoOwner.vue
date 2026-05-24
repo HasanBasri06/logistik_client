@@ -2,7 +2,7 @@
     <div class="hidden md:flex md:w-[275px] md:flex-col md:gap-4 md:overflow-y-auto md:py-3">
         <user-section />
         <div class="w-full h-auto pb-3 rounded-md border border-gray-200 text-gray-800 bg-white">
-            <div class="w-full h-10 px-4 text-sm font-semibold flex items-center justify-start rounded-t-md border-b border-b-gray-200">Siparişlerim</div>
+            <div class="w-full h-10 px-4 text-sm font-semibold flex items-center justify-start rounded-t-md border-b border-b-gray-200">İlanlarım</div>
             <ul class="w-full h-auto flex flex-col gap-2 px-2 pt-2 text-xs">
 
                 <li>
@@ -94,16 +94,19 @@
                 </li>
                 <li>
                     <router-link 
-                        to="/cargo-owner/change-password"
+                        to="/cargo-owner/settings"
                         :class="[
                             'h-8 flex items-center px-3 rounded-md cursor-pointer',
-                            $route.path === '/cargo-owner/change-password' ? 'bg-primary/10 font-medium' : 'text-gray-800'
+                            $route.path.startsWith('/cargo-owner/settings') ||
+                            $route.path === '/cargo-owner/change-password'
+                                ? 'bg-primary/10 font-medium'
+                                : 'text-gray-800'
                         ]"
                     >
-                        <i class="pi pi-key mr-2 text-primary" style="font-size: 14px;"></i>
-                        <span>Şifre Değiştir</span>
+                        <i class="pi pi-cog mr-2 text-primary" style="font-size: 14px;"></i>
+                        <span>Ayarlar</span>
                     </router-link>
-                </li>                
+                </li>
             </ul>
         </div>
 

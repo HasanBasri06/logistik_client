@@ -138,15 +138,15 @@
                         </router-link>
 
                         <router-link
-                            to="/cargo-owner/change-password"
+                            to="/cargo-owner/settings"
                             class="bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4 hover:border-primary/50 hover:bg-primary/5 transition-all"
                         >
                             <div class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-                                <i class="pi pi-lock text-gray-600" style="font-size: 18px;"></i>
+                                <i class="pi pi-cog text-gray-600" style="font-size: 18px;"></i>
                             </div>
                             <div>
-                                <h3 class="text-sm font-semibold text-gray-900">Şifre Değiştir</h3>
-                                <p class="text-xs text-gray-500 mt-0.5">Hesap güvenliğini güncelle</p>
+                                <h3 class="text-sm font-semibold text-gray-900">Ayarlar</h3>
+                                <p class="text-xs text-gray-500 mt-0.5">Şifre değiştir, hesabı sil</p>
                             </div>
                         </router-link>
                     </div>

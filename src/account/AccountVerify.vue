@@ -384,6 +384,9 @@ import { ref, computed, onMounted } from 'vue';
 import { toast } from 'vue-sonner';
 import api from '@/api';
 import { InputOtp } from 'primevue';
+import { useAuthStore } from '@/stores/auth';
+
+const authStore = useAuthStore();
 
 const verificationStatus = ref({
     email: false,
@@ -493,6 +496,9 @@ async function uploadDocument(type, file, progressRef) {
             Object.assign(verificationStatus.value, res.data.content.verification);
         }
         await fetchVerificationStatus();
+        if (type === 'profile_image') {
+            await authStore.refreshUser();
+        }
         toast.success('Belge yüklendi.', { description: 'Doğrulama durumunuz güncellendi.', duration: 5000 });
     } catch (err) {
         const msg = err.response?.data?.message ?? err.message ?? 'Yükleme başarısız.';

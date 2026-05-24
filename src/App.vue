@@ -74,6 +74,7 @@
   </Teleport>
   <!-- Premium'a geç modalı (payment_confirm === 0 iken ilan oluşturmaya tıklanınca) -->
   <PremiumModal />
+  <OpenInAppBanner />
 </template>
 
 <script setup>
@@ -83,6 +84,8 @@ import { storeToRefs } from 'pinia';
 import { MapPin } from 'lucide-vue-next';
 import Layout from './Layout.vue';
 import PremiumModal from './components/PremiumModal.vue';
+import OpenInAppBanner from './components/OpenInAppBanner.vue';
+import { tryOpenNativeApp } from './utils/open-native-app';
 import { useHead } from '@vueuse/head';
 import { useLocationStore } from './stores/location';
 import { useAuthStore } from './stores/auth';
@@ -126,6 +129,7 @@ const setOffline = () => {
 onMounted(() => {
   window.addEventListener('online', setOnline);
   window.addEventListener('offline', setOffline);
+  tryOpenNativeApp();
 });
 onBeforeUnmount(() => {
   if (onlineHideTimeout) clearTimeout(onlineHideTimeout);

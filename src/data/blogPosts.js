@@ -101,9 +101,9 @@ export const blogPosts = [
         readTime: '13 dk',
         author: 'TaşıBul Editör',
         content: `
-            <p>E-ticaret büyüdükçe rekabetin merkezi ürün fiyatından teslimat deneyimine kayıyor. Müşteri artık sadece “ne aldım?” sorusunu değil, “ne zaman ve nasıl teslim aldım?” sorusunu da satın alma kararına dahil ediyor. Son kilometre operasyonu bu nedenle lojistiğin en kritik halkası haline geldi. Sipariş depodan doğru zamanda çıksa bile son aşamada yaşanan gecikme, tüm deneyimi olumsuz etkileyebilir. Bu noktada hız kadar öngörülebilirlik, iletişim kalitesi ve teslimat doğruluğu da önem taşır.</p>
+            <p>E-ticaret büyüdükçe rekabetin merkezi ürün fiyatından teslimat deneyimine kayıyor. Müşteri artık sadece “ne aldım?” sorusunu değil, “ne zaman ve nasıl teslim aldım?” sorusunu da satın alma kararına dahil ediyor. Son kilometre operasyonu bu nedenle lojistiğin en kritik halkası haline geldi. İlan depodan doğru zamanda çıksa bile son aşamada yaşanan gecikme, tüm deneyimi olumsuz etkileyebilir. Bu noktada hız kadar öngörülebilirlik, iletişim kalitesi ve teslimat doğruluğu da önem taşır.</p>
             <h2>Planlama ve Operasyon Tasarımı</h2>
-            <p>Son kilometrede verim için bölgesel teslimat kümeleri oluşturulmalı, rota planı yoğunluk saatleriyle birlikte değerlendirilmelidir. Siparişlerin aciliyet, ürün tipi ve teslimat penceresine göre sınıflandırılması operasyonu dengeler. Tek bir standart akış yerine farklı müşteri segmentleri için farklı teslimat modeli belirlemek daha doğru sonuç verir. Örneğin aynı gün teslimat, ertesi gün teslimat ve planlı saat aralığı seçenekleri ayrı operasyon kurgusu gerektirir.</p>
+            <p>Son kilometrede verim için bölgesel teslimat kümeleri oluşturulmalı, rota planı yoğunluk saatleriyle birlikte değerlendirilmelidir. İlanlerin aciliyet, ürün tipi ve teslimat penceresine göre sınıflandırılması operasyonu dengeler. Tek bir standart akış yerine farklı müşteri segmentleri için farklı teslimat modeli belirlemek daha doğru sonuç verir. Örneğin aynı gün teslimat, ertesi gün teslimat ve planlı saat aralığı seçenekleri ayrı operasyon kurgusu gerektirir.</p>
             <h2>Müşteri İletişimi ve Şeffaflık</h2>
             <p>Teslimat sürecinde en sık yaşanan memnuniyetsizlik, bilgilendirme eksikliğidir. Müşteri teslimatın nerede olduğunu, ne zaman geleceğini ve gecikme varsa nedenini net görmek ister. Canlı takip linki, otomatik bildirimler ve teslimat öncesi onay akışı destek taleplerini düşürür. Şeffaf iletişim yalnızca memnuniyet yaratmaz; çağrı merkezi maliyetini de azaltır.</p>
             <h2>KPI Takibi ve Sürekli İyileştirme</h2>
@@ -167,9 +167,9 @@ export const blogPosts = [
             <h2>Toplama Doğruluğu ve Hata Maliyeti</h2>
             <p>Yanlış ürün toplama hatası sadece iade maliyeti doğurmaz; müşteri güvenini de zedeler. Barkod doğrulama, çift kontrol adımı ve dijital görev ekranları hata oranını düşürür. Doğruluk oranı yükseldikçe iade ve yeniden sevkiyat maliyeti azalır.</p>
             <h2>İş Gücü Planlaması</h2>
-            <p>Depolarda verimsizliğin büyük bölümü dengesiz iş gücü planından kaynaklanır. Yoğun saatlerde yetersiz ekip, sakin saatlerde atıl kapasite maliyeti artırır. Vardiya planı sipariş dalgalanmasına göre esnek kurgulanmalı, personel çoklu görev yetkinliği ile desteklenmelidir.</p>
+            <p>Depolarda verimsizliğin büyük bölümü dengesiz iş gücü planından kaynaklanır. Yoğun saatlerde yetersiz ekip, sakin saatlerde atıl kapasite maliyeti artırır. Vardiya planı İlan dalgalanmasına göre esnek kurgulanmalı, personel çoklu görev yetkinliği ile desteklenmelidir.</p>
             <h2>Dijital Takip ve KPI Yönetimi</h2>
-            <p>Depo performansı için sipariş hazırlama süresi, satır başı hata oranı, vardiya verimliliği, kapı başına yükleme süresi gibi metrikler takip edilmelidir. Bu metrikler düzenli raporlandığında iyileştirme fırsatları somutlaşır. Sürekli iyileştirme yaklaşımıyla depo operasyonu hem hızlı hem de öngörülebilir hale gelir.</p>
+            <p>Depo performansı için İlan hazırlama süresi, satır başı hata oranı, vardiya verimliliği, kapı başına yükleme süresi gibi metrikler takip edilmelidir. Bu metrikler düzenli raporlandığında iyileştirme fırsatları somutlaşır. Sürekli iyileştirme yaklaşımıyla depo operasyonu hem hızlı hem de öngörülebilir hale gelir.</p>
             <p>Özetle depo verimliliği, lojistik maliyetinin gizli belirleyicisidir. Doğru süreç tasarımı, doğru teknoloji ve doğru ekip yönetimi bir araya geldiğinde depo sadece maliyet merkezi olmaktan çıkar; rekabet avantajı üreten stratejik bir yapıya dönüşür.</p>
         `,
     },

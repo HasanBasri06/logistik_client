@@ -199,6 +199,31 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
+    /**
+     * Güncel kullanıcıyı sunucudan alır (profil foto vb.). Ağ/geçici hata durumunda oturumu silmez; yalnızca 401’de temizler.
+     */
+    const refreshUser = async () => {
+        if (!token.value) {
+            return false
+        }
+        try {
+            const response = await api.get('/auth/check')
+            if (response.data.content && response.data.content.user) {
+                setUser(response.data.content.user)
+                return true
+            }
+            return false
+        } catch (error) {
+            const status = error.response?.status
+            if (status === 401) {
+                setToken(null)
+                setUser(null)
+                delete api.defaults.headers.common['Authorization']
+            }
+            return false
+        }
+    }
+
     // Uygulama başladığında token varsa header'a ekle
     if (token.value) {
         api.defaults.headers.common['Authorization'] = `Bearer ${token.value}`
@@ -220,6 +245,7 @@ export const useAuthStore = defineStore('auth', () => {
         resendOtp,
         changePhonePending,
         logout,
-        checkToken
+        checkToken,
+        refreshUser
     }
 })

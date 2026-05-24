@@ -132,7 +132,7 @@
                                 <RouterLink to="/vehicle-owner/orders"
                                     class="block px-4 py-1 text-sm font-medium text-gray-700 hover:bg-gray-100 w-full transition-colors">
                                     <div class="flex items-center gap-2"><i class="pi pi-shopping-bag"
-                                            style="font-size: 14px;"></i><span>Siparişlerim</span></div>
+                                            style="font-size: 14px;"></i><span>İlanlarım</span></div>
                                 </RouterLink>
                                 <RouterLink to="/vehicle-owner/vehicles"
                                     class="block px-4 py-1 text-sm font-medium text-gray-700 hover:bg-gray-100 w-full transition-colors">
@@ -275,7 +275,7 @@
                                         <RouterLink to="/vehicle-owner/orders"
                                             class="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 hover:text-primary transition-colors"
                                             @click="mobileMenuOpen = false"><i
-                                                class="pi pi-shopping-bag"></i><span>Siparişlerim</span></RouterLink>
+                                                class="pi pi-shopping-bag"></i><span>İlanlarım</span></RouterLink>
                                     </li>
                                     <li>
                                         <RouterLink to="/vehicle-owner/vehicles"

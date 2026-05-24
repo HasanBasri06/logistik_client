@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.tasibul.app",
+      "sha256_cert_fingerprints": [
+        "E0:72:5C:3C:8A:74:44:BF:84:C7:28:D9:78:ED:EA:13:74:28:B9:03:CB:C0:8C:21:AE:8D:D1:03:0D:8C:D3:80"
+      ]
+    }
+  }
+]

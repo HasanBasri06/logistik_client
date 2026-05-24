@@ -1,5 +1,5 @@
 <template>
-    <router-link :to="user.role === 'cargo-owner' ? '/cargo-owner' : '/vehicle-owner'"
+    <router-link :to="user?.type === 'cargo_owner' ? '/cargo-owner' : '/vehicle-owner'"
         class="w-full h-auto rounded-md border border-gray-200 bg-white p-3 hover:bg-gray-50 transition-colors cursor-pointer">
         <div class="flex flex-row gap-2 items-start">
             <div class="w-14 h-14 rounded-full overflow-hidden object-cover">
@@ -24,7 +24,7 @@
 <script setup>
 import { useAuthStore } from '@/stores/auth';
 import { storeToRefs } from 'pinia';
-import { computed, onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 
 const authStore = useAuthStore();
 const {user} = storeToRefs(authStore);
@@ -35,23 +35,7 @@ function buildFallbackAvatar(name) {
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(name || '?')}&background=39838C&color=fff`;
 }
 
-onMounted(() => {    
-    switch (user.value.status) {
-        case 'pending':
-            useStatusValue.value = 'Beklemede';
-            break;
-        case 'active':
-            useStatusValue.value = 'Aktif';
-            break;
-        case 'inactive':
-            useStatusValue.value = 'Kapatıldı';
-            break;
-        default:
-            break;
-    }
-});
-
-onMounted(() => {
+function syncUserImage() {
     const image = String(user.value?.image ?? '').trim();
     if (!image) {
         userImage.value = buildFallbackAvatar(user.value?.full_name);
@@ -70,6 +54,28 @@ onMounted(() => {
     }
 
     userImage.value = `${base}/storage/${image}`;
+}
+
+watch(
+    () => [user.value?.image, user.value?.full_name],
+    () => syncUserImage(),
+    { immediate: true }
+);
+
+onMounted(() => {    
+    switch (user.value?.status) {
+        case 'pending':
+            useStatusValue.value = 'Beklemede';
+            break;
+        case 'active':
+            useStatusValue.value = 'Aktif';
+            break;
+        case 'inactive':
+            useStatusValue.value = 'Kapatıldı';
+            break;
+        default:
+            break;
+    }
 });
 
 </script>

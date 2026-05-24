@@ -7,51 +7,14 @@
                 </span>
                 <div>
                     <h2 class="text-2xl font-bold text-gray-900">Şifre Değiştir</h2>
-                    <p class="text-sm text-gray-500 mt-0.5">E-posta adresinize gönderilen doğrulama kodu ile şifrenizi güncelleyin.</p>
+                    <p class="text-sm text-gray-500 mt-0.5">
+                        Yeni şifreni belirle; güncelle dediğinde e-postana gelen kodu girmen istenecek.
+                    </p>
                 </div>
             </div>
         </div>
 
-        <form @submit.prevent="handlePasswordChange" class="flex flex-col gap-6 max-w-md">
-            <div class="flex flex-col gap-2">
-                <label class="text-sm font-semibold text-gray-700">E-posta Doğrulama Kodu</label>
-                <div class="flex gap-2">
-                    <InputOtp
-                        v-model="passwordForm.code"
-                        :length="6"
-                        :integerOnly="true"
-                        :disabled="loading"
-                        :invalid="!!passwordErrors.code"
-                        :unstyled="true"
-                        :pt="{
-                            root: { class: 'flex gap-2 flex-1 min-w-[200px]' },
-                            pcInputText: { root: { class: passwordErrors.code ? 'w-12 h-14 rounded-md text-lg text-center tracking-[0.4em] font-semibold border border-red-400 bg-white text-gray-700 outline-none focus:ring-2 focus:ring-red-200' : 'w-12 h-14 rounded-md text-lg text-center tracking-[0.4em] font-semibold border border-gray-200 bg-white text-gray-700 outline-none focus:ring-2 focus:ring-primary/20' } }
-                        }"
-                    />
-                </div>
-                <div class="flex items-center justify-between gap-2 flex-wrap">
-                    <span v-if="passwordErrors.code" class="text-xs text-red-500 flex items-center gap-1">
-                        <i class="pi pi-exclamation-circle text-[10px]"></i>
-                        {{ passwordErrors.code }}
-                    </span>
-                    <button
-                        type="button"
-                        class="text-sm font-medium text-primary hover:underline disabled:opacity-50 disabled:pointer-events-none ml-auto"
-                        :disabled="codeSending"
-                        @click="sendCode"
-                    >
-                        <span v-if="codeSending" class="inline-flex items-center gap-1">
-                            <i class="pi pi-spin pi-spinner text-xs"></i>
-                            Gönderiliyor...
-                        </span>
-                        <span v-else>{{ codeSent ? 'Kodu tekrar gönder' : 'Doğrulama kodu gönder' }}</span>
-                    </button>
-                </div>
-                <p v-if="codeSent && emailMasked" class="text-xs text-gray-500">
-                    Kod <strong>{{ emailMasked }}</strong> adresine gönderildi.
-                </p>
-            </div>
-
+        <form @submit.prevent="openVerifyModal" class="flex flex-col gap-6 max-w-md">
             <div class="flex flex-col gap-2">
                 <label class="text-sm font-semibold text-gray-700">Yeni Şifre</label>
                 <div class="relative">
@@ -134,24 +97,105 @@
                 </button>
             </div>
         </form>
+
+        <Teleport to="body">
+            <Transition name="fade">
+                <div
+                    v-if="verifyModalOpen"
+                    class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/45"
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="pwd-verify-title"
+                    @click.self="closeVerifyModal"
+                >
+                    <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 border border-gray-200">
+                        <h2 id="pwd-verify-title" class="text-lg font-semibold text-gray-900">
+                            E-posta ile doğrulama
+                        </h2>
+                        <p class="text-sm text-gray-600 mt-2">
+                            Kayıtlı e-posta adresine 6 haneli kod gönderdik. Kodu girerek şifre güncellemesini tamamla.
+                        </p>
+                        <p v-if="emailMasked" class="text-xs text-gray-500 mt-2">
+                            Kod <strong>{{ emailMasked }}</strong> adresine gönderildi.
+                        </p>
+                        <p v-if="modalSendError" class="text-xs text-red-600 mt-2">{{ modalSendError }}</p>
+
+                        <div class="mt-5 flex flex-col gap-2">
+                            <label class="text-sm font-semibold text-gray-700">Doğrulama kodu</label>
+                            <InputOtp
+                                v-model="modalOtp"
+                                :length="6"
+                                :integerOnly="true"
+                                :disabled="loading"
+                                :invalid="!!modalOtpError"
+                                :unstyled="true"
+                                :pt="{
+                                    root: { class: 'flex gap-2 flex-1 flex-wrap justify-center' },
+                                    pcInputText: {
+                                        root: {
+                                            class: modalOtpError
+                                                ? 'w-11 h-12 sm:w-12 sm:h-14 rounded-md text-lg text-center tracking-[0.35em] font-semibold border border-red-400 bg-white text-gray-700 outline-none focus:ring-2 focus:ring-red-200'
+                                                : 'w-11 h-12 sm:w-12 sm:h-14 rounded-md text-lg text-center tracking-[0.35em] font-semibold border border-gray-200 bg-white text-gray-700 outline-none focus:ring-2 focus:ring-primary/20'
+                                        }
+                                    }
+                                }"
+                            />
+                            <span v-if="modalOtpError" class="text-xs text-red-500">{{ modalOtpError }}</span>
+                        </div>
+
+                        <div class="flex justify-end mt-2">
+                            <button
+                                type="button"
+                                class="text-sm font-medium text-primary hover:underline disabled:opacity-50 disabled:pointer-events-none"
+                                :disabled="codeSending"
+                                @click="sendCode"
+                            >
+                                <span v-if="codeSending" class="inline-flex items-center gap-1">
+                                    <i class="pi pi-spin pi-spinner text-xs"></i>
+                                    Gönderiliyor...
+                                </span>
+                                <span v-else>{{ codeSent ? 'Kodu tekrar gönder' : 'Kodu gönder' }}</span>
+                            </button>
+                        </div>
+
+                        <div class="flex flex-col-reverse sm:flex-row gap-3 mt-6 justify-end">
+                            <button
+                                type="button"
+                                class="px-4 py-2.5 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+                                :disabled="loading"
+                                @click="closeVerifyModal"
+                            >
+                                Vazgeç
+                            </button>
+                            <button
+                                type="button"
+                                class="px-4 py-2.5 rounded-lg text-sm font-medium text-white bg-primary hover:bg-primary/90 disabled:opacity-50"
+                                :disabled="loading || !codeSent"
+                                @click="submitPasswordWithOtp"
+                            >
+                                {{ loading ? 'Güncelleniyor…' : 'Kodu doğrula ve şifreyi güncelle' }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </Transition>
+        </Teleport>
     </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { nextTick, ref } from 'vue';
 import * as yup from 'yup';
 import api from '@/api';
 import { toast } from 'vue-sonner';
 import { InputOtp } from 'primevue';
 
 const passwordForm = ref({
-    code: '',
     newPassword: '',
     confirmPassword: '',
 });
 
 const passwordErrors = ref({
-    code: '',
     newPassword: '',
     confirmPassword: '',
 });
@@ -163,11 +207,13 @@ const codeSending = ref(false);
 const codeSent = ref(false);
 const emailMasked = ref('');
 
-const passwordSchema = yup.object({
-    code: yup
-        .string()
-        .required('Doğrulama kodu zorunludur.')
-        .length(6, 'Doğrulama kodu 6 haneli olmalıdır.'),
+const verifyModalOpen = ref(false);
+const modalOtp = ref('');
+const modalOtpError = ref('');
+const modalSendError = ref('');
+const pendingPasswords = ref({ newPassword: '', confirmPassword: '' });
+
+const passwordOnlySchema = yup.object({
     newPassword: yup
         .string()
         .min(6, 'Yeni şifre en az 6 karakter olmalıdır.')
@@ -178,37 +224,46 @@ const passwordSchema = yup.object({
         .required('Şifre tekrar zorunludur.'),
 });
 
+const otpSchema = yup.object({
+    code: yup
+        .string()
+        .required('Doğrulama kodu zorunludur.')
+        .length(6, 'Doğrulama kodu 6 haneli olmalıdır.'),
+});
+
+function closeVerifyModal() {
+    if (loading.value) return;
+    verifyModalOpen.value = false;
+    modalOtp.value = '';
+    modalOtpError.value = '';
+    modalSendError.value = '';
+}
+
 async function sendCode() {
     codeSending.value = true;
-    passwordErrors.value.code = '';
+    modalSendError.value = '';
+    modalOtpError.value = '';
     try {
         const res = await api.post('/auth/send-password-change-code');
         const content = res.data?.content ?? res.data;
         emailMasked.value = content?.email_masked ?? '';
         codeSent.value = true;
-        toast.success('Doğrulama kodu gönderildi.', { description: 'E-posta adresinizi kontrol edin.', duration: 5000 });
+        toast.success('Doğrulama kodu gönderildi.', { description: 'E-posta kutunu kontrol et.', duration: 5000 });
     } catch (err) {
         const msg = err.response?.data?.message || err.response?.data?.error || 'Kod gönderilemedi.';
-        toast.error('Hata', { description: msg, duration: 5000 });
+        modalSendError.value = msg;
+        toast.error('Kod gönderilemedi', { description: msg, duration: 5000 });
     } finally {
         codeSending.value = false;
     }
 }
 
-const handlePasswordChange = async () => {
-    passwordErrors.value = { code: '', newPassword: '', confirmPassword: '' };
+async function openVerifyModal() {
+    passwordErrors.value = { newPassword: '', confirmPassword: '' };
+    modalOtpError.value = '';
+    modalSendError.value = '';
     try {
-        await passwordSchema.validate(passwordForm.value, { abortEarly: false });
-        loading.value = true;
-        await api.put('/auth/change-password', {
-            code: passwordForm.value.code.trim(),
-            new_password: passwordForm.value.newPassword,
-            new_password_confirmation: passwordForm.value.confirmPassword,
-        });
-        toast.success('Şifreniz güncellendi.', { description: 'Bir sonraki girişte yeni şifrenizi kullanın.', duration: 5000 });
-        passwordForm.value = { code: '', newPassword: '', confirmPassword: '' };
-        codeSent.value = false;
-        emailMasked.value = '';
+        await passwordOnlySchema.validate(passwordForm.value, { abortEarly: false });
     } catch (err) {
         if (err.name === 'ValidationError' && err.inner) {
             err.inner.forEach((e) => {
@@ -216,18 +271,75 @@ const handlePasswordChange = async () => {
                     passwordErrors.value[e.path] = e.message;
                 }
             });
+        }
+        return;
+    }
+
+    pendingPasswords.value = {
+        newPassword: passwordForm.value.newPassword,
+        confirmPassword: passwordForm.value.confirmPassword,
+    };
+
+    verifyModalOpen.value = true;
+    modalOtp.value = '';
+    codeSent.value = false;
+    emailMasked.value = '';
+
+    await nextTick();
+    await sendCode();
+}
+
+async function submitPasswordWithOtp() {
+    modalOtpError.value = '';
+    try {
+        await otpSchema.validate({ code: String(modalOtp.value || '').trim() }, { abortEarly: false });
+    } catch (err) {
+        if (err.name === 'ValidationError' && err.inner?.[0]) {
+            modalOtpError.value = err.inner[0].message;
         } else {
-            const data = err.response?.data;
-            const msg = data?.message || data?.error || 'Şifre güncellenemedi.';
-            toast.error('Hata', { description: msg, duration: 5000 });
-            const errs = data?.errors || data?.content?.errors;
-            if (errs && typeof errs === 'object') {
-                if (errs.code) passwordErrors.value.code = Array.isArray(errs.code) ? errs.code[0] : errs.code;
-                if (errs.new_password) passwordErrors.value.newPassword = Array.isArray(errs.new_password) ? errs.new_password[0] : errs.new_password;
-            }
+            modalOtpError.value = 'Geçerli bir kod girin.';
+        }
+        return;
+    }
+
+    loading.value = true;
+    try {
+        await api.put('/auth/change-password', {
+            code: String(modalOtp.value || '').trim(),
+            new_password: pendingPasswords.value.newPassword,
+            new_password_confirmation: pendingPasswords.value.confirmPassword,
+        });
+        toast.success('Şifreniz güncellendi.', { description: 'Bir sonraki girişte yeni şifrenizi kullanın.', duration: 5000 });
+        passwordForm.value = { newPassword: '', confirmPassword: '' };
+        pendingPasswords.value = { newPassword: '', confirmPassword: '' };
+        codeSent.value = false;
+        emailMasked.value = '';
+        closeVerifyModal();
+    } catch (err) {
+        const data = err.response?.data;
+        const msg = data?.message || data?.error || 'Şifre güncellenemedi.';
+        toast.error('Hata', { description: msg, duration: 5000 });
+        const errs = data?.errors || data?.content?.errors;
+        if (errs && typeof errs === 'object' && errs.code) {
+            modalOtpError.value = Array.isArray(errs.code) ? errs.code[0] : errs.code;
+        } else if (data?.error?.code) {
+            modalOtpError.value = Array.isArray(data.error.code) ? data.error.code[0] : data.error.code;
+        } else {
+            modalOtpError.value = '';
         }
     } finally {
         loading.value = false;
     }
-};
+}
 </script>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.15s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+</style>

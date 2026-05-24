@@ -12,6 +12,7 @@ import AccountReviewsPage from "./pages/AccountReviewsPage.vue";
 import AccountMessagesPage from "./pages/AccountMessagesPage.vue";
 import AccountVehiclesPage from "./pages/AccountVehiclesPage.vue";
 import AccountChangePasswordPage from "./pages/AccountChangePasswordPage.vue";
+import VehicleOwnerSettingsPage from "./pages/VehicleOwnerSettingsPage.vue";
 import AccountVerifyPage from "./pages/AccountVerifyPage.vue";
 import CargoOwnerPage from "./pages/CargoOwnerPage.vue";
 import CargoOwnerReviewsPage from "./pages/CargoOwnerReviewsPage.vue";
@@ -19,6 +20,7 @@ import CargoOwnerMessagesPage from "./pages/CargoOwnerMessagesPage.vue";
 import CargoOwnerPostsPage from "./pages/CargoOwnerPostsPage.vue";
 import CargoOwnerAddressesPage from "./pages/CargoOwnerAddressesPage.vue";
 import CargoOwnerChangePasswordPage from "./pages/CargoOwnerChangePasswordPage.vue";
+import CargoOwnerSettingsPage from "./pages/CargoOwnerSettingsPage.vue";
 import CargoOwnerVerifyAccountPage from "./pages/CargoOwnerVerifyAccountPage.vue";
 import PostDetail from "./posts/Detail.vue";
 import ProductDetailPage from "./pages/ProductDetailPage.vue";
@@ -174,6 +176,16 @@ const routes = [
         }
     },
     {
+        path: '/vehicle-owner/settings',
+        component: VehicleOwnerSettingsPage,
+        meta: {
+            layout: Layout,
+            title: 'Ayarlar | TaşıBul',
+            requiresAuth: true,
+            authorization: 'vehicle_owner'
+        }
+    },
+    {
         path: '/vehicle-owner/change-password',
         component: AccountChangePasswordPage,
         meta: {
@@ -258,6 +270,16 @@ const routes = [
         meta: {
             layout: Layout,
             title: 'Adreslerim | TaşıBul',
+            requiresAuth: true,
+            authorization: 'cargo_owner'
+        }
+    },
+    {
+        path: '/cargo-owner/settings',
+        component: CargoOwnerSettingsPage,
+        meta: {
+            layout: Layout,
+            title: 'Ayarlar | TaşıBul',
             requiresAuth: true,
             authorization: 'cargo_owner'
         }

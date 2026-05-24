@@ -5,9 +5,28 @@
             <div class="flex flex-row gap-3 w-full h-[calc(100vh-64px)]">
                 <AccountSidebar />
                 <div class="flex-1 mt-3 flex flex-col overflow-y-auto pb-6 gap-5">
-                    <div class="bg-white border border-gray-200 rounded-xl p-6">
-                        <h1 class="text-xl font-bold text-gray-900">Hoş geldin, {{ user?.first_name ?? 'Araç Sahibi' }} 👋</h1>
-                        <p class="text-sm text-gray-500 mt-1">Araçlarını yönet, yük ilanlarını keşfet ve kazancını takip et.</p>
+                    <div
+                        class="bg-white border border-gray-200 rounded-xl p-6 flex flex-row gap-4 items-center"
+                    >
+                        <div
+                            v-if="showProfileAvatar && profilePhotoSrc"
+                            class="shrink-0 w-16 h-16 sm:w-[72px] sm:h-[72px] rounded-full overflow-hidden border border-gray-200 bg-gray-50"
+                        >
+                            <img
+                                :src="profilePhotoSrc"
+                                alt=""
+                                class="w-full h-full object-cover"
+                                @error="showProfileAvatar = false"
+                            />
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h1 class="text-xl font-bold text-gray-900">
+                                Hoş geldin, {{ user?.first_name ?? 'Araç Sahibi' }} 👋
+                            </h1>
+                            <p class="text-sm text-gray-500 mt-1">
+                                Araçlarını yönet, yük ilanlarını keşfet ve kazancını takip et.
+                            </p>
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -58,8 +77,8 @@
                                 <i class="pi pi-shopping-bag text-amber-600" style="font-size: 18px;"></i>
                             </div>
                             <div>
-                                <h3 class="text-sm font-semibold text-gray-900">Siparişlerim</h3>
-                                <p class="text-xs text-gray-500 mt-0.5">Aktif ve geçmiş siparişlerin</p>
+                                <h3 class="text-sm font-semibold text-gray-900">İlanlarım</h3>
+                                <p class="text-xs text-gray-500 mt-0.5">Aktif ve geçmiş ilanlarım</p>
                             </div>
                         </router-link>
 
@@ -135,15 +154,15 @@
                         </router-link>
 
                         <router-link
-                            to="/vehicle-owner/change-password"
+                            to="/vehicle-owner/settings"
                             class="bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4 hover:border-primary/50 hover:bg-primary/5 transition-all"
                         >
                             <div class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-                                <i class="pi pi-lock text-gray-600" style="font-size: 18px;"></i>
+                                <i class="pi pi-cog text-gray-600" style="font-size: 18px;"></i>
                             </div>
                             <div>
-                                <h3 class="text-sm font-semibold text-gray-900">Şifre Değiştir</h3>
-                                <p class="text-xs text-gray-500 mt-0.5">Hesap güvenliğini güncelle</p>
+                                <h3 class="text-sm font-semibold text-gray-900">Ayarlar</h3>
+                                <p class="text-xs text-gray-500 mt-0.5">Şifre değiştir, hesabı sil</p>
                             </div>
                         </router-link>
                     </div>
@@ -155,7 +174,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { computed, ref, watch, onMounted } from 'vue';
 import { storeToRefs } from 'pinia';
 import Content from './components/Content.vue';
 import Header from './components/Header.vue';
@@ -165,6 +184,31 @@ import api from './api';
 
 const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);
+
+function resolveProfilePhotoUrl(u) {
+    if (!u) return '';
+    const base = (import.meta.env.VITE_APP_SERVER_URL || '').replace(/\/$/, '');
+    const profileImage = String(u.profile_image ?? '').trim();
+    if (profileImage) {
+        if (/^https?:\/\//i.test(profileImage)) return profileImage;
+        if (profileImage.startsWith('/')) return `${base}${profileImage}`;
+        return `${base}/storage/${profileImage}`;
+    }
+    const image = String(u.image ?? '').trim();
+    if (image) {
+        if (/^https?:\/\//i.test(image)) return image;
+        if (image.startsWith('/')) return `${base}${image}`;
+        return `${base}/storage/${image}`;
+    }
+    return '';
+}
+
+const profilePhotoSrc = computed(() => resolveProfilePhotoUrl(user.value));
+const showProfileAvatar = ref(true);
+
+watch(profilePhotoSrc, () => {
+    showProfileAvatar.value = true;
+});
 
 const pendingJobs = ref(0);
 const vehicleCount = ref(0);
