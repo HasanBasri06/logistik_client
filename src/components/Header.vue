@@ -898,6 +898,8 @@ import { InputOtp } from 'primevue';
 import { storeToRefs } from 'pinia';
 import api from '@/api';
 import { Router } from 'lucide-vue-next';
+import { useInboxUnreadStore } from '@/stores/inbox-unread';
+import { useGlobalInboxUnread } from '@/composables/useGlobalInboxUnread';
 
 const authStore = useAuthStore();
 const router = useRouter();
@@ -927,8 +929,9 @@ function openLegalTextModal(doc, isLogin) {
     legalModalIsLogin.value = !!isLogin;
 }
 
-/** Okunmamış mesaj var mı (Header dropdown Mesajlarım yanında kırmızı nokta) */
-const hasUnreadMessages = ref(false);
+useGlobalInboxUnread();
+const inboxUnread = useInboxUnreadStore();
+const { hasUnread: hasUnreadMessages } = storeToRefs(inboxUnread);
 
 const userType = computed(() => {
     if (user.value.type === 'cargo_owner') {
@@ -1211,24 +1214,14 @@ const handleClickOutside = (event) => {
 
 const handleOpenLoginEvent = () => openLogin();
 
-async function fetchHasUnreadMessages() {
-    if (!authStore.isAuthenticated) return;
-    try {
-        const res = await api.get('/messages/has-unread');
-        hasUnreadMessages.value = res.data?.content?.has_unread === true;
-    } catch (_) {
-        hasUnreadMessages.value = false;
-    }
-}
-
 watch(accountDropdownOpen, (open) => {
-    if (open && authStore.isAuthenticated) fetchHasUnreadMessages();
+    if (open && authStore.isAuthenticated) void inboxUnread.fetchHasUnread();
 });
 
 onMounted(() => {
     document.addEventListener('click', handleClickOutside);
     window.addEventListener('open-login', handleOpenLoginEvent);
-    fetchHasUnreadMessages();
+    if (authStore.isAuthenticated) void inboxUnread.fetchHasUnread();
 });
 
 onBeforeUnmount(() => {

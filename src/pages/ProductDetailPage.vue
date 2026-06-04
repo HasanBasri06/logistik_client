@@ -236,10 +236,17 @@
                         <div
                             v-for="(msg, index) in panelMessages"
                             :key="msg.id ?? index"
-                            :class="msg.type === 'system' ? 'flex justify-center' : msg.isMe ? 'flex justify-end' : 'flex justify-start'"
+                            :class="msg.type === 'system' || msg.type === 'request' ? 'flex justify-center' : msg.isMe ? 'flex justify-end' : 'flex justify-start'"
                         >
                             <div
-                                v-if="msg.type === 'system'"
+                                v-if="msg.type === 'request'"
+                                class="rounded-full border border-pink-200 bg-pink-50/95 px-3 py-2 sm:px-4 text-center max-w-[95%] shadow-sm"
+                            >
+                                <p class="text-xs sm:text-sm font-medium text-pink-900 m-0 leading-snug">{{ msg.text }}</p>
+                                <span class="text-[10px] sm:text-xs text-pink-600 mt-1 block">{{ msg.time }}</span>
+                            </div>
+                            <div
+                                v-else-if="msg.type === 'system'"
                                 class="rounded-full border border-slate-200 bg-slate-100/90 px-3 py-2 sm:px-4 text-center max-w-[95%] shadow-sm"
                             >
                                 <p class="text-xs sm:text-sm font-medium text-slate-700 m-0 leading-snug">{{ msg.text }}</p>
@@ -401,9 +408,13 @@ import RequestCard from '@/components/RequestCard.vue';
 import { onMounted, ref, computed, watch, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '@/api';
-import { useMessageStore, formatMessageTime } from '@/stores/message';
+import { useMessageStore } from '@/stores/message';
 import { useAuthStore } from '@/stores/auth';
 import { usePusherMessages } from '@/composables/usePusherMessages';
+import {
+    conversationEventMatchesThread,
+    mapConversationMessageFromEvent,
+} from '@/lib/message-helpers';
 import { useLocationStore } from '@/stores/location';
 import { storeToRefs } from 'pinia';
 
@@ -695,10 +706,13 @@ async function openMessagePanel(request) {
     closeUserBadgeHidden.value = false;
     panelMessages.value = [];
     panelMessagesLoading.value = true;
-    const { success, data } = await messageStore.getBySenderAndReceiver(user.id);
+    const shipmentId = shipment.value?.id ?? null;
+    const { success, data } = await messageStore.getBySenderAndReceiver(user.id, shipmentId);
     panelMessagesLoading.value = false;
     if (success && Array.isArray(data)) {
         panelMessages.value = data;
+        const idsToMark = data.filter((m) => m.id && !m.isMe).map((m) => m.id);
+        if (idsToMark.length) await messageStore.markAsRead(idsToMark);
     }
     newMessageText.value = '';
     showMessagePanel.value = true;
@@ -733,7 +747,8 @@ async function sendPanelMessage() {
         return;
     }
     closeUserBadgeHidden.value = true;
-    const { success, data } = await messageStore.getBySenderAndReceiver(selectedReceiver.value.id);
+    const shipmentId = shipment.value?.id ?? null;
+    const { success, data } = await messageStore.getBySenderAndReceiver(selectedReceiver.value.id, shipmentId);
     if (success && Array.isArray(data)) panelMessages.value = data;
     scrollPanelToBottom();
 }
@@ -741,29 +756,45 @@ async function sendPanelMessage() {
 usePusherMessages(computed(() => authStore.user?.id), {
     onMessageSent(e) {
         const uid = authStore.user?.id;
-        if (!uid) return;
-        const isSystem = e.type === 'system';
-        const forMe =
-            Number(e.receiver_id) === Number(uid) ||
-            (isSystem && Number(e.sender_id) === Number(uid));
-        if (!forMe) return;
-        if (selectedReceiver.value?.id == null) return;
-        const o = Number(selectedReceiver.value.id);
-        const a = Number(e.sender_id);
-        const b = Number(e.receiver_id);
-        if (o !== a && o !== b) return;
-        panelMessages.value = [
-            ...panelMessages.value,
-            {
-                id: e.id,
-                text: e.message,
-                time: formatMessageTime(e.created_at),
-                isMe: !isSystem && a === Number(uid),
-                type: isSystem ? 'system' : 'message',
-                created_at: e.created_at,
-            },
-        ].sort((x, y) => new Date(x.created_at) - new Date(y.created_at));
+        if (!uid || !showMessagePanel.value || selectedReceiver.value?.id == null) return;
+        const sid = shipment.value?.id;
+        if (sid != null && e.shipment_id != null && Number(e.shipment_id) !== Number(sid)) return;
+        if (!conversationEventMatchesThread(e, uid, Number(selectedReceiver.value.id))) return;
+        const row = mapConversationMessageFromEvent(e, uid);
+        panelMessages.value = [...panelMessages.value, row].sort(
+            (x, y) => new Date(x.created_at) - new Date(y.created_at)
+        );
+        if (Number(e.receiver_id) === Number(uid) && e.id) {
+            void messageStore.markAsRead([e.id]);
+        }
         scrollPanelToBottom();
+    },
+    onOfferSent(e) {
+        if (!showMessagePanel.value || selectedReceiver.value?.id == null) return;
+        if (e.shipment_slug != null && shipment.value?.slug && e.shipment_slug !== shipment.value.slug) return;
+        void (async () => {
+            const shipmentId = shipment.value?.id ?? null;
+            const { success, data } = await messageStore.getBySenderAndReceiver(
+                selectedReceiver.value.id,
+                shipmentId
+            );
+            if (success && Array.isArray(data)) panelMessages.value = data;
+            scrollPanelToBottom();
+        })();
+    },
+    onOfferAccepted(e) {
+        if (!showMessagePanel.value || !shipment.value?.slug) return;
+        if (e.shipment_slug != null && e.shipment_slug !== shipment.value.slug) return;
+        if (selectedReceiver.value?.id == null) return;
+        void (async () => {
+            const shipmentId = shipment.value?.id ?? null;
+            const { success, data } = await messageStore.getBySenderAndReceiver(
+                selectedReceiver.value.id,
+                shipmentId
+            );
+            if (success && Array.isArray(data)) panelMessages.value = data;
+            scrollPanelToBottom();
+        })();
     },
 });
 

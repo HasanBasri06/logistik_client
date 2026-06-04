@@ -8,7 +8,7 @@
                 <div>
                     <h2 class="text-2xl font-bold text-gray-900">Şifre Değiştir</h2>
                     <p class="text-sm text-gray-500 mt-0.5">
-                        Yeni şifreni belirle; güncelle dediğinde e-postana gelen kodu girmen istenecek.
+                        Yeni şifreni belirle; güncelle dediğinde telefonuna gelen kodu girmen istenecek.
                     </p>
                 </div>
             </div>
@@ -110,13 +110,13 @@
                 >
                     <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 border border-gray-200">
                         <h2 id="pwd-verify-title" class="text-lg font-semibold text-gray-900">
-                            E-posta ile doğrulama
+                            SMS ile doğrulama
                         </h2>
                         <p class="text-sm text-gray-600 mt-2">
-                            Kayıtlı e-posta adresine 6 haneli kod gönderdik. Kodu girerek şifre güncellemesini tamamla.
+                            Kayıtlı telefon numaranıza 6 haneli kod gönderdik. Kodu girerek şifre güncellemesini tamamla.
                         </p>
-                        <p v-if="emailMasked" class="text-xs text-gray-500 mt-2">
-                            Kod <strong>{{ emailMasked }}</strong> adresine gönderildi.
+                        <p v-if="phoneMasked" class="text-xs text-gray-500 mt-2">
+                            Kod <strong>{{ phoneMasked }}</strong> numarasına gönderildi.
                         </p>
                         <p v-if="modalSendError" class="text-xs text-red-600 mt-2">{{ modalSendError }}</p>
 
@@ -205,7 +205,7 @@ const showConfirm = ref(false);
 const loading = ref(false);
 const codeSending = ref(false);
 const codeSent = ref(false);
-const emailMasked = ref('');
+const phoneMasked = ref('');
 
 const verifyModalOpen = ref(false);
 const modalOtp = ref('');
@@ -246,9 +246,9 @@ async function sendCode() {
     try {
         const res = await api.post('/auth/send-password-change-code');
         const content = res.data?.content ?? res.data;
-        emailMasked.value = content?.email_masked ?? '';
+        phoneMasked.value = content?.phone_masked ?? content?.email_masked ?? '';
         codeSent.value = true;
-        toast.success('Doğrulama kodu gönderildi.', { description: 'E-posta kutunu kontrol et.', duration: 5000 });
+        toast.success('Doğrulama kodu gönderildi.', { description: 'SMS kutunu kontrol et.', duration: 5000 });
     } catch (err) {
         const msg = err.response?.data?.message || err.response?.data?.error || 'Kod gönderilemedi.';
         modalSendError.value = msg;
@@ -283,7 +283,7 @@ async function openVerifyModal() {
     verifyModalOpen.value = true;
     modalOtp.value = '';
     codeSent.value = false;
-    emailMasked.value = '';
+    phoneMasked.value = '';
 
     await nextTick();
     await sendCode();
@@ -313,7 +313,7 @@ async function submitPasswordWithOtp() {
         passwordForm.value = { newPassword: '', confirmPassword: '' };
         pendingPasswords.value = { newPassword: '', confirmPassword: '' };
         codeSent.value = false;
-        emailMasked.value = '';
+        phoneMasked.value = '';
         closeVerifyModal();
     } catch (err) {
         const data = err.response?.data;

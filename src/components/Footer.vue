@@ -67,23 +67,10 @@
 
                     <div class="w-full md:w-auto">
                         <h3 class="text-white font-semibold text-sm uppercase tracking-wider mb-5">Mobil</h3>
-                        <p class="text-sm text-gray-400 leading-relaxed">Yakın zamanda eklenecektir.</p>
-                        <div class="flex flex-col items-center gap-3 mt-4 md:items-stretch">
-                            <div class="flex items-center gap-3 rounded-lg bg-white/5 px-4 py-3 opacity-50">
-                                <i class="pi pi-apple text-lg text-white"></i>
-                                <div>
-                                    <p class="text-sm text-white font-medium">App Store</p>
-                                    <p class="text-[10px] text-gray-400 leading-none">İle indirin</p>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-3 rounded-lg bg-white/5 px-4 py-3 opacity-50">
-                                <i class="pi pi-android text-lg text-white"></i>
-                                <div>
-                                    <p class="text-sm text-white font-medium">Google Play</p>
-                                    <p class="text-[10px] text-gray-400 leading-none">İle indirin</p>
-                                </div>
-                            </div>
-                        </div>
+                        <p class="text-sm text-gray-400 leading-relaxed mb-4">
+                            TaşıBul uygulamasını indirin; ilanları ve mesajları mobilde takip edin.
+                        </p>
+                        <StoreDownloadBars variant="dark" class="w-full max-w-[220px] mx-auto md:mx-0" />
                     </div>
 
                     <div class="w-full md:w-auto">
@@ -110,6 +97,7 @@
 import { computed } from 'vue';
 import { RouterLink } from 'vue-router';
 import Content from '@/components/Content.vue';
+import StoreDownloadBars from '@/components/StoreDownloadBars.vue';
 import { Instagram, Linkedin, Facebook, Youtube, Twitter } from 'lucide-vue-next';
 
 const currentYear = computed(() => new Date().getFullYear());

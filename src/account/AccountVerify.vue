@@ -444,7 +444,7 @@ const sendEmailVerificationCode = async () => {
     try {
         const res = await api.post('/confirm-account/send-email-code');
         const msg = res.data?.message ?? 'Doğrulama kodu telefon numaranıza gönderildi.';
-        toast.success(msg, { description: 'E-posta kutunuzu kontrol edin.', duration: 5000 });
+        toast.success(msg, { description: 'SMS kutunuzu kontrol edin.', duration: 5000 });
     } catch (err) {
         const msg = err.response?.data?.message ?? err.message ?? 'Kod gönderilemedi.';
         toast.error('Hata', { description: msg, duration: 5000 });

@@ -128,27 +128,20 @@
 import { onMounted, ref } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { storeToRefs } from 'pinia';
-import api from '@/api';
 import UserSection from './UserSection.vue';
 import EkibineSorModal from './EkibineSorModal.vue';
+import { useInboxUnreadStore } from '@/stores/inbox-unread';
+import { useGlobalInboxUnread } from '@/composables/useGlobalInboxUnread';
 
 const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);
 
-const hasUnreadMessages = ref(false);
+useGlobalInboxUnread();
+const inboxUnread = useInboxUnreadStore();
+const { hasUnread: hasUnreadMessages } = storeToRefs(inboxUnread);
 const ekibineSorOpen = ref(false);
 
-async function fetchHasUnreadMessages() {
-    if (!authStore.isAuthenticated) return;
-    try {
-        const res = await api.get('/messages/has-unread');
-        hasUnreadMessages.value = res.data?.content?.has_unread === true;
-    } catch (_) {
-        hasUnreadMessages.value = false;
-    }
-}
-
 onMounted(() => {
-    fetchHasUnreadMessages();
+    if (authStore.isAuthenticated) void inboxUnread.fetchHasUnread();
 });
 </script>

@@ -15,7 +15,12 @@
                 <h2 class="text-lg font-semibold text-gray-900 truncate flex-1">Mesajlar</h2>
             </div>
 
-            <h2 class="hidden md:block text-xl sm:text-2xl font-semibold text-gray-900 mb-4 sm:mb-6">Yük Sahibi Mesajları</h2>
+            <h2 class="hidden md:block text-xl sm:text-2xl font-semibold text-gray-900 mb-4 sm:mb-6">
+                {{ isVehicleOwnerMessages ? 'Yük Sahibi Mesajları' : 'Araç Sahibi Mesajları' }}
+            </h2>
+            <p class="hidden md:block text-sm text-gray-500 -mt-3 mb-4 sm:mb-6">
+                {{ isVehicleOwnerMessages ? 'Yük sahipleriyle mesajlaşın.' : 'Araç sahipleriyle mesajlaşın.' }}
+            </p>
 
             <div
                 v-if="isVehicleOwnerMessages && !hasVehicle"
@@ -139,55 +144,51 @@
                 </div>
             </div>
 
-            <!-- Üst: İlan özeti + Talep (mobilde alt alta, yükseklik sınırlı) -->
+            <!-- Üst: İlan özeti (Expo ConversationThreadContext) -->
             <div
-                v-if="(conversationShipment || conversationTeklif) && !threadLoading"
-                class="mx-3 sm:mx-4 mt-1.5 mb-1.5 flex flex-col sm:flex-row gap-2 sm:gap-3 shrink-0 max-h-[28vh] sm:max-h-none overflow-y-auto overflow-x-hidden"
+                v-if="showListingPanel && !threadLoading"
+                class="mx-3 sm:mx-4 mt-1.5 mb-1.5 shrink-0"
             >
-                <div
-                    v-if="conversationShipment"
-                    role="button"
-                    tabindex="0"
-                    class="flex-1 min-h-0 rounded-xl border border-gray-200 bg-white p-3 sm:p-4 shadow-sm min-w-0 cursor-pointer hover:border-primary/40 hover:shadow-md transition-all active:scale-[0.99] relative"
-                    @click="conversationShipment?.slug && goToShipment(conversationShipment.slug)"
-                    @keydown.enter="conversationShipment?.slug && goToShipment(conversationShipment.slug)"
-                >
-                    <p class="text-xs font-semibold text-gray-500  tracking-wide mb-1.5 sm:mb-2">İlan özeti</p>
-                    <div class="flex items-center  gap-1.5 sm:gap-2 flex-wrap text-xs sm:text-sm">
-                        <span class="font-semibold text-gray-900">{{ conversationShipment.f_where_city }} / {{ conversationShipment.f_where_district }}</span>
-                        <i class="pi pi-arrow-right text-primary text-xs shrink-0"></i>
-                        <span class="font-semibold text-gray-900">{{ conversationShipment.t_where_city }} / {{ conversationShipment.t_where_district }}</span>
-                    </div>
-                    <div class="flex items-center gap-2 sm:gap-3 mt-1.5 sm:mt-2 text-xs sm:text-sm text-gray-600 flex-wrap">
-                        <span v-if="conversationShipment.hours">{{ conversationShipment.hours }}</span>
-                        <span v-if="conversationShipment.price" class="font-semibold text-primary">{{ conversationShipment.price }}</span>
-                    </div>
-                </div>
-                <div
-                    v-if="conversationTeklif"
-                    class="flex-1 min-h-0 min-w-0 rounded-xl border-2 border-primary/30 bg-white shadow-sm flex flex-col overflow-hidden"
-                >
-                    <div class="px-3 sm:px-4 pt-3 sm:pt-4 pb-2 min-h-0 flex-1 overflow-y-auto">
-                        <p class="text-xs font-semibold text-primary tracking-wide mb-1.5 sm:mb-2">Talep / Teklif</p>
-                        <p v-if="conversationTeklif.carName" class="text-xs sm:text-sm font-medium text-gray-900 mb-1">{{ conversationTeklif.carName }}</p>
-                        <p class="text-xs sm:text-sm font-semibold text-primary mb-1">{{ conversationTeklif.price }}</p>
-                        <p v-if="conversationTeklif.message" class="text-xs sm:text-sm text-gray-600 mt-2 border-t border-gray-100 pt-2 line-clamp-3 sm:line-clamp-none">{{ conversationTeklif.message }}</p>
-                        <span class="text-xs text-gray-500 mt-2 block">{{ conversationTeklif.time }}</span>
-                    </div>
-                    <div
-                        v-if="isShipmentOwner"
-                        class="shrink-0 px-3 sm:px-4 pb-3 sm:pb-4 pt-2 border-t border-primary/15 bg-primary/3"
+                <div class="rounded-xl border border-gray-200 bg-gray-50 overflow-hidden shadow-sm">
+                    <button
+                        type="button"
+                        class="w-full flex items-center justify-between gap-2 p-3 sm:p-4 text-left hover:bg-gray-100/80 transition-colors"
+                        :aria-expanded="listingDetailsOpen"
+                        @click="listingDetailsOpen = !listingDetailsOpen"
                     >
+                        <div class="min-w-0 flex-1">
+                            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">İlan özeti</p>
+                            <p v-if="!listingDetailsOpen" class="text-sm font-semibold text-gray-900 truncate">
+                                {{ listingRoutePreview }}
+                            </p>
+                        </div>
+                        <i :class="['pi text-gray-500 shrink-0', listingDetailsOpen ? 'pi-chevron-up' : 'pi-chevron-down']" aria-hidden="true"></i>
+                    </button>
+                    <div v-if="listingDetailsOpen" class="px-3 sm:px-4 pb-3 sm:pb-4 border-t border-gray-200/80 space-y-2">
+                        <div v-if="listingFromLine">
+                            <p class="text-xs font-bold text-slate-600">Kalkış</p>
+                            <p class="text-sm font-semibold text-gray-900">{{ listingFromLine }}</p>
+                        </div>
+                        <div v-if="listingToLine">
+                            <p class="text-xs font-bold text-slate-600">Varış</p>
+                            <p class="text-sm font-semibold text-gray-900">{{ listingToLine }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-600">Kalkış saati</p>
+                            <p class="text-sm font-semibold text-gray-900">{{ conversationShipment.departure_time || '—' }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-slate-600">Varış saati</p>
+                            <p class="text-sm font-semibold text-gray-900">{{ conversationShipment.time_arrival || '—' }}</p>
+                        </div>
                         <button
-                            v-if="conversationTeklif.status !== 'accepted'"
+                            v-if="conversationShipment?.slug"
                             type="button"
-                            class="w-full min-h-[44px] py-2.5 rounded-lg bg-primary text-white font-semibold text-sm hover:bg-primary/90 active:bg-primary/80 transition-colors disabled:opacity-60 disabled:cursor-not-allowed touch-manipulation shadow-sm"
-                            :disabled="teklifAcceptLoading === conversationTeklif.id"
-                            @click="acceptTeklif(conversationTeklif.id)"
+                            class="mt-2 w-full py-2 rounded-lg border border-primary/35 bg-primary/10 text-primary text-sm font-bold hover:bg-primary/15 transition-colors"
+                            @click="goToShipment(conversationShipment.slug)"
                         >
-                            {{ teklifAcceptLoading === conversationTeklif.id ? 'İşleniyor...' : 'Teklifi Kabul Et' }}
+                            İlan detayı
                         </button>
-                        <p v-else class="text-center text-xs sm:text-sm font-medium text-green-600 py-1">Kabul edildi</p>
                     </div>
                 </div>
             </div>
@@ -197,31 +198,36 @@
                 <p v-if="threadLoading" class="text-sm text-gray-500 py-4">Mesajlar yükleniyor...</p>
                 <div v-else class="flex flex-col gap-3 sm:gap-4">
                     <div
-                        v-for="(msg, index) in messageThread"
-                        :key="msg.type === 'teklif' ? `teklif-${msg.id}` : msg.type === 'system' ? `sys-${msg.id}` : `msg-${msg.id ?? index}`"
+                        v-for="(msg, index) in visibleMessageThread"
+                        :key="msg.type === 'system' ? `sys-${msg.id}` : msg.type === 'request' ? `req-${msg.id}` : `msg-${msg.id ?? index}`"
                         :class="[
-                            msg.type === 'system'
+                            msg.type === 'system' || msg.type === 'request'
                                 ? 'self-center max-w-[95%] sm:max-w-[90%]'
                                 : 'flex flex-col gap-1 py-2.5 sm:py-3 px-3 sm:px-4 rounded-2xl max-w-[90%] sm:max-w-[70%]',
-                            msg.type !== 'system' && msg.type !== 'teklif' && (msg.isMe ? 'self-end ml-auto' : 'self-start mr-auto'),
-                            msg.type !== 'teklif' && msg.type !== 'system' && (msg.isMe
+                            msg.type !== 'system' && msg.type !== 'request' && (msg.isMe ? 'self-end ml-auto' : 'self-start mr-auto'),
+                            msg.type !== 'system' && msg.type !== 'request' && (msg.isMe
                                 ? 'bg-primary text-white rounded-br-md'
                                 : 'bg-white text-gray-700 rounded-bl-md border border-gray-200')
                         ]"
                     >
-                        <template v-if="msg.type === 'system'">
+                        <template v-if="msg.type === 'request'">
+                            <component
+                                :is="canOpenRequestOffer(msg) ? 'button' : 'div'"
+                                type="button"
+                                class="rounded-full border border-pink-200 bg-pink-50/95 px-3 py-2 sm:px-4 sm:py-2.5 text-center shadow-sm w-full"
+                                :class="canOpenRequestOffer(msg) ? 'cursor-pointer hover:bg-pink-100/90 active:bg-pink-100' : ''"
+                                @click="canOpenRequestOffer(msg) && openRequestOffer()"
+                            >
+                                <p class="text-xs sm:text-sm font-medium text-pink-900 m-0 leading-snug">{{ msg.text }}</p>
+                                <span class="text-[10px] sm:text-xs text-pink-600 mt-1 block">{{ msg.time }}</span>
+                            </component>
+                        </template>
+                        <template v-else-if="msg.type === 'system'">
                             <div
-                                class="rounded-full border border-slate-200 bg-slate-100/90 px-3 py-2 sm:px-4 sm:py-2.5 text-center shadow-sm"
+                                class="rounded-full border border-slate-200 bg-slate-100/90 px-3 py-2 sm:px-4 sm:py-2.5 text-center shadow-sm w-full"
                             >
                                 <p class="text-xs sm:text-sm font-medium text-slate-700 m-0 leading-snug">{{ msg.text }}</p>
                                 <span class="text-[10px] sm:text-xs text-slate-500 mt-1 block">{{ msg.time }}</span>
-                            </div>
-                        </template>
-                        <template v-else-if="msg.type === 'teklif'">
-                            <div class="min-w-0">
-                                <p class="text-xs font-semibold text-primary">{{ msg.price }}</p>
-                                <p v-if="msg.message" class="md:text-sm text-xs text-gray-700 mt-1 m-0">{{ msg.message }}</p>
-                                <span class="md:text-xs text-xs opacity-70 mt-1 block">{{ msg.time }}</span>
                             </div>
                         </template>
                         <div v-else class="min-w-0">
@@ -232,26 +238,7 @@
                 </div>
             </div>
 
-            <!-- Araç sahibi: teklif kabul edildi (mesaj alanı ile input arasında sabit şerit) -->
-            <div
-                v-if="isVehicleOwnerMessages && shipmentAccepted"
-                class="w-full shrink-0 border-t border-emerald-200 bg-emerald-50 px-3 sm:px-4 py-3 text-center"
-                role="status"
-            >
-                <p class="text-sm text-emerald-900 m-0 leading-relaxed">
-                    <span class="font-semibold">Teklifiniz kabul edildi.</span>
-                    İlanı
-                    <RouterLink
-                        to="/vehicle-owner/orders"
-                        class="font-semibold text-primary underline decoration-primary/40 underline-offset-2 hover:text-primary/90"
-                    >
-                        Tüm İşlerim
-                    </RouterLink>
-                    kısmından görüntüleyebilirsiniz.
-                </p>
-            </div>
-
-            <!-- Özel teklif gönder (sadece araç sahibi /vehicle-owner/messages sayfasında) -->
+        
             <div
                 v-if="conversationShipment?.slug && isVehicleOwnerMessages && !shipmentAccepted"
                 class="w-full shrink-0 border-t border-gray-200 p-2 sm:p-3 bg-white min-h-0"
@@ -313,9 +300,16 @@
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
 import { useRoute, useRouter, RouterLink } from 'vue-router';
-import { useMessageStore, formatMessageTime } from '@/stores/message';
+import { useMessageStore } from '@/stores/message';
 import { useAuthStore } from '@/stores/auth';
+import { useInboxUnreadStore } from '@/stores/inbox-unread';
 import { usePusherMessages } from '@/composables/usePusherMessages';
+import {
+    conversationEventMatchesThread,
+    conversationShipmentHasListingPanel,
+    formatConversationShipmentEndpoint,
+    mapConversationMessageFromEvent,
+} from '@/lib/message-helpers';
 import api from '@/api';
 import TeklifVerModal from '@/components/TeklifVerModal.vue';
 
@@ -331,42 +325,9 @@ const authStore = useAuthStore();
 
 const emit = defineEmits(['refresh']);
 
-const displayMessages = computed(() => props.messagesList ?? messages.value);
+const inboxUnread = useInboxUnreadStore();
 
-const messages = ref([
-    {
-        id: 1,
-        name: 'Ahmet Yılmaz',
-        avatar: '../assets/images/person.png',
-        time: '2 saat önce',
-        lastMessage: 'Merhaba, yükünüz için teklif hazırladım. Detayları görüşebilir miyiz?',
-        isRead: true
-    },
-    {
-        id: 2,
-        name: 'Mehmet Demir',
-        avatar: '../assets/images/person.png',
-        time: '5 saat önce',
-        lastMessage: 'Ankara\'dan İstanbul\'a taşımacılık için uygunum. Fiyat teklifi gönderebilirim.',
-        isRead: false
-    },
-    {
-        id: 3,
-        name: 'Ali Kaya',
-        avatar: '../assets/images/person.png',
-        time: '1 gün önce',
-        lastMessage: 'Yükünüz için uygun araçlarım var. İletişime geçebilir miyiz?',
-        isRead: false
-    },
-    {
-        id: 4,
-        name: 'Fatma Şahin',
-        avatar: '../assets/images/person.png',
-        time: '2 gün önce',
-        lastMessage: 'Taşımacılık konusunda deneyimliyim. Size yardımcı olabilirim.',
-        isRead: true
-    }
-]);
+const displayMessages = computed(() => props.messagesList ?? []);
 
 const selectedMessage = ref(null);
 const newMessageText = ref('');
@@ -375,50 +336,70 @@ const threadLoading = ref(false);
 const messageThreadContainer = ref(null);
 const conversationShipmentId = ref(null);
 const conversationShipment = ref(null);
-const teklifAcceptLoading = ref(null);
 const showTeklifModal = ref(false);
 const hasVehicle = ref(true);
+const listingDetailsOpen = ref(false);
 
 const canSendMessage = computed(() => {
     if (!isVehicleOwnerMessages.value) return true;
     return hasVehicle.value;
 });
 
-function pickSystemMessageText(payload, userId) {
-    const isSender = Number(payload?.sender_id) === Number(userId);
-    if (payload?.type === 'system') {
-        return isSender
-            ? (payload?.sender_message ?? payload?.message ?? '')
-            : (payload?.receiver_message ?? payload?.message ?? '');
+const showListingPanel = computed(() => conversationShipmentHasListingPanel(conversationShipment.value));
+
+const listingFromLine = computed(() =>
+    conversationShipment.value
+        ? formatConversationShipmentEndpoint(
+              conversationShipment.value.f_where_city,
+              conversationShipment.value.f_where_district
+          )
+        : ''
+);
+
+const listingToLine = computed(() =>
+    conversationShipment.value
+        ? formatConversationShipmentEndpoint(
+              conversationShipment.value.t_where_city,
+              conversationShipment.value.t_where_district
+          )
+        : ''
+);
+
+const listingRoutePreview = computed(() => {
+    if (listingFromLine.value && listingToLine.value) {
+        return `${listingFromLine.value} → ${listingToLine.value}`;
     }
-    return payload?.message ?? '';
-}
+    return listingFromLine.value || listingToLine.value || 'İlan bilgisi';
+});
 
 async function onTeklifModalSuccess() {
     showTeklifModal.value = false;
     const otherUserId = route.params.id ? parseInt(route.params.id, 10) : null;
-    const slug = conversationShipment.value?.slug;
-    if (otherUserId && slug) {
+    if (otherUserId) {
         const res = await messageStore.getBySenderAndReceiver(otherUserId, conversationShipmentId.value);
         const data = res?.data ?? [];
-        try {
-            const requestsRes = await api.get(`/shipments/${slug}/requests`);
-            const content = requestsRes.data?.content ?? requestsRes.data?.data ?? requestsRes.data ?? {};
-            const requests = content?.shipment?.requests ?? [];
-            messageThread.value = buildMessageThreadWithTeklif(data, requests, authStore.user?.id, otherUserId);
-        } catch (_) {
-            if (Array.isArray(data)) messageThread.value = data;
-        }
+        messageThread.value = buildMessageThread(data);
         scrollMessagesToBottom();
     }
 }
+
+const isVehicleOwnerMessages = computed(() => String(props.basePath || '').includes('vehicle-owner'));
 
 const isShipmentOwner = computed(() => {
     const createrId = conversationShipment.value?.creater_id ?? conversationShipment.value?.creator_id;
     return createrId != null && Number(createrId) === Number(authStore.user?.id);
 });
 
-const isVehicleOwnerMessages = computed(() => String(props.basePath || '').includes('vehicle-owner'));
+function canOpenRequestOffer(msg) {
+    if (msg?.type !== 'request') return false;
+    if (isVehicleOwnerMessages.value) return false;
+    return isShipmentOwner.value && !!conversationShipment.value?.slug;
+}
+
+function openRequestOffer() {
+    const slug = conversationShipment.value?.slug;
+    if (slug) goToShipment(slug);
+}
 
 function getInitials(name) {
     if (!name || typeof name !== 'string') return '?';
@@ -429,68 +410,18 @@ function getInitials(name) {
     return (first + last).toUpperCase();
 }
 
-/** Sohbette gönderilmiş talep/teklif – en üstte ilan özetinin yanında (en son teklif) */
-const conversationTeklif = computed(() => {
-    const list = messageThread.value || [];
-    const teklifs = list.filter((m) => m.type === 'teklif');
-    if (!teklifs.length) return null;
-    return teklifs[teklifs.length - 1];
-});
+const visibleMessageThread = computed(() =>
+    (messageThread.value || []).filter((m) => m.type !== 'teklif')
+);
 
 /** İlan anlaşmaya döndüyse (bilgilendirme amaçlı) */
 const shipmentAccepted = computed(() => {
     const s = conversationShipment.value?.status ?? conversationShipment.value?.shipment?.status;
-    if (s === 'accepted') return true;
-    const t = conversationTeklif.value?.status;
-    return t === 'accepted';
+    return s === 'accepted';
 });
 
-async function acceptTeklif(requestId) {
-    const slug = conversationShipment.value?.slug;
-    if (!slug) return;
-    teklifAcceptLoading.value = requestId;
-    try {
-        await api.post(`/shipments/${slug}/requests/${requestId}/accept`);
-        const otherUserId = route.params.id ? parseInt(route.params.id, 10) : null;
-        if (otherUserId) {
-            const res = await messageStore.getBySenderAndReceiver(otherUserId, conversationShipmentId.value);
-            const data = res?.data ?? [];
-            conversationShipmentId.value = res?.conversationShipmentId ?? conversationShipmentId.value;
-            conversationShipment.value = res?.conversationShipment ?? conversationShipment.value;
-            const reqRes = await api.get(`/shipments/${slug}/requests`).catch(() => ({ data: {} }));
-            const content = reqRes.data?.content ?? reqRes.data?.data ?? reqRes.data ?? {};
-            const requests = content?.shipment?.requests ?? [];
-            messageThread.value = buildMessageThreadWithTeklif(data, requests, authStore.user?.id, otherUserId);
-            scrollMessagesToBottom();
-        }
-        emit('refresh');
-    } catch (err) {
-        console.warn('Teklif kabul edilemedi:', err?.response?.data?.message ?? err?.message);
-    } finally {
-        teklifAcceptLoading.value = null;
-    }
-}
-
-function buildMessageThreadWithTeklif(messages, requests, currentUserId, otherUserId) {
-    const currentId = Number(currentUserId);
-    const otherId = otherUserId != null ? Number(otherUserId) : null;
-    const teklifItems = (requests || [])
-        .filter((r) => {
-            const uid = Number(r.user_id);
-            return uid === currentId || (otherId != null && uid === otherId);
-        })
-        .map((r) => ({
-            type: 'teklif',
-            id: r.id,
-            isMe: Number(r.user_id) === currentId,
-            carName: r.car?.name ?? '',
-            price: r.price ?? '—',
-            message: r.message ?? '',
-            time: formatMessageTime(r.created_at_raw ?? r.created_at),
-            created_at: r.created_at_raw ?? r.created_at,
-            status: r.status ?? 'pending',
-        }));
-    const withDate = [...(messages || []), ...teklifItems].filter((m) => m.created_at);
+function buildMessageThread(messages) {
+    const withDate = (messages || []).filter((m) => m.created_at && m.type !== 'teklif');
     withDate.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
     return withDate;
 }
@@ -508,7 +439,12 @@ const goBackToMessages = () => {
 };
 
 const goToShipment = (slug) => {
-    if (slug) router.push({ path: `/posts/${slug}` });
+    if (!slug) return;
+    if (isVehicleOwnerMessages.value) {
+        router.push({ path: `/posts/${slug}` });
+    } else {
+        router.push({ path: `/product/${slug}` });
+    }
 };
 
 /** Mobil liste ekranında geri: ana panele (cargo-owner / vehicle-owner) dön */
@@ -527,7 +463,7 @@ function scrollMessagesToBottom() {
 }
 
 const loadMessageDetail = async (messageId) => {
-    const list = props.messagesList ?? messages.value;
+    const list = props.messagesList ?? [];
     const shipmentIdFromRoute = route.query?.shipment_id != null ? Number(route.query.shipment_id) : null;
     const normalizedMessageId = typeof messageId === 'string' ? parseInt(messageId, 10) : messageId;
     const message = list.find((m) => {
@@ -548,28 +484,15 @@ const loadMessageDetail = async (messageId) => {
             const data = result?.data ?? [];
             conversationShipmentId.value = currentShipmentId ?? result?.conversationShipmentId ?? null;
             conversationShipment.value = result?.conversationShipment ?? null;
-            const slug = conversationShipment.value?.slug;
-            let thread = Array.isArray(data) ? data : [];
-            if (slug) {
-                try {
-                    const requestsRes = await api.get(`/shipments/${slug}/requests`);
-                    const content = requestsRes.data?.content ?? requestsRes.data?.data ?? requestsRes.data ?? {};
-                    const requests = content?.shipment?.requests ?? [];
-                    thread = buildMessageThreadWithTeklif(data, requests, authStore.user?.id, otherUserId);
-                } catch (_) {}
-            }
-            messageThread.value = thread;
+            listingDetailsOpen.value = false;
+            messageThread.value = buildMessageThread(Array.isArray(data) ? data : []);
             threadLoading.value = false;
             scrollMessagesToBottom();
-            const idsToMarkRead = (data || []).filter((m) => !m.isMe && m.id).map((m) => m.id);
-            if (idsToMarkRead.length) await messageStore.markAsRead(idsToMarkRead);
-        } else {
-            messageThread.value = [
-                { text: message.lastMessage, time: message.time, isMe: false },
-                { text: 'Teşekkür ederim, detayları paylaşabilir misiniz?', time: '1 saat önce', isMe: true },
-                { text: 'Tabii ki, yükünüzün ağırlığı ve boyutları nedir?', time: '30 dakika önce', isMe: false }
-            ];
-            scrollMessagesToBottom();
+            const idsToMarkRead = (data || []).filter((m) => m.id && !m.isMe).map((m) => m.id);
+            if (idsToMarkRead.length) {
+                await messageStore.markAsRead(idsToMarkRead);
+                void inboxUnread.fetchHasUnread();
+            }
         }
     }
 };
@@ -578,48 +501,31 @@ const sendMessage = async () => {
     const text = newMessageText.value?.trim();
     if (!text) return;
     if (!canSendMessage.value) return;
+    if (!props.messagesList) return;
 
-    if (props.messagesList) {
-        const otherUserId = route.params.id ? parseInt(route.params.id, 10) : null;
-        if (!otherUserId) return;
-        const tempId = `temp-${Date.now()}`;
-        const optimisticMsg = { id: tempId, text, time: 'Şimdi', isMe: true, type: 'message', created_at: new Date().toISOString() };
-        messageThread.value = [...messageThread.value, optimisticMsg];
-        newMessageText.value = '';
-        scrollMessagesToBottom();
+    const otherUserId = route.params.id ? parseInt(route.params.id, 10) : null;
+    if (!otherUserId) return;
+    const tempId = `temp-${Date.now()}`;
+    const optimisticMsg = { id: tempId, text, time: 'Şimdi', isMe: true, type: 'message', created_at: new Date().toISOString() };
+    messageThread.value = [...messageThread.value, optimisticMsg];
+    newMessageText.value = '';
+    scrollMessagesToBottom();
 
-        const result = await messageStore.createMessage({
-            receiver_id: otherUserId,
-            message: text,
-            shipment_id: conversationShipmentId.value ?? undefined,
-        });
-        if (!result.success) {
-            messageThread.value = messageThread.value.filter((m) => m.id !== tempId);
-            return;
-        }
-        const res = await messageStore.getBySenderAndReceiver(otherUserId, conversationShipmentId.value);
-        const data = res?.data ?? [];
-        conversationShipmentId.value = res?.conversationShipmentId ?? conversationShipmentId.value;
-        conversationShipment.value = res?.conversationShipment ?? conversationShipment.value;
-        const slug = conversationShipment.value?.slug;
-        if (slug) {
-            try {
-                const requestsRes = await api.get(`/shipments/${slug}/requests`);
-                const content = requestsRes.data?.content ?? requestsRes.data?.data ?? requestsRes.data ?? {};
-                const requests = content?.shipment?.requests ?? [];
-                messageThread.value = buildMessageThreadWithTeklif(data, requests, authStore.user?.id, otherUserId);
-            } catch (_) {
-                if (Array.isArray(data)) messageThread.value = data;
-            }
-        } else if (Array.isArray(data)) {
-            messageThread.value = data;
-        }
-        scrollMessagesToBottom();
-    } else {
-        messageThread.value.push({ text, time: 'Şimdi', isMe: true });
-        newMessageText.value = '';
-        scrollMessagesToBottom();
+    const result = await messageStore.createMessage({
+        receiver_id: otherUserId,
+        message: text,
+        shipment_id: conversationShipmentId.value ?? undefined,
+    });
+    if (!result.success) {
+        messageThread.value = messageThread.value.filter((m) => m.id !== tempId);
+        return;
     }
+    const res = await messageStore.getBySenderAndReceiver(otherUserId, conversationShipmentId.value);
+    const data = res?.data ?? [];
+    conversationShipmentId.value = res?.conversationShipmentId ?? conversationShipmentId.value;
+    conversationShipment.value = res?.conversationShipment ?? conversationShipment.value;
+    messageThread.value = buildMessageThread(Array.isArray(data) ? data : []);
+    scrollMessagesToBottom();
 };
 
 async function checkVehicleOwnerCars() {
@@ -671,22 +577,8 @@ function handleOfferSent(e) {
     const currentOtherId = route.params.id ? parseInt(route.params.id, 10) : null;
     if (currentOtherId == null || Number(e.sender_id) !== Number(currentOtherId)) return;
     if (conversationShipment.value?.slug != null && e.shipment_slug != null && e.shipment_slug !== conversationShipment.value.slug) return;
-    const createdAt = e.created_at_raw || e.created_at;
-    const teklifItem = {
-        type: 'teklif',
-        id: e.id,
-        isMe: false,
-        carName: e.car_name ?? '',
-        price: e.price ?? '—',
-        message: e.message ?? '',
-        time: formatMessageTime(createdAt),
-        created_at: createdAt,
-        status: e.status ?? 'pending',
-    };
-    messageThread.value = [...messageThread.value, teklifItem].filter((m) => m.created_at).sort(
-        (a, b) => new Date(a.created_at) - new Date(b.created_at)
-    );
-    scrollMessagesToBottom();
+    emit('refresh');
+    if (!Number.isNaN(currentOtherId)) loadMessageDetail(currentOtherId);
 }
 
 const userIdRef = computed(() => authStore.user?.id);
@@ -694,32 +586,32 @@ const { connect: connectPusher } = usePusherMessages(userIdRef, {
     onMessageSent(e) {
         const userId = authStore.user?.id;
         if (userId == null) return;
-        const isSystem = e.type === 'system';
-        const forMe =
-            Number(e.receiver_id) === Number(userId) ||
-            (isSystem && Number(e.sender_id) === Number(userId));
-        if (!forMe) return;
+        inboxUnread.applyMessageSent(e, userId);
         const currentOtherId = route.params.id ? parseInt(route.params.id, 10) : null;
-        if (currentOtherId !== null) {
-            const a = Number(e.sender_id);
-            const b = Number(e.receiver_id);
-            if (currentOtherId !== a && currentOtherId !== b) return;
+        if (currentOtherId == null || Number.isNaN(currentOtherId)) {
+            emit('refresh');
+            return;
         }
-        const time = formatMessageTime(e.created_at);
-        const isMe = !isSystem && Number(e.sender_id) === Number(userId);
-        messageThread.value = [
-            ...messageThread.value,
-            {
-                id: e.id,
-                text: pickSystemMessageText(e, userId),
-                time,
-                isMe,
-                type: isSystem ? 'system' : 'message',
-                created_at: e.created_at,
-            },
-        ].sort((x, y) => new Date(x.created_at) - new Date(y.created_at));
+        if (!conversationEventMatchesThread(e, userId, currentOtherId)) return;
+        if (
+            e.shipment_id != null &&
+            conversationShipmentId.value != null &&
+            Number(e.shipment_id) !== Number(conversationShipmentId.value)
+        ) {
+            return;
+        }
+        const row = mapConversationMessageFromEvent(e, userId);
+        messageThread.value = [...messageThread.value, row].sort(
+            (x, y) => new Date(x.created_at) - new Date(y.created_at)
+        );
         scrollMessagesToBottom();
+        if (Number(e.receiver_id) === Number(userId) && e.id) {
+            void messageStore.markAsRead([e.id]).then(() => inboxUnread.fetchHasUnread());
+        }
         emit('refresh');
+    },
+    onInboxUnreadUpdated(e) {
+        inboxUnread.syncFromCount(e?.unread_count);
     },
     onOfferSent(e) {
         handleOfferSent(e);

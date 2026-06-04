@@ -180,10 +180,15 @@ import Content from './components/Content.vue';
 import Header from './components/Header.vue';
 import AccountSidebar from './components/AccountSidebar.vue';
 import { useAuthStore } from '@/stores/auth';
+import { useInboxUnreadStore } from '@/stores/inbox-unread';
+import { useGlobalInboxUnread } from '@/composables/useGlobalInboxUnread';
 import api from './api';
 
+useGlobalInboxUnread();
 const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);
+const inboxUnread = useInboxUnreadStore();
+const { hasUnread: hasUnreadMessages } = storeToRefs(inboxUnread);
 
 function resolveProfilePhotoUrl(u) {
     if (!u) return '';
@@ -212,8 +217,6 @@ watch(profilePhotoSrc, () => {
 
 const pendingJobs = ref(0);
 const vehicleCount = ref(0);
-const hasUnreadMessages = ref(false);
-
 async function fetchVehicleOwnerData() {
     try {
         const res = await api.get('/vehicle');
@@ -229,18 +232,8 @@ async function fetchVehicleOwnerData() {
     }
 }
 
-async function fetchHasUnreadMessages() {
-    if (!authStore.isAuthenticated) return;
-    try {
-        const res = await api.get('/messages/has-unread');
-        hasUnreadMessages.value = res.data?.content?.has_unread === true;
-    } catch {
-        hasUnreadMessages.value = false;
-    }
-}
-
 onMounted(() => {
     fetchVehicleOwnerData();
-    fetchHasUnreadMessages();
+    if (authStore.isAuthenticated) void inboxUnread.fetchHasUnread();
 });
 </script>

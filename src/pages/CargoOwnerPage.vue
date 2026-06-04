@@ -164,23 +164,16 @@ import Header from '@/components/Header.vue';
 import Content from '@/components/Content.vue';
 import CargoOwner from '@/components/CargoOwner.vue';
 import { useAuthStore } from '@/stores/auth';
+import { useInboxUnreadStore } from '@/stores/inbox-unread';
+import { useGlobalInboxUnread } from '@/composables/useGlobalInboxUnread';
 import api from '@/api';
 
+useGlobalInboxUnread();
 const authStore = useAuthStore();
 const { user } = storeToRefs(authStore);
-
-const hasUnreadMessages = ref(false);
+const inboxUnread = useInboxUnreadStore();
+const { hasUnread: hasUnreadMessages } = storeToRefs(inboxUnread);
 const totalPosts = ref(0);
-
-async function fetchHasUnreadMessages() {
-    if (!authStore.isAuthenticated) return;
-    try {
-        const res = await api.get('/messages/has-unread');
-        hasUnreadMessages.value = res.data?.content?.has_unread === true;
-    } catch (_) {
-        hasUnreadMessages.value = false;
-    }
-}
 
 async function fetchTotalPosts() {
     if (!authStore.isAuthenticated) return;
@@ -195,7 +188,7 @@ async function fetchTotalPosts() {
 }
 
 onMounted(() => {
-    fetchHasUnreadMessages();
+    if (authStore.isAuthenticated) void inboxUnread.fetchHasUnread();
     fetchTotalPosts();
 });
 </script>

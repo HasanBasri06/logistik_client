@@ -437,7 +437,7 @@
                                 :class="
                                     msg.type === 'preview'
                                         ? ''
-                                        : msg.type === 'system'
+                                        : msg.type === 'system' || msg.type === 'request'
                                           ? 'flex justify-center'
                                           : msg.isMe
                                             ? 'flex justify-end'
@@ -456,6 +456,17 @@
                                     <p class="text-sm font-semibold text-primary mt-2">{{ displayPrice }}</p>
                                 </div>
                                 <div
+                                    v-else-if="msg.type === 'request'"
+                                    class="w-full flex justify-center px-2"
+                                >
+                                    <div
+                                        class="rounded-full border border-pink-200 bg-pink-50/95 px-3 py-2 text-center max-w-[95%] shadow-sm"
+                                    >
+                                        <p class="text-xs font-medium text-pink-900 m-0 leading-snug">{{ msg.text }}</p>
+                                        <span class="text-[10px] text-pink-600 mt-1 block">{{ msg.time }}</span>
+                                    </div>
+                                </div>
+                                <div
                                     v-else-if="msg.type === 'system'"
                                     class="w-full flex justify-center px-2"
                                 >
@@ -464,28 +475,6 @@
                                     >
                                         <p class="text-xs font-medium text-slate-700 m-0 leading-snug">{{ msg.text }}</p>
                                         <span class="text-[10px] text-slate-500 mt-1 block">{{ msg.time }}</span>
-                                    </div>
-                                </div>
-                                <div
-                                    v-else-if="msg.type === 'teklif'"
-                                    class="max-w-[85%] w-full"
-                                >
-                                    <div class="rounded-lg border-2 border-primary/30 bg-white p-3 shadow-sm min-w-[200px] max-w-full">
-                                        <p class="text-xs font-semibold text-primary uppercase tracking-wide mb-2">Verilen Teklif</p>
-                                        <p v-if="msg.carName" class="text-sm font-medium text-gray-900 mb-1">{{ msg.carName }}</p>
-                                        <p class="text-sm font-semibold text-primary mb-1">{{ msg.price }}</p>
-                                        <p v-if="msg.message" class="text-sm text-gray-600 mt-2 border-t border-gray-100 pt-2">{{ msg.message }}</p>
-                                        <span class="text-xs text-gray-500 mt-2 block">{{ msg.time }}</span>
-                                        <button
-                                            v-if="isShipmentOwner && msg.status !== 'accepted'"
-                                            type="button"
-                                            class="mt-3 w-full py-2 rounded-lg bg-primary text-white font-semibold text-sm hover:bg-primary/90 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-                                            :disabled="teklifAcceptLoading === msg.id"
-                                            @click="acceptTeklif(msg.id)"
-                                        >
-                                            {{ teklifAcceptLoading === msg.id ? 'İşleniyor...' : 'Teklifi Kabul Et' }}
-                                        </button>
-                                        <p v-else-if="isShipmentOwner && msg.status === 'accepted'" class="mt-2 text-sm font-medium text-green-600">Kabul edildi</p>
                                     </div>
                                 </div>
                                 <div
@@ -619,9 +608,13 @@ import Header from '@/components/Header.vue';
 import Content from '@/components/Content.vue';
 import api from '@/api';
 import { router } from '@/router';
-import { useMessageStore, formatMessageTime } from '@/stores/message';
+import { useMessageStore } from '@/stores/message';
 import { useAuthStore } from '@/stores/auth';
 import { usePusherMessages } from '@/composables/usePusherMessages';
+import {
+    conversationEventMatchesThread,
+    mapConversationMessageFromEvent,
+} from '@/lib/message-helpers';
 import TeklifVerModal from '@/components/TeklifVerModal.vue';
 import { useHead } from '@vueuse/head';
 import { storeToRefs } from 'pinia';
@@ -1182,29 +1175,21 @@ const canSendOfferMessage = computed(() => !isVehicleOwnerViewer.value || hasVeh
 usePusherMessages(computed(() => authStore.user?.id), {
     onMessageSent(e) {
         const userId = authStore.user?.id;
-        if (!userId) return;
-        const isSystem = e.type === 'system';
-        const forMe =
-            Number(e.receiver_id) === Number(userId) ||
-            (isSystem && Number(e.sender_id) === Number(userId));
-        if (!forMe) return;
+        if (!userId || !showMessageOfferPanel.value) return;
+        const receiverId = shipment.value?.creater_id ?? shipment.value?.creator?.id;
+        if (!receiverId) return;
         const sid = shipment.value?.id;
         if (sid != null && e.shipment_id != null && Number(e.shipment_id) !== Number(sid)) return;
-        if (!showMessageOfferPanel.value) return;
-        const time = formatMessageTime(e.created_at);
-        const newMsg = {
-            type: isSystem ? 'system' : 'message',
-            id: e.id,
-            text: e.message,
-            time,
-            isMe: !isSystem && Number(e.sender_id) === Number(userId),
-            created_at: e.created_at,
-        };
-        const preview = offerPanelMessages.value[0];
-        const rest = offerPanelMessages.value.slice(1).filter((m) => m.type !== 'preview');
-        rest.push(newMsg);
+        if (!conversationEventMatchesThread(e, userId, Number(receiverId))) return;
+        const row = mapConversationMessageFromEvent(e, userId);
+        const preview = offerPanelMessages.value.find((m) => m.type === 'preview');
+        const rest = offerPanelMessages.value.filter((m) => m.type !== 'preview');
+        rest.push(row);
         rest.sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
         offerPanelMessages.value = preview ? [preview, ...rest] : rest;
+        if (Number(e.receiver_id) === Number(userId) && e.id) {
+            void messageStore.markAsRead([e.id]);
+        }
         nextTick(() => {
             const el = offerMessagesContainer.value;
             if (el) el.scrollTop = el.scrollHeight;
@@ -1221,24 +1206,19 @@ usePusherMessages(computed(() => authStore.user?.id), {
             }, 50);
         });
     },
+    onOfferAccepted(e) {
+        if (!showMessageOfferPanel.value || !shipment.value?.slug) return;
+        if (e.shipment_slug != null && e.shipment_slug !== shipment.value.slug) return;
+        refreshOfferPanelMessages();
+    },
 });
 
-function buildOfferPanelMessages(messages, requests, currentUserId) {
-    const preview = { type: 'preview' };
-    const teklifItems = (requests || [])
-        .filter((r) => Number(r.user_id) === Number(currentUserId))
-        .map((r) => ({
-            type: 'teklif',
-            id: r.id,
-            isMe: true,
-            carName: r.car?.name ?? '',
-            price: r.price ?? '—',
-            message: r.message ?? '',
-            time: formatMessageTime(r.created_at_raw ?? r.created_at),
-            created_at: r.created_at_raw ?? r.created_at,
-            status: r.status ?? 'pending',
-        }));
-    const withDate = [...(messages || []), ...teklifItems].filter((m) => m.created_at);
+function buildOfferPanelMessages(messages) {
+    const preview = {
+        type: 'preview',
+        created_at: '1970-01-01T00:00:00.000Z',
+    };
+    const withDate = (messages || []).filter((m) => m.created_at && m.type !== 'teklif');
     withDate.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
     return [preview, ...withDate];
 }
@@ -1246,19 +1226,12 @@ function buildOfferPanelMessages(messages, requests, currentUserId) {
 async function openMessageOfferPanel() {
     await checkVehicleForOfferPanel();
     const receiverId = shipment.value?.creater_id ?? shipment.value?.creator?.id;
-    const slug = route.params?.slug;
-    const currentUserId = authStore.user?.id;
-
-    const [msgResult, requestsRes] = await Promise.all([
-        messageStore.getBySenderAndReceiver(receiverId),
-        slug ? api.get(`/shipments/${slug}/requests`).catch(() => ({ data: {} })) : Promise.resolve({ data: {} }),
-    ]);
-
+    const shipmentId = shipment.value?.id ?? null;
+    const msgResult = await messageStore.getBySenderAndReceiver(receiverId, shipmentId);
     const messages = msgResult.success && Array.isArray(msgResult.data) ? msgResult.data : [];
-    const content = requestsRes.data?.content ?? requestsRes.data?.data ?? requestsRes.data ?? {};
-    const requests = content?.shipment?.requests ?? [];
-
-    offerPanelMessages.value = buildOfferPanelMessages(messages, requests, currentUserId);
+    offerPanelMessages.value = buildOfferPanelMessages(messages);
+    const idsToMark = messages.filter((m) => m.id && !m.isMe).map((m) => m.id);
+    if (idsToMark.length) await messageStore.markAsRead(idsToMark);
 
     showMessageOfferPanel.value = true;
     nextTick(() => {
@@ -1287,33 +1260,6 @@ function closeAllPanels() {
 
 async function onTeklifModalSuccess() {
     if (showMessageOfferPanel.value) await refreshOfferPanelMessages();
-}
-
-const isShipmentOwner = computed(() => {
-    const createrId = shipment.value?.creater_id ?? shipment.value?.creator?.id;
-    return createrId != null && Number(createrId) === Number(authStore.user?.id);
-});
-
-const teklifAcceptLoading = ref(null);
-
-async function acceptTeklif(requestId) {
-    const slug = route.params?.slug;
-    if (!slug) return;
-    teklifAcceptLoading.value = requestId;
-    try {
-        await api.post(`/shipments/${slug}/requests/${requestId}/accept`);
-        await refreshOfferPanelMessages();
-        nextTick(() => {
-            setTimeout(() => {
-                const el = offerMessagesContainer.value;
-                if (el) el.scrollTop = el.scrollHeight;
-            }, 50);
-        });
-    } catch (err) {
-        console.warn('Teklif kabul edilemedi:', err?.response?.data?.message ?? err?.message);
-    } finally {
-        teklifAcceptLoading.value = null;
-    }
 }
 
 async function sendOfferMessage() {
@@ -1375,18 +1321,11 @@ async function checkVehicleForOfferPanel() {
 
 async function refreshOfferPanelMessages() {
     const receiverId = shipment.value?.creater_id ?? shipment.value?.creator?.id;
-    const slug = route.params?.slug;
-    const currentUserId = authStore.user?.id;
+    const shipmentId = shipment.value?.id ?? null;
     if (!receiverId) return;
-
-    const [msgResult, requestsRes] = await Promise.all([
-        messageStore.getBySenderAndReceiver(receiverId),
-        slug ? api.get(`/shipments/${slug}/requests`).catch(() => ({ data: {} })) : Promise.resolve({ data: {} }),
-    ]);
+    const msgResult = await messageStore.getBySenderAndReceiver(receiverId, shipmentId);
     const messages = msgResult.success && Array.isArray(msgResult.data) ? msgResult.data : [];
-    const content = requestsRes.data?.content ?? requestsRes.data?.data ?? requestsRes.data ?? {};
-    const requests = content?.shipment?.requests ?? [];
-    offerPanelMessages.value = buildOfferPanelMessages(messages, requests, currentUserId);
+    offerPanelMessages.value = buildOfferPanelMessages(messages);
 }
 
 const showTeklifModal = ref(false);

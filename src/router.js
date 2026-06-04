@@ -42,14 +42,14 @@ const routes = [
         component: Home,
         meta: {
             layout: Layout,
-            title: 'TaşıBul | Anasayfa'
+            title: 'Anasayfa'
         }
     },
     {
         path: '/panel',
         component: HomePanel,
         meta: {
-            title: 'Araç Bul | TaşıBul',
+            title: 'Araç Bul',
             requiresAuth: true
         }
     },
@@ -58,7 +58,7 @@ const routes = [
         component: Help,
         meta: {
             layout: Layout,
-            title: 'Yardım | TaşıBul',
+            title: 'Yardım',
             requiresAuth: false
         }
     },
@@ -67,7 +67,7 @@ const routes = [
         component: AboutPage,
         meta: {
             layout: Layout,
-            title: 'Hakkımızda | TaşıBul',
+            title: 'Hakkımızda',
             requiresAuth: false
         }
     },
@@ -76,7 +76,7 @@ const routes = [
         component: Pricing,
         meta: {
             layout: Layout,
-            title: 'Fiyatlandırma | TaşıBul',
+            title: 'Fiyatlandırma',
             requiresAuth: false
         }
     },
@@ -85,7 +85,7 @@ const routes = [
         component: MesafeliSatisSozlesmesiPage,
         meta: {
             layout: Layout,
-            title: 'Mesafeli Satış Sözleşmesi | TaşıBul',
+            title: 'Mesafeli Satış Sözleşmesi',
             requiresAuth: false
         }
     },
@@ -94,7 +94,7 @@ const routes = [
         component: GizlilikSozlesmesiPage,
         meta: {
             layout: Layout,
-            title: 'Gizlilik Sözleşmesi | TaşıBul',
+            title: 'Gizlilik Sözleşmesi',
             requiresAuth: false
         }
     },
@@ -103,7 +103,7 @@ const routes = [
         component: UyelikSozlesmesiPage,
         meta: {
             layout: Layout,
-            title: 'Üyelik Sözleşmesi | TaşıBul',
+            title: 'Üyelik Sözleşmesi',
             requiresAuth: false
         }
     },
@@ -112,7 +112,7 @@ const routes = [
         component: KvkkPage,
         meta: {
             layout: Layout,
-            title: 'KVKK Aydınlatma Metni | TaşıBul',
+            title: 'KVKK Aydınlatma Metni',
             requiresAuth: false
         }
     },
@@ -121,7 +121,7 @@ const routes = [
         component: IptalVeIadeKosullariPage,
         meta: {
             layout: Layout,
-            title: 'İptal ve İade Koşulları | TaşıBul',
+            title: 'İptal ve İade Koşulları',
             requiresAuth: false
         }
     },
@@ -130,7 +130,7 @@ const routes = [
         component: AccountOrdersPage,
         meta: {
             layout: Layout,
-            title: 'Tüm İşlerim | TaşıBul',
+            title: 'Tüm İşlerim',
             requiresAuth: true,
             authorization: 'vehicle_owner'
         }
@@ -140,7 +140,7 @@ const routes = [
         component: AccountReviewsPage,
         meta: {
             layout: Layout,
-            title: 'Değerlendirmelerim | TaşıBul',
+            title: 'Değerlendirmelerim',
             requiresAuth: true,
             authorization: 'vehicle_owner'
         }
@@ -150,7 +150,7 @@ const routes = [
         component: AccountMessagesPage,
         meta: {
             layout: Layout,
-            title: 'Yük Sahibi Mesajları | TaşıBul',
+            title: 'Yük Sahibi Mesajları',
             requiresAuth: true,
             authorization: 'vehicle_owner'
         }
@@ -160,7 +160,7 @@ const routes = [
         component: AccountMessagesPage,
         meta: {
             layout: Layout,
-            title: 'Mesaj Detayı | TaşıBul',
+            title: 'Mesaj Detayı',
             requiresAuth: true,
             authorization: 'vehicle_owner'
         }
@@ -170,7 +170,7 @@ const routes = [
         component: AccountVehiclesPage,
         meta: {
             layout: Layout,
-            title: 'Tüm Araçlarım | TaşıBul',
+            title: 'Tüm Araçlarım',
             requiresAuth: true,
             authorization: 'vehicle_owner'
         }
@@ -180,7 +180,7 @@ const routes = [
         component: VehicleOwnerSettingsPage,
         meta: {
             layout: Layout,
-            title: 'Ayarlar | TaşıBul',
+            title: 'Ayarlar',
             requiresAuth: true,
             authorization: 'vehicle_owner'
         }
@@ -190,7 +190,7 @@ const routes = [
         component: AccountChangePasswordPage,
         meta: {
             layout: Layout,
-            title: 'Şifre Değiştir | TaşıBul',
+            title: 'Şifre Değiştir',
             requiresAuth: true,
             authorization: 'vehicle_owner'
         }
@@ -200,7 +200,7 @@ const routes = [
         component: AccountVerifyPage,
         meta: {
             layout: Layout,
-            title: 'Hesap Doğrula | TaşıBul',
+            title: 'Hesap Doğrula',
             requiresAuth: true,
             authorization: 'vehicle_owner'
         }
@@ -210,7 +210,7 @@ const routes = [
         component: CargoOwnerPage,
         meta: {
             layout: Layout,
-            title: 'Yük Sahibi | TaşıBul',
+            title: 'Yük Sahibi',
             requiresAuth: true,
             authorization: 'cargo_owner'
         }
@@ -220,7 +220,7 @@ const routes = [
         component: CargoOwnerReviewsPage,
         meta: {
             layout: Layout,
-            title: 'Değerlendirmelerim | TaşıBul',
+            title: 'Değerlendirmelerim',
             requiresAuth: true,
             authorization: 'cargo_owner'
         }
@@ -230,7 +230,7 @@ const routes = [
         component: CargoOwnerMessagesPage,
         meta: {
             layout: Layout,
-            title: 'Araç Sahibi Mesajları | TaşıBul',
+            title: 'Araç Sahibi Mesajları',
             requiresAuth: true
         }
     },
@@ -239,7 +239,7 @@ const routes = [
         component: CargoOwnerMessagesPage,
         meta: {
             layout: Layout,
-            title: 'Mesaj Detayı | TaşıBul',
+            title: 'Mesaj Detayı',
             requiresAuth: true,
             authorization: 'cargo_owner'
         }
@@ -249,7 +249,7 @@ const routes = [
         component: CargoOwnerPostsPage,
         meta: {
             layout: Layout,
-            title: 'İlanlarım | TaşıBul',
+            title: 'İlanlarım',
             requiresAuth: true,
             authorization: 'cargo_owner'
         }
@@ -259,7 +259,7 @@ const routes = [
         component: CreatePostPage,
         meta: {
             layout: Layout,
-            title: 'İlan Oluştur | TaşıBul',
+            title: 'İlan Oluştur',
             requiresAuth: true,
             authorization: 'cargo_owner'
         }
@@ -269,7 +269,7 @@ const routes = [
         component: CargoOwnerAddressesPage,
         meta: {
             layout: Layout,
-            title: 'Adreslerim | TaşıBul',
+            title: 'Adreslerim',
             requiresAuth: true,
             authorization: 'cargo_owner'
         }
@@ -279,7 +279,7 @@ const routes = [
         component: CargoOwnerSettingsPage,
         meta: {
             layout: Layout,
-            title: 'Ayarlar | TaşıBul',
+            title: 'Ayarlar',
             requiresAuth: true,
             authorization: 'cargo_owner'
         }
@@ -289,7 +289,7 @@ const routes = [
         component: CargoOwnerChangePasswordPage,
         meta: {
             layout: Layout,
-            title: 'Şifre Değiştir | TaşıBul',
+            title: 'Şifre Değiştir',
             requiresAuth: true,
             authorization: 'cargo_owner'
         }
@@ -299,7 +299,7 @@ const routes = [
         component: CargoOwnerVerifyAccountPage,
         meta: {
             layout: Layout,
-            title: 'Hesap Doğrula | TaşıBul',
+            title: 'Hesap Doğrula',
             requiresAuth: true,
             authorization: 'cargo_owner'
         }
@@ -309,7 +309,7 @@ const routes = [
         component: Account,
         meta: {
             layout: Layout,
-            title: 'Hesabım | TaşıBul',
+            title: 'Hesabım',
             requiresAuth: true,
             authorization: 'vehicle_owner'
         },
@@ -318,7 +318,7 @@ const routes = [
         path: '/posts/:slug',
         component: PostDetail,
         meta: {
-            title: 'İlan Detayı | TaşıBul',
+            title: 'İlan Detayı',
             requiresAuth: true
         }
     },
@@ -327,7 +327,7 @@ const routes = [
         component: ProductDetailPage,
         meta: {
             layout: Layout,
-            title: 'İlan Detayı | TaşıBul',
+            title: 'İlan Detayı',
             requiresAuth: true
         }
     },
@@ -336,7 +336,7 @@ const routes = [
         component: BlogPage,
         meta: {
             layout: Layout,
-            title: 'Blog | TaşıBul',
+            title: 'Blog',
             requiresAuth: false
         }
     },
@@ -345,7 +345,7 @@ const routes = [
         component: BlogDetailPage,
         meta: {
             layout: Layout,
-            title: 'Blog | TaşıBul',
+            title: 'Blog',
             requiresAuth: false
         }
     },
@@ -354,7 +354,7 @@ const routes = [
         component: PaytrPaymentOkPage,
         meta: {
             layout: Layout,
-            title: 'Ödeme | TaşıBul',
+            title: 'Ödeme',
             requiresAuth: false
         }
     },
@@ -363,7 +363,7 @@ const routes = [
         component: PaytrPaymentFailPage,
         meta: {
             layout: Layout,
-            title: 'Ödeme | TaşıBul',
+            title: 'Ödeme',
             requiresAuth: false
         }
     },
@@ -373,7 +373,7 @@ const routes = [
         name: 'not-found',
         meta: {
             layout: Layout,
-            title: '404 - Sayfa Bulunamadı | TaşıBul',
+            title: '404 - Sayfa Bulunamadı',
             requiresAuth: false
         }
     }
