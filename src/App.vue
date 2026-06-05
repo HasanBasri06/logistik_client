@@ -78,14 +78,18 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import { MapPin } from 'lucide-vue-next';
 import Layout from './Layout.vue';
 import PremiumModal from './components/PremiumModal.vue';
 import OpenInAppBanner from './components/OpenInAppBanner.vue';
-import { tryOpenNativeApp } from './utils/open-native-app';
+import {
+  applyStayOnWebFromQuery,
+  appleItunesAppMetaContent,
+  tryOpenNativeApp,
+} from './utils/open-native-app';
 import { useHead } from '@vueuse/head';
 import { useLocationStore } from './stores/location';
 import { useAuthStore } from './stores/auth';
@@ -129,8 +133,16 @@ const setOffline = () => {
 onMounted(() => {
   window.addEventListener('online', setOnline);
   window.addEventListener('offline', setOffline);
+  applyStayOnWebFromQuery();
   tryOpenNativeApp();
 });
+
+watch(
+  () => route.fullPath,
+  () => {
+    tryOpenNativeApp();
+  }
+);
 onBeforeUnmount(() => {
   if (onlineHideTimeout) clearTimeout(onlineHideTimeout);
   window.removeEventListener('online', setOnline);
@@ -147,26 +159,31 @@ const pageTitle = computed(() =>
 
 const metaDescription = 'TaşıBul - Lojistik Platformu';
 
+const appleAppBanner = computed(() => appleItunesAppMetaContent());
+
 useHead({
     title: pageTitle,
-    meta: [
+    meta: computed(() => [
+        ...(appleAppBanner.value
+            ? [{ name: 'apple-itunes-app', content: appleAppBanner.value }]
+            : []),
         { name: 'description', content: metaDescription },
         { name: 'keywords', content: 'TaşıBul, Lojistik, Platformu' },
         { name: 'author', content: 'TaşıBul' },
         { name: 'robots', content: 'index, follow' },
         { name: 'googlebot', content: 'index, follow' },
         { name: 'bingbot', content: 'index, follow' },
-        { property: 'og:title', content: pageTitle },
+        { property: 'og:title', content: pageTitle.value },
         { property: 'og:description', content: metaDescription },
         { property: 'og:image', content: 'https://tasibul.com/logo.png' },
         { property: 'og:url', content: 'https://tasibul.com' },
         { property: 'og:type', content: 'website' },
         { name: 'twitter:card', content: 'summary_large_image' },
-        { name: 'twitter:title', content: pageTitle },
+        { name: 'twitter:title', content: pageTitle.value },
         { name: 'twitter:description', content: metaDescription },
         { name: 'twitter:image', content: 'https://tasibul.com/logo.png' },
         { name: 'twitter:url', content: 'https://tasibul.com' },
-    ],
+    ]),
     link: [
         { rel: 'icon', href: '/favicon.ico' },
         { rel: 'canonical', href: 'https://tasibul.com' },

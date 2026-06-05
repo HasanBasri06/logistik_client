@@ -7,7 +7,7 @@
     aria-label="Uygulamada aç"
   >
     <p class="text-sm text-slate-700">
-      TaşıBul uygulamasında devam etmek ister misiniz?
+      TaşıBul uygulaması yüklüyse buradan açabilirsiniz.
     </p>
     <div class="flex shrink-0 items-center gap-2">
       <button
@@ -29,23 +29,33 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
+import { useRoute } from 'vue-router';
 import {
   shouldShowOpenInAppBanner,
   openInNativeApp,
   markStayOnWeb,
 } from '@/utils/open-native-app';
 
+const route = useRoute();
 const visible = ref(false);
 const bannerTop = ref('0px');
 
-onMounted(() => {
+function refreshBanner() {
   visible.value = shouldShowOpenInAppBanner();
   const bar = document.querySelector('[class*="z-[200]"]');
   if (bar) {
     bannerTop.value = `${bar.getBoundingClientRect().height}px`;
+  } else {
+    bannerTop.value = '0px';
   }
+}
+
+onMounted(() => {
+  refreshBanner();
 });
+
+watch(() => route.fullPath, refreshBanner);
 
 function dismiss() {
   markStayOnWeb();

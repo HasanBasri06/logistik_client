@@ -3,7 +3,14 @@
     class="w-full min-h-fit rounded-2xl bg-white border border-gray-200 overflow-hidden cursor-pointer transition-all duration-300 shadow-sm hover:border-primary hover:shadow-[0_4px_12px_rgba(57,131,140,0.15)] hover:-translate-y-0.5"
     @click="handleClick($event, shipment)"
   >
-    
+    <!-- Kalkış tarihi — mobil ilan kartı ile aynı üst şerit -->
+    <div
+      class="w-full h-[25px] bg-primary px-4 flex flex-row justify-between items-center shrink-0"
+    >
+      <span class="text-white text-xs font-semibold">Kalkış Tarihi</span>
+      <span class="text-white text-xs font-semibold">{{ departureDateText }}</span>
+    </div>
+
     <!-- Üst Bölüm: Nereden-Nereye ve Gidiş Saati -->
     <div
       class="flex flex-row justify-between items-start gap-4 py-5 px-4 sm:py-6 sm:px-6 border-b border-gray-100"
@@ -284,6 +291,26 @@ const toPlaceText = computed(() => {
   const district = s.t_where_district ?? '';
   if (!city && !district) return '—';
   return district ? `${city} / ${district}` : city;
+});
+
+/** Mobil `ShipmentProductCard` — `departure_date` üst şerit */
+const departureDateText = computed(() => {
+  const raw = props.shipment?.departure_date ?? props.shipment?.shipment_date;
+  if (raw == null || raw === '') return '—';
+  const str = String(raw).trim();
+  const iso = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) {
+    return `${iso[3]}.${iso[2]}.${iso[1]}`;
+  }
+  const parsed = new Date(str);
+  if (!Number.isNaN(parsed.getTime())) {
+    return parsed.toLocaleDateString('tr-TR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
+  }
+  return str;
 });
 
 const creatorAvatarUrl = computed(() => {

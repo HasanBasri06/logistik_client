@@ -2,10 +2,11 @@
 <template>
     <div class="min-h-screen flex flex-col">
         <Header />
-        <Content class="mt-4 sm:mt-5 flex-1 overflow-y-auto px-3 sm:px-4 flex flex-col md:flex-row md:gap-4 gap-6 relative pb-24 md:pb-8">
+        <Content class="pt-16 mt-4 sm:mt-5 px-3 sm:px-4 relative pb-24 md:pb-8">
+            <div class="flex flex-col md:flex-row md:items-start md:gap-4 gap-6">
             <!-- Sol kolon: mobilde tam genişlik, masaüstünde sabit genişlik -->
             <div
-                class="w-full md:w-[800px] md:max-w-[800px] md:shrink-0 flex flex-col gap-4 no_scrool transition-all duration-200"
+                class="w-full md:w-[800px] md:max-w-[800px] md:shrink-0 flex flex-col gap-4 transition-all duration-200"
                 :class="shipmentLoading ? 'opacity-60 pointer-events-none' : ''"
             >
                 <h2 class="text-xl sm:text-2xl font-semibold text-gray-900 h-9 hidden md:block">Taşıma Bilgileri</h2>
@@ -196,128 +197,129 @@
                     </div>
                 </div>
             </div>
-            <div
-                class="w-full md:flex-1 flex flex-col gap-4 transition-all duration-200 min-w-0"
+            <aside
+                class="w-full md:flex-1 flex flex-col gap-4 transition-all duration-200 min-w-0 md:sticky md:top-24 md:self-start"
                 :class="shipmentLoading ? 'opacity-60 pointer-events-none' : ''"
             >
                 <h2 class="text-xl sm:text-2xl font-semibold text-gray-900 h-9">Rota Bilgileri</h2>
-                
-                <!-- Kalkış ve Varış -->
-                <div
-                    class="rounded-lg border border-gray-200 shadow-sm overflow-hidden transition-colors duration-200"
-                    :class="shipmentLoading ? 'bg-gray-200 animate-pulse' : 'bg-white'"
-                >
-                    <div class="p-4 sm:p-5">
-                        <div class="flex items-start gap-4">
-                            <!-- Sol: Yuvarlaklar ve Çizgi -->
-                            <div class="flex flex-col items-center shrink-0">
-                                <div class="w-[5px] h-[5px] rounded-full bg-primary"></div>
-                                <div class="w-px h-16 sm:h-28 bg-gradient-to-b from-primary to-primary/30 my-1.5 sm:my-2"></div>
-                                <div class="w-[5px] h-[5px] rounded-full bg-primary"></div>
-                            </div>
-                            
-                            <!-- Sağ: İçerik -->
-                            <div class="flex-1 flex flex-col gap-4 sm:gap-6 min-w-0">
-                                <!-- Kalkış -->
-                                <div class="min-w-0">
-                                    <div class="flex flex-wrap items-center gap-2 mb-1">
-                                        <span class="text-xs font-semibold text-primary uppercase tracking-wide">Kalkış</span>
-                                        <span v-if="originDateTime" class="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-                                            {{ formatDateTime(originDateTime) }}
-                                        </span>
-                                    </div>
-                                    <h3 class="text-sm sm:text-base font-semibold text-gray-900 mb-1 leading-tight truncate">{{ selectedOrigin?.name || 'Ankara' }}</h3>
-                                    <p class="text-xs sm:text-sm text-gray-600">{{ shipment?.departure_time ?? 'belirlenecek' }}</p>
-                                </div>
-                                <!-- Varış -->
-                                <div class="min-w-0">
-                                    <div class="flex flex-wrap items-center gap-2 mb-1">
-                                        <span class="text-xs font-semibold text-primary uppercase tracking-wide">Varış</span>
-                                        <span v-if="destinationDateTime" class="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-                                            {{ formatDateTime(destinationDateTime) }}
-                                        </span>
-                                    </div>
-                                    <h3 class="text-sm sm:text-base font-semibold text-gray-900 mb-1 leading-tight truncate">{{ selectedDestination?.name || 'İzmir' }}</h3>
-                                    <p class="text-xs sm:text-sm text-gray-600">{{ shipment?.time_arrival ?? 'belirlenecek' }}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Teklif / İlanım butonları: sadece masaüstünde (mobilde altta fixed bar kullanılıyor) -->
+                    
+                    <!-- Kalkış ve Varış -->
                     <div
-                        v-if="!is_me"
-                        class="hidden md:flex bg-gray-50 border-t border-gray-100 w-full px-4 py-3 gap-3"
+                        class="rounded-lg border border-gray-200 shadow-sm overflow-hidden transition-colors duration-200"
+                        :class="shipmentLoading ? 'bg-gray-200 animate-pulse' : 'bg-white'"
                     >
-                        <button
-                            v-if="isCargoOwnerViewer"
-                            type="button"
-                            class="flex-1 h-11 sm:h-12 rounded-xl border-2 border-primary text-primary bg-white font-semibold transition-all duration-200 text-sm sm:text-base"
-                        >
-                            Önizleme
-                        </button>
-                        <button
-                            v-else-if="shipment?.call_access !== 1"
-                            @click="handleOfferClick"
-                            class="flex-1 h-11 sm:h-12 rounded-xl bg-primary text-white font-semibold transition-all duration-200 text-sm sm:text-base shadow-sm hover:bg-primary/90 hover:shadow-md"
-                        >
-                            Teklif Ver
-                        </button>
-                        <button
-                            @click="openMessageOfferPanel"
-                            class="flex-1 h-11 sm:h-12 rounded-xl border-2 border-primary text-primary bg-white font-semibold transition-all duration-200 text-sm sm:text-base hover:bg-primary/5"
-                        >
-                            Mesaj ile Teklif
-                        </button>
-                        <button
-                            v-if="!isCargoOwnerViewer && shipment?.call_access == 1"
-                            type="button"
-                            @click="openCallModal"
-                            class="h-11 sm:h-12 px-5 flex-1 rounded-xl border-2 bg-primary text-white font-semibold transition-all duration-200 text-sm sm:text-base  shrink-0 items-center"
-                        >
-                            <i class="pi pi-phone text-xl mr-3"></i>
-                            <span>Ara</span>
-                        </button>
-                    </div>
-                    <div v-else class="hidden md:flex bg-gray-50 border-t border-gray-100 w-full">
-                        <button
-                            class="flex-1 h-11 sm:h-12 border border-primary text-primary font-semibold transition-all duration-200 text-sm sm:text-base py-2.5"
-                        >
-                            İlanım
-                        </button>
-                    </div>
-                </div>
-
-                <!-- İlan Oluşturan Kişi Bilgileri -->
-                <div
-                    class="rounded-md p-4 sm:p-6 border border-gray-200 shadow-sm h-auto transition-colors duration-200"
-                    :class="shipmentLoading ? 'bg-gray-200 animate-pulse' : 'bg-white'"
-                >
-                    <div class="flex items-center gap-3 sm:gap-4">
-                        <!-- Profil Resmi -->
-                        <div class="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
-                            <div class="w-full h-full bg-primary/20 flex items-center justify-center">
-                                <span class="text-xl text-primary font-semibold">
-                                    {{ shipment?.creator?.full_name?.charAt(0)?.toUpperCase() || 'U' }}
-                                </span>
+                        <div class="p-4 sm:p-5">
+                            <div class="flex items-start gap-4">
+                                <!-- Sol: Yuvarlaklar ve Çizgi -->
+                                <div class="flex flex-col items-center shrink-0">
+                                    <div class="w-[5px] h-[5px] rounded-full bg-primary"></div>
+                                    <div class="w-px h-16 sm:h-28 bg-gradient-to-b from-primary to-primary/30 my-1.5 sm:my-2"></div>
+                                    <div class="w-[5px] h-[5px] rounded-full bg-primary"></div>
+                                </div>
+                                
+                                <!-- Sağ: İçerik -->
+                                <div class="flex-1 flex flex-col gap-4 sm:gap-6 min-w-0">
+                                    <!-- Kalkış -->
+                                    <div class="min-w-0">
+                                        <div class="flex flex-wrap items-center gap-2 mb-1">
+                                            <span class="text-xs font-semibold text-primary uppercase tracking-wide">Kalkış</span>
+                                            <span v-if="originDateTime" class="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                                                {{ formatDateTime(originDateTime) }}
+                                            </span>
+                                        </div>
+                                        <h3 class="text-sm sm:text-base font-semibold text-gray-900 mb-1 leading-tight truncate">{{ selectedOrigin?.name || 'Ankara' }}</h3>
+                                        <p class="text-xs sm:text-sm text-gray-600">{{ shipment?.departure_time ?? 'belirlenecek' }}</p>
+                                    </div>
+                                    <!-- Varış -->
+                                    <div class="min-w-0">
+                                        <div class="flex flex-wrap items-center gap-2 mb-1">
+                                            <span class="text-xs font-semibold text-primary uppercase tracking-wide">Varış</span>
+                                            <span v-if="destinationDateTime" class="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                                                {{ formatDateTime(destinationDateTime) }}
+                                            </span>
+                                        </div>
+                                        <h3 class="text-sm sm:text-base font-semibold text-gray-900 mb-1 leading-tight truncate">{{ selectedDestination?.name || 'İzmir' }}</h3>
+                                        <p class="text-xs sm:text-sm text-gray-600">{{ shipment?.time_arrival ?? 'belirlenecek' }}</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <!-- İsim ve Puan -->
-                        <div class="flex flex-col gap-1 sm:gap-2 min-w-0">
-                            <h4 class="text-sm sm:text-base font-semibold text-gray-900 truncate">
-                                {{ shipment?.creator?.full_name }}
-                            </h4>
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs sm:text-sm text-gray-600">Puan:</span>
-                                <div class="flex items-center gap-1">
-                                    <span class="text-sm sm:text-base font-semibold text-gray-900">
-                                        {{ creatorScoreText }}
+                        <!-- Teklif / İlanım butonları: sadece masaüstünde (mobilde altta fixed bar kullanılıyor) -->
+                        <div
+                            v-if="!is_me"
+                            class="hidden md:flex bg-gray-50 border-t border-gray-100 w-full px-4 py-3 gap-3"
+                        >
+                            <button
+                                v-if="isCargoOwnerViewer"
+                                type="button"
+                                class="flex-1 h-11 sm:h-12 rounded-xl border-2 border-primary text-primary bg-white font-semibold transition-all duration-200 text-sm sm:text-base"
+                            >
+                                Önizleme
+                            </button>
+                            <button
+                                v-else-if="shipment?.call_access !== 1"
+                                @click="handleOfferClick"
+                                class="flex-1 h-11 sm:h-12 rounded-xl bg-primary text-white font-semibold transition-all duration-200 text-sm sm:text-base shadow-sm hover:bg-primary/90 hover:shadow-md"
+                            >
+                                Teklif Ver
+                            </button>
+                            <button
+                                @click="openMessageOfferPanel"
+                                class="flex-1 h-11 sm:h-12 rounded-xl border-2 border-primary text-primary bg-white font-semibold transition-all duration-200 text-sm sm:text-base hover:bg-primary/5"
+                            >
+                                Mesaj ile Teklif
+                            </button>
+                            <button
+                                v-if="!isCargoOwnerViewer && shipment?.call_access == 1"
+                                type="button"
+                                @click="openCallModal"
+                                class="h-11 sm:h-12 px-5 flex-1 rounded-xl border-2 bg-primary text-white font-semibold transition-all duration-200 text-sm sm:text-base  shrink-0 items-center"
+                            >
+                                <i class="pi pi-phone text-xl mr-3"></i>
+                                <span>Ara</span>
+                            </button>
+                        </div>
+                        <div v-else class="hidden md:flex bg-gray-50 border-t border-gray-100 w-full">
+                            <button
+                                class="flex-1 h-11 sm:h-12 border border-primary text-primary font-semibold transition-all duration-200 text-sm sm:text-base py-2.5"
+                            >
+                                İlanım
+                            </button>
+                        </div>
+                    </div>
+    
+                    <!-- İlan Oluşturan Kişi Bilgileri -->
+                    <div
+                        class="rounded-md p-4 sm:p-6 border border-gray-200 shadow-sm h-auto transition-colors duration-200"
+                        :class="shipmentLoading ? 'bg-gray-200 animate-pulse' : 'bg-white'"
+                    >
+                        <div class="flex items-center gap-3 sm:gap-4">
+                            <!-- Profil Resmi -->
+                            <div class="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                <div class="w-full h-full bg-primary/20 flex items-center justify-center">
+                                    <span class="text-xl text-primary font-semibold">
+                                        {{ shipment?.creator?.full_name?.charAt(0)?.toUpperCase() || 'U' }}
                                     </span>
-                                    <span class="text-yellow-500">★</span>
+                                </div>
+                            </div>
+                            <!-- İsim ve Puan -->
+                            <div class="flex flex-col gap-1 sm:gap-2 min-w-0">
+                                <h4 class="text-sm sm:text-base font-semibold text-gray-900 truncate">
+                                    {{ shipment?.creator?.full_name }}
+                                </h4>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs sm:text-sm text-gray-600">Puan:</span>
+                                    <div class="flex items-center gap-1">
+                                        <span class="text-sm sm:text-base font-semibold text-gray-900">
+                                            {{ creatorScoreText }}
+                                        </span>
+                                        <span class="text-yellow-500">★</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
+            </aside>
             </div>
 
             <!-- Loading overlay: PrimeVue ProgressSpinner -->
@@ -1414,16 +1416,6 @@ onMounted(() => {
     width: 100%;
     height: 100%;
     min-height: 300px;
-}
-
-.no_scrool {
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    overflow-y: scroll;
-}
-
-.no_scrool::-webkit-scrollbar {
-    display: none;
 }
 
 </style>
