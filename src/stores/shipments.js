@@ -5,6 +5,11 @@ import { toast } from 'vue-sonner'
 import { useAuthStore } from '@/stores/auth'
 import { router } from '@/router'
 import { usePostStore } from './post'
+import {
+    isSuitablePostingsEnabled,
+    resolveSuitablePriorityCity,
+    sortShipmentsForSuitablePostings,
+} from '@/lib/suitable-postings'
 
 export const useShipmentsStore = defineStore('shipments', () => {
     const authStore = useAuthStore()
@@ -19,6 +24,32 @@ export const useShipmentsStore = defineStore('shipments', () => {
     const perPage = 20
     const total = ref(0)
     const lastSearchParams = ref({})
+    const myCarsCache = ref([])
+
+    function applySuitablePostingsSort(shipments) {
+        const user = authStore.user
+        if (!user || user.type !== 'vehicle_owner' || !isSuitablePostingsEnabled(user.suitable_postings)) {
+            return shipments
+        }
+        const city = resolveSuitablePriorityCity(user, user.user_city)
+        if (!city && !myCarsCache.value.length) return shipments
+        return sortShipmentsForSuitablePostings(shipments, city, myCarsCache.value)
+    }
+
+    async function ensureMyCarsForSort() {
+        const user = authStore.user
+        if (!user || user.type !== 'vehicle_owner' || !isSuitablePostingsEnabled(user.suitable_postings)) {
+            myCarsCache.value = []
+            return
+        }
+        try {
+            const res = await api.get('/cars/my')
+            const cars = res.data?.content?.cars
+            myCarsCache.value = Array.isArray(cars) ? cars : []
+        } catch {
+            myCarsCache.value = []
+        }
+    }
 
     const postState = ref({
         f_where: null,
@@ -52,6 +83,9 @@ export const useShipmentsStore = defineStore('shipments', () => {
         if (token) headers.Authorization = `Bearer ${token}`
 
         try {
+            if (!append) {
+                await ensureMyCarsForSort()
+            }
             if (append) {
                 loadingMore.value = true
                 error.value = null
@@ -65,7 +99,7 @@ export const useShipmentsStore = defineStore('shipments', () => {
                     const newOther = content.other_post ?? []
                     myPostList.value = [...myPostList.value, ...newMy]
                     otherPostList.value = [...otherPostList.value, ...newOther]
-                    list.value = [...myPostList.value, ...otherPostList.value]
+                    list.value = applySuitablePostingsSort([...myPostList.value, ...otherPostList.value])
                     currentPage.value = nextPage
                 }
             } else {
@@ -78,9 +112,9 @@ export const useShipmentsStore = defineStore('shipments', () => {
                 if (content) {
                     const my_post = content.my_post ?? []
                     const other_post = content.other_post ?? []
-                    list.value = [...my_post, ...other_post]
                     myPostList.value = Array.isArray(my_post) ? my_post : []
                     otherPostList.value = Array.isArray(other_post) ? other_post : []
+                    list.value = applySuitablePostingsSort([...myPostList.value, ...otherPostList.value])
                     total.value = content.total ?? list.value.length
                 }
             }

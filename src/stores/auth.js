@@ -31,6 +31,10 @@ export const useAuthStore = defineStore('auth', () => {
 
     const login = async (credentials) => {
         try {
+            localStorage.removeItem('token')
+            localStorage.removeItem('user')
+            delete api.defaults.headers.common['Authorization']
+
             const response = await api.post('/auth/login', credentials)
             if (response.data.content && response.data.content.token) {
                 const authToken = response.data.content.token
@@ -47,12 +51,32 @@ export const useAuthStore = defineStore('auth', () => {
             throw new Error('Token bulunamadı')
         } catch (error) {
             const content = error.response?.data?.content
+            if (content?.account_inactive) {
+                return {
+                    success: false,
+                    accountInactive: true,
+                    error:
+                        error.response?.data?.message ||
+                        'Hesabınız kaldırılmış veya silinmiş olabilir. Lütfen destek ekibi ile iletişime geçiniz: destek@tasibul.com',
+                    response: error.response
+                }
+            }
             if (error.response?.status === 403 && content?.need_otp && content?.email) {
                 return {
                     success: false,
                     needOtp: true,
                     email: content.email,
                     error: error.response?.data?.message || error.message,
+                    response: error.response
+                }
+            }
+            if (error.response?.status === 403 && content?.account_inactive) {
+                return {
+                    success: false,
+                    accountInactive: true,
+                    error:
+                        error.response?.data?.message ||
+                        'Hesabınız kaldırılmış veya silinmiş olabilir. Lütfen destek ekibi ile iletişime geçiniz: destek@tasibul.com',
                     response: error.response
                 }
             }
@@ -168,6 +192,10 @@ export const useAuthStore = defineStore('auth', () => {
     })
 
     const openLoginModal = () => {
+        if (isAuthenticated.value) {
+            router.push('/panel')
+            return
+        }
         requestShowLoginModal.value = true
     }
 

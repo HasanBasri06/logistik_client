@@ -95,10 +95,6 @@ function currentPageUrl() {
   return window.location.href;
 }
 
-function currentPath() {
-  return window.location.pathname + window.location.search + window.location.hash;
-}
-
 function attachAppOpenedListener() {
   const onHide = () => {
     if (document.hidden) {
@@ -120,31 +116,22 @@ function detachAppOpenedListener(onHide) {
   window.removeEventListener('blur', onHide);
 }
 
-/** Android App Links intent — yüklüyse uygulama, değilse aynı web sayfası */
+/** Android App Links intent — yüklüyse uygulama, değilse mevcut web sayfası */
 function tryOpenAndroidApp() {
-  const host = window.location.host;
-  const path = currentPath();
   const fallback = encodeURIComponent(currentPageUrl());
   const intent =
-    `intent://${host}${path}#Intent;` +
-    `scheme=https;` +
+    'intent://www.tasibul.com/#Intent;' +
+    'scheme=https;' +
     `package=${MOBILE_APP.androidPackage};` +
     `S.browser_fallback_url=${fallback};` +
-    `end`;
+    'end';
   window.location.href = intent;
 }
 
-/** iOS: özel şema mobil:// — yüklüyse uygulama açılır */
+/** iOS Universal Link — yüklüyse uygulama açılır */
 function tryOpenIOSApp() {
-  const rawPath = currentPath().replace(/^\//, '');
-  const schemeUrl = rawPath
-    ? `${MOBILE_APP.customScheme}://${rawPath}`
-    : `${MOBILE_APP.customScheme}://`;
-
   const onHide = attachAppOpenedListener();
-
-  window.location.href = schemeUrl;
-
+  window.location.href = MOBILE_APP.openUrl;
   window.setTimeout(() => {
     detachAppOpenedListener(onHide);
   }, 2500);
@@ -188,8 +175,8 @@ export function openInNativeApp() {
   }
 }
 
-/** Safari Smart App Banner — app-argument güncel sayfa */
+/** Safari Smart App Banner */
 export function appleItunesAppMetaContent() {
   if (!isIOS() || typeof window === 'undefined') return null;
-  return `app-id=${MOBILE_APP.iosAppStoreId}, app-argument=${currentPageUrl()}`;
+  return `app-id=${MOBILE_APP.iosAppStoreId}, app-argument=${MOBILE_APP.openUrl}`;
 }

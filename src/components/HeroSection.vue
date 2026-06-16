@@ -3,6 +3,7 @@ import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import api from '@/api';
+import StoreDownloadBars from '@/components/StoreDownloadBars.vue';
 
 const router = useRouter();
 
@@ -193,12 +194,18 @@ function stopHeroStatsAnimation() {
 <template>
     <div class="w-full min-h-[500px] md:h-auto relative -mt-16 pt-16 px-4 lg:px-0 flex justify-center items-center overflow-hidden">
         <div class="relative z-10 flex h-full min-h-[500px] w-full max-w-[900px] flex-col items-center justify-center gap-8 py-10 md:min-h-0 md:gap-14 md:py-16">
-            <div class="flex flex-col w-full max-w-[700px] text-center gap-4 mx-auto">
-                <h1 class="text-3xl md:text-5xl lg:text-6xl font-black leading-tight md:leading-normal">Yüklerinizi <span class="text-primary">kolayca yönetin ve takip edin</span></h1>
-                <p class="text-sm md:text-lg">Yüklerinizi tek platform üzerinden oluşturun, taşıyıcılarla eşleşin ve sevkiyat sürecini kolayca yönetin.</p>
-            </div>
+            <div class="flex flex-col w-full max-w-[700px] mx-auto items-center gap-6 md:gap-8">
+                <div class="flex flex-col w-full text-center gap-4">
+                    <h1 class="text-3xl md:text-5xl lg:text-6xl font-black leading-tight md:leading-normal">Yüklerinizi <span class="text-primary">kolayca yönetin ve takip edin</span></h1>
+                    <p class="text-sm md:text-lg">Yüklerinizi tek platform üzerinden oluşturun, taşıyıcılarla eşleşin ve sevkiyat sürecini kolayca yönetin.</p>
+                </div>
 
-            <form @submit.prevent="handleSearch" class="flex flex-col md:flex-row items-stretch md:items-center relative bg-transparent md:bg-white rounded-xl w-full max-w-[700px] mx-auto">
+                <StoreDownloadBars
+                    layout="row"
+                    variant="brand"
+                />
+
+                <form @submit.prevent="handleSearch" class="flex flex-col md:flex-row md:justify-center items-stretch md:items-center relative bg-transparent md:bg-white rounded-xl w-full">
 
                 <div ref="fromRef" class="relative">
                     <input
@@ -316,6 +323,7 @@ function stopHeroStatsAnimation() {
                     <button type="submit" class="bg-primary w-full md:w-auto mt-4 md:mt-0 text-white cursor-pointer px-4 py-4 rounded-none md:rounded-bl-none md:rounded-r-xl border border-primary shrink-0">Taşıt Ara</button>
                 </div>
             </form>
+            </div>
 
             <div class="flex flex-wrap justify-center gap-6 md:gap-10">
                 <div class="flex flex-col gap-2 text-center">

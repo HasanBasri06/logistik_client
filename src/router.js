@@ -35,6 +35,7 @@ import KvkkPage from "./pages/KvkkPage.vue";
 import IptalVeIadeKosullariPage from "./pages/IptalVeIadeKosullariPage.vue";
 import PaytrPaymentOkPage from "./pages/PaytrPaymentOkPage.vue";
 import PaytrPaymentFailPage from "./pages/PaytrPaymentFailPage.vue";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage.vue";
 
 const routes = [
     {
@@ -368,6 +369,14 @@ const routes = [
         }
     },
     {
+        path: '/sifremi-unuttum',
+        component: ForgotPasswordPage,
+        meta: {
+            title: 'Şifremi Unuttum',
+            requiresAuth: false
+        }
+    },
+    {
         path: '/:pathMatch(.*)*',
         component: NotFound,
         name: 'not-found',
@@ -415,12 +424,13 @@ router.beforeEach(async (to, from, next) => {
         }
     }
     
-    // Eğer kullanıcı authenticated ise ve anasayfaya gitmeye çalışıyorsa /panel'e yönlendir
-    if (token && to.path === '/') {
+    // Eğer kullanıcı authenticated ise giriş/kayıt sayfalarına gitmesin → /panel
+    const guestOnlyPaths = ['/', '/sifremi-unuttum']
+    if (token && guestOnlyPaths.includes(to.path)) {
         const isValid = await authStore.checkToken()
         if (isValid) {
             const pending = sessionStorage.getItem('pendingSearch')
-            if (pending) {
+            if (to.path === '/' && pending) {
                 sessionStorage.removeItem('pendingSearch')
                 next({ path: '/panel', query: JSON.parse(pending) })
             } else {

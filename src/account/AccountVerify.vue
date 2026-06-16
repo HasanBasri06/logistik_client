@@ -55,44 +55,15 @@
                                 </p>
                             </div>
                         </div>
-                        <form
+                        <button
                             v-if="!verificationStatus.email"
-                            class="flex flex-col gap-3"
-                            @submit.prevent="verifyEmailCode"
+                            type="button"
+                            class="mt-3 w-full flex items-center justify-center gap-2.5 px-4 py-3.5 bg-primary text-white text-base font-bold rounded-xl hover:bg-primary/90 transition-colors"
+                            @click="openEmailModal"
                         >
-                            <label class="text-sm font-medium text-gray-700">Doğrulama Kodu</label>
-                            <div class="flex gap-2 flex-wrap">
-                                <InputOtp
-                                    v-model="emailVerificationCode"
-                                    :length="6"
-                                    :integerOnly="true"
-                                    :unstyled="true"
-                                    :pt="{
-                                        root: { class: 'flex gap-2 flex-1 min-w-[200px]' },
-                                        pcInputText: { root: { class: 'w-12 h-14 rounded-md text-lg text-center tracking-[0.4em] font-semibold border border-gray-200 bg-white text-gray-700 outline-none focus:ring-2 focus:ring-primary/20' } }
-                                    }"
-                                />
-                                <button
-                                    type="submit"
-                                    :disabled="verifyEmailLoading || !emailVerificationCode || emailVerificationCode.length !== 6"
-                                    class="px-4 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shrink-0"
-                                >
-                                    <span v-if="verifyEmailLoading">Kontrol ediliyor...</span>
-                                    <span v-else>Doğrula</span>
-                                </button>
-                            </div>
-                            <p class="text-xs text-gray-500">
-                                Kod almadınız mı?
-                                <button
-                                    type="button"
-                                    :disabled="sendCodeLoading"
-                                    @click="sendEmailVerificationCode"
-                                    class="text-primary font-medium text-md hover:underline disabled:opacity-50"
-                                >
-                                    {{ sendCodeLoading ? 'Gönderiliyor...' : 'Doğrulama kodu gönder' }}
-                                </button>
-                            </p>
-                        </form>
+                            <i class="pi pi-envelope" style="font-size: 20px;"></i>
+                            E-postamı doğrula
+                        </button>
                     </div>
                     
                     <!-- Profil Fotoğrafı -->
@@ -374,19 +345,154 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="border-t border-gray-100 mt-6 pt-6">
+                    <button
+                        type="button"
+                        :disabled="overallProgress < 100 || activationLoading"
+                        class="w-full flex items-center justify-center gap-2.5 px-4 py-4 bg-primary text-white text-base font-bold rounded-xl hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors min-h-[52px]"
+                        @click="requestAccountActivation"
+                    >
+                        <i v-if="!activationLoading" class="pi pi-shield" style="font-size: 20px;"></i>
+                        <span v-if="activationLoading">Gönderiliyor...</span>
+                        <span v-else>Hesap Etkinleştir</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
+
+    <Transition name="modal">
+        <div
+            v-if="emailModalOpen && !verificationStatus.email"
+            class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="email-verify-modal-title"
+        >
+            <div class="absolute inset-0 bg-slate-900/45" @click="closeEmailModal" />
+            <div class="relative w-full sm:max-w-md bg-white rounded-t-2xl sm:rounded-2xl shadow-xl p-5 sm:p-6 max-h-[92vh] overflow-y-auto">
+                <div class="flex items-center justify-between gap-3 mb-4">
+                    <h3 id="email-verify-modal-title" class="text-lg font-bold text-gray-900">
+                        E-postanızı doğrulayın
+                    </h3>
+                    <button
+                        type="button"
+                        class="w-10 h-10 rounded-xl flex items-center justify-center text-slate-500 hover:bg-gray-100 transition-colors"
+                        aria-label="Kapat"
+                        @click="closeEmailModal"
+                    >
+                        <i class="pi pi-times" style="font-size: 22px;"></i>
+                    </button>
+                </div>
+
+                <p class="text-sm text-slate-500 mb-2">Kod şu adrese gönderilir:</p>
+                <div class="flex items-center gap-2 mb-4">
+                    <div
+                        v-if="!editingEmail"
+                        class="flex-1 min-w-0 flex items-center gap-2.5 rounded-xl border border-primary/35 bg-teal-50/60 px-3.5 py-3 min-h-[52px]"
+                    >
+                        <i class="pi pi-envelope text-primary shrink-0" style="font-size: 18px;"></i>
+                        <span class="text-sm font-semibold text-slate-900 break-all">{{ userEmail || '—' }}</span>
+                    </div>
+                    <input
+                        v-else
+                        v-model="draftEmail"
+                        type="email"
+                        autocomplete="email"
+                        placeholder="ornek@posta.com"
+                        class="flex-1 min-w-0 rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-3 text-sm text-slate-900 outline-none focus:ring-2 focus:ring-primary/20"
+                    />
+                    <button
+                        type="button"
+                        class="w-11 h-11 shrink-0 rounded-xl flex items-center justify-center bg-primary/10 text-primary hover:bg-primary/15 transition-colors"
+                        :aria-label="editingEmail ? 'Düzenlemeyi iptal et' : 'E-postayı düzenle'"
+                        @click="toggleEmailEdit"
+                    >
+                        <i :class="editingEmail ? 'pi pi-times' : 'pi pi-pencil'" style="font-size: 18px;"></i>
+                    </button>
+                </div>
+
+                <div v-if="editingEmail" class="flex items-center gap-3 mb-4 -mt-1">
+                    <button
+                        type="button"
+                        :disabled="savingEmail"
+                        class="px-5 py-2.5 rounded-lg bg-primary text-white text-sm font-bold hover:bg-primary/90 disabled:opacity-50 transition-colors min-w-[100px]"
+                        @click="saveEmailToServer"
+                    >
+                        <span v-if="savingEmail">Kaydediliyor...</span>
+                        <span v-else>Kaydet</span>
+                    </button>
+                    <button
+                        type="button"
+                        :disabled="savingEmail"
+                        class="px-2 py-2.5 text-sm font-semibold text-slate-500 hover:text-slate-700 transition-colors"
+                        @click="cancelEmailEdit"
+                    >
+                        İptal
+                    </button>
+                </div>
+
+                <label class="block text-sm font-medium text-gray-700 mb-2">Doğrulama kodu</label>
+                <InputOtp
+                    v-model="emailVerificationCode"
+                    :length="6"
+                    :integerOnly="true"
+                    :disabled="verifyEmailLoading"
+                    :unstyled="true"
+                    :pt="{
+                        root: { class: 'flex gap-2 flex-wrap mb-4' },
+                        pcInputText: { root: { class: 'w-11 h-13 rounded-lg text-lg text-center font-bold border border-gray-200 bg-white text-gray-700 outline-none focus:ring-2 focus:ring-primary/20' } }
+                    }"
+                />
+
+                <p
+                    v-if="codeSentNotice"
+                    class="flex items-center gap-2 mb-4 rounded-xl border border-green-200 bg-green-50 px-3.5 py-3 text-sm font-semibold text-green-700"
+                    role="status"
+                >
+                    <i class="pi pi-check-circle shrink-0" style="font-size: 18px;"></i>
+                    Doğrulama kodu gönderilmiştir
+                </p>
+
+                <button
+                    type="button"
+                    :disabled="sendCodeLoading"
+                    class="w-full py-3.5 rounded-xl bg-primary text-white text-base font-bold hover:bg-primary/90 disabled:opacity-50 transition-colors"
+                    @click="sendEmailVerificationCode"
+                >
+                    <span v-if="sendCodeLoading">Gönderiliyor...</span>
+                    <span v-else>Doğrulama kodunu gönder</span>
+                </button>
+
+                <button
+                    type="button"
+                    :disabled="verifyEmailLoading || !emailVerificationCode || emailVerificationCode.length !== 6"
+                    class="w-full mt-2.5 py-3.5 rounded-xl border-2 border-primary bg-white text-primary text-base font-bold hover:bg-primary/5 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    @click="verifyEmailCode"
+                >
+                    <span v-if="verifyEmailLoading">Kontrol ediliyor...</span>
+                    <span v-else>Kodu doğrula</span>
+                </button>
+
+                <p class="text-xs text-slate-400 text-center mt-3.5 leading-relaxed">
+                    Kod gelmediyse spam klasörünü kontrol edin veya tekrar gönderin.
+                </p>
+            </div>
+        </div>
+    </Transition>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { storeToRefs } from 'pinia';
 import { toast } from 'vue-sonner';
 import api from '@/api';
 import { InputOtp } from 'primevue';
 import { useAuthStore } from '@/stores/auth';
 
 const authStore = useAuthStore();
+const { user } = storeToRefs(authStore);
 
 const verificationStatus = ref({
     email: false,
@@ -394,37 +500,60 @@ const verificationStatus = ref({
     identity: false,
     src: false,
     psychotechnical: false,
-    license: false
+    license: false,
+    verified: false,
 });
 
 const totalCount = 7;
-
+const serverCompletedCount = ref(0);
 
 async function fetchVerificationStatus() {
     try {
         const res = await api.get('/confirm-account/home');
         const data = res.data?.content;
-        console.log(data);
-        
+
         if (data?.verification) {
             verificationStatus.value = { ...verificationStatus.value, ...data.verification };
+        }
+        if (typeof data?.completed_count === 'number') {
+            serverCompletedCount.value = data.completed_count;
         }
     } catch (_) {
         // Oturum yoksa veya hata olursa mevcut state kalır
     }
 }
 
-onMounted(() => {
+onMounted(async () => {
+    await authStore.refreshUser?.();
+    userEmail.value = user.value?.email?.trim() ?? '';
     fetchVerificationStatus();
 });
 
+/** Mobil ile aynı: oturum açmış kullanıcı için telefon adımı tamamlanmış sayılır */
 const completedCount = computed(() => {
-    return Object.values(verificationStatus.value).filter(status => status === true).length;
+    return Math.min(totalCount, serverCompletedCount.value + 1);
 });
 
 const overallProgress = computed(() => {
-    return Math.round((completedCount.value / totalCount) * 100);
+    return totalCount > 0 ? Math.round((completedCount.value / totalCount) * 100) : 0;
 });
+
+const activationLoading = ref(false);
+
+const requestAccountActivation = async () => {
+    if (overallProgress.value < 100) return;
+    activationLoading.value = true;
+    try {
+        const res = await api.post('/confirm-account/request-activation');
+        const msg = res.data?.message ?? 'Hesap etkinleştirme talebiniz alındı.';
+        toast.success(msg, { description: 'Talebiniz incelenmek üzere iletildi.', duration: 5000 });
+    } catch (err) {
+        const msg = err.response?.data?.message ?? err.message ?? 'Talep gönderilemedi.';
+        toast.error('Hata', { description: msg, duration: 5000 });
+    } finally {
+        activationLoading.value = false;
+    }
+};
 
 const profilePhotoPreview = ref('');
 const profilePhotoFileName = ref('');
@@ -435,16 +564,76 @@ const srcFileName = ref('');
 const psychotechnicalFileName = ref('');
 const licenseFileName = ref('');
 
+const userEmail = ref('');
+const emailModalOpen = ref(false);
+const editingEmail = ref(false);
+const draftEmail = ref('');
+const savingEmail = ref(false);
 const emailVerificationCode = ref('');
+const codeSentNotice = ref(false);
 const sendCodeLoading = ref(false);
 const verifyEmailLoading = ref(false);
+
+const openEmailModal = () => {
+    draftEmail.value = userEmail.value;
+    editingEmail.value = false;
+    codeSentNotice.value = false;
+    emailModalOpen.value = true;
+};
+
+const closeEmailModal = () => {
+    emailModalOpen.value = false;
+    editingEmail.value = false;
+    draftEmail.value = userEmail.value;
+    codeSentNotice.value = false;
+};
+
+const toggleEmailEdit = () => {
+    if (editingEmail.value) {
+        cancelEmailEdit();
+        return;
+    }
+    draftEmail.value = userEmail.value;
+    editingEmail.value = true;
+};
+
+const cancelEmailEdit = () => {
+    draftEmail.value = userEmail.value;
+    editingEmail.value = false;
+};
+
+const saveEmailToServer = async () => {
+    const next = draftEmail.value.trim();
+    if (!next) {
+        toast.error('Uyarı', { description: 'E-posta girin.', duration: 4000 });
+        return;
+    }
+    if (next === (userEmail.value || '').trim()) {
+        editingEmail.value = false;
+        return;
+    }
+    savingEmail.value = true;
+    try {
+        const res = await api.put('/confirm-account/email', { email: next });
+        const saved = res.data?.content?.user?.email?.trim() ?? next;
+        userEmail.value = saved;
+        editingEmail.value = false;
+        codeSentNotice.value = false;
+        await authStore.refreshUser?.();
+        toast.success('E-posta güncellendi', { description: 'Doğrulama kodunu bu adrese gönderebilirsiniz.', duration: 5000 });
+    } catch (err) {
+        const msg = err.response?.data?.message ?? err.message ?? 'E-posta kaydedilemedi.';
+        toast.error('Hata', { description: msg, duration: 5000 });
+    } finally {
+        savingEmail.value = false;
+    }
+};
 
 const sendEmailVerificationCode = async () => {
     sendCodeLoading.value = true;
     try {
-        const res = await api.post('/confirm-account/send-email-code');
-        const msg = res.data?.message ?? 'Doğrulama kodu telefon numaranıza gönderildi.';
-        toast.success(msg, { description: 'SMS kutunuzu kontrol edin.', duration: 5000 });
+        await api.post('/confirm-account/send-email-code');
+        codeSentNotice.value = true;
     } catch (err) {
         const msg = err.response?.data?.message ?? err.message ?? 'Kod gönderilemedi.';
         toast.error('Hata', { description: msg, duration: 5000 });
@@ -454,12 +643,13 @@ const sendEmailVerificationCode = async () => {
 };
 
 const verifyEmailCode = async () => {
-    if (!emailVerificationCode.value?.trim()) return;
+    if (!emailVerificationCode.value?.trim() || emailVerificationCode.value.length !== 6) return;
     verifyEmailLoading.value = true;
     try {
         await api.post('/confirm-account/verify-email', { code: emailVerificationCode.value.trim() });
         await fetchVerificationStatus();
         emailVerificationCode.value = '';
+        closeEmailModal();
         toast.success('E-posta adresiniz doğrulandı.', { duration: 5000 });
     } catch (err) {
         const msg = err.response?.data?.message ?? err.message ?? 'Doğrulama başarısız.';

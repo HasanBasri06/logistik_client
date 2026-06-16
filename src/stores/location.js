@@ -67,7 +67,7 @@ export const useLocationStore = defineStore('location', () => {
     function setLocationErrorMessage(err) {
         locationErrorCode.value = err?.code ?? null;
         if (err.code === 1) {
-            locationError.value = 'Tarayıcıda konum izni kapalı. Aşağıdaki adımlarla tarayıcıdan izin verebilirsiniz.';
+            locationError.value = 'Konum izni kapalı.';
         } else if (err.code === 2) {
             locationError.value = 'Konum alınamadı. İnternet bağlantınızı ve Windows konum ayarlarını kontrol edin.';
         } else if (err.code === 3) {
@@ -136,7 +136,9 @@ export const useLocationStore = defineStore('location', () => {
                     try {
                         await api.put('/auth/user-location', {
                             user_city: city ?? null,
-                            user_district: district ?? null
+                            user_district: district ?? null,
+                            lat: coords.lat,
+                            lng: coords.lng,
                         });
                     } catch (_) {}
                 }
@@ -144,7 +146,7 @@ export const useLocationStore = defineStore('location', () => {
             (err) => {
                 locationRequesting.value = false;
                 setLocationErrorMessage(err);
-                if (showModalOnError) {
+                if (showModalOnError && err.code === 1) {
                     locationDeniedModalOpen.value = true;
                 }
             },
@@ -154,7 +156,11 @@ export const useLocationStore = defineStore('location', () => {
 
     function closeLocationModal() {
         locationDeniedModalOpen.value = false;
-        locationErrorCode.value = null;
+    }
+
+    /** Ayarlardan dönünce konumu tekrar dene */
+    function retryLocationAfterSettings() {
+        requestUserLocation(false);
     }
 
     function clearLocationError() {
@@ -172,6 +178,7 @@ export const useLocationStore = defineStore('location', () => {
         locationRequesting,
         requestUserLocation,
         closeLocationModal,
+        retryLocationAfterSettings,
         clearLocationError
     };
 });

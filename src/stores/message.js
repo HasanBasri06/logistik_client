@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
 import api from '@/api'
 import { useAuthStore } from '@/stores/auth'
-import { formatMessageTime, pickMessageText } from '@/lib/message-helpers'
+import { normalizeOutboundMessage } from '@/lib/message-limits'
+import { formatMessageTime, pickMessageText, filterMessagesForShipmentThread } from '@/lib/message-helpers'
 
 export { formatMessageTime, pickMessageText } from '@/lib/message-helpers'
 
@@ -23,7 +24,8 @@ export const useMessageStore = defineStore('message', () => {
         const { shipment_id, receiver_id, message } = payload
         const sender_id = authStore.user?.id
 
-        if (!sender_id || !receiver_id || !message?.trim()) {
+        const text = normalizeOutboundMessage(message)
+        if (!text) {
             return { success: false, error: 'Gönderen, alıcı veya mesaj eksik.' }
         }
 
@@ -32,7 +34,7 @@ export const useMessageStore = defineStore('message', () => {
                 shipment_id: shipment_id ?? null,
                 sender_id,
                 receiver_id,
-                message: message.trim(),
+                message: text,
             })
             return { success: true }
         } catch (err) {
@@ -69,7 +71,8 @@ export const useMessageStore = defineStore('message', () => {
                 params,
             })
             const content = data?.content ?? data?.data ?? data
-            const list = Array.isArray(content) ? content : (content?.messages ?? [])
+            const rawList = Array.isArray(content) ? content : (content?.messages ?? [])
+            const list = filterMessagesForShipmentThread(rawList, shipmentId)
             const currentUserId = senderId
             const mapped = Array.isArray(list)
                 ? list.map((m) => {
@@ -88,9 +91,15 @@ export const useMessageStore = defineStore('message', () => {
                     }
                 })
                 : []
-            const firstWithShipment = Array.isArray(list) ? list.find((m) => m.shipment_id != null) : null
-            const conversationShipmentId = firstWithShipment?.shipment_id ?? content?.conversation_shipment_id ?? null
-            const conversationShipment = firstWithShipment?.shipment ?? content?.conversation_shipment ?? null
+            const conversationShipmentId =
+                content?.conversation_shipment_id ??
+                (shipmentId != null && shipmentId !== '' ? Number(shipmentId) : null) ??
+                list.find((m) => m.shipment_id != null)?.shipment_id ??
+                null
+            const conversationShipment =
+                content?.conversation_shipment ??
+                list.find((m) => m.shipment)?.shipment ??
+                null
             return {
                 success: true,
                 data: mapped,

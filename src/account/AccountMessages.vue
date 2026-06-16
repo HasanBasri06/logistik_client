@@ -265,6 +265,7 @@
                         type="text"
                         enterkeyhint="send"
                         autocomplete="off"
+                        :maxlength="MESSAGE_MAX_LENGTH"
                         class="min-w-0 flex-1 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-[16px] leading-snug text-gray-700 outline-none sm:rounded-lg sm:py-3 sm:text-sm focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-gray-50 disabled:text-gray-400"
                         :disabled="!canSendMessage"
                         :placeholder="
@@ -312,6 +313,7 @@ import {
 } from '@/lib/message-helpers';
 import api from '@/api';
 import TeklifVerModal from '@/components/TeklifVerModal.vue';
+import { MESSAGE_MAX_LENGTH } from '@/lib/message-limits';
 
 const props = defineProps({
     messagesList: { type: Array, default: null },
@@ -592,14 +594,7 @@ const { connect: connectPusher } = usePusherMessages(userIdRef, {
             emit('refresh');
             return;
         }
-        if (!conversationEventMatchesThread(e, userId, currentOtherId)) return;
-        if (
-            e.shipment_id != null &&
-            conversationShipmentId.value != null &&
-            Number(e.shipment_id) !== Number(conversationShipmentId.value)
-        ) {
-            return;
-        }
+        if (!conversationEventMatchesThread(e, userId, currentOtherId, conversationShipmentId.value)) return;
         const row = mapConversationMessageFromEvent(e, userId);
         messageThread.value = [...messageThread.value, row].sort(
             (x, y) => new Date(x.created_at) - new Date(y.created_at)

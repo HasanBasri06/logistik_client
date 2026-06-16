@@ -12,62 +12,61 @@
       <RouterView></RouterView>
     </component>
   </div>
-  <!-- Konum alınamadı modalı (sadece giriş yapmış kullanıcı için) -->
+  <!-- Konum izni reddedildi — alttan sheet, izin verilene kadar kapatılamaz -->
   <Teleport to="body">
-    <Transition name="modal">
+    <Transition name="sheet">
       <div
-        v-show="authStore.isAuthenticated && locationDeniedModalOpen"
-        class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50"
+        v-show="authStore.isAuthenticated && locationDeniedModalOpen && locationErrorCode === 1"
+        class="fixed inset-0 z-[100] flex items-end justify-center bg-black/50"
         role="dialog"
         aria-modal="true"
         aria-labelledby="location-modal-title"
       >
-        <div class="relative bg-white rounded-xl shadow-xl max-w-md w-full p-6">
-          <div class="flex items-center gap-3 mb-4">
-            <span class="flex items-center justify-center w-12 h-12 rounded-full bg-amber-100 text-amber-600 shrink-0">
-              <MapPin class="w-6 h-6" />
+        <div class="w-full max-w-lg bg-white rounded-t-2xl shadow-xl px-5 pt-3 pb-8 min-h-[58vh] max-h-[88vh] flex flex-col">
+          <div class="mx-auto mb-4 h-1 w-10 rounded-full bg-gray-200 shrink-0" />
+          <div class="flex-1 overflow-y-auto text-center">
+            <span class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+              <MapPin class="w-8 h-8" />
             </span>
-            <div>
-              <h2 id="location-modal-title" class="text-lg font-semibold text-gray-900">Konum bilgisi gerekli</h2>
-              <p class="text-sm text-gray-500 mt-0.5">Konumunuza erişemiyoruz. Arama sonuçlarını iyileştirmek için tarayıcıdan konum izni verin.</p>
+            <h2 id="location-modal-title" class="text-lg font-bold text-gray-900">Konum izni gerekli</h2>
+            <p class="text-sm text-gray-500 mt-2 px-1 leading-relaxed">
+              TaşıBul’da konum bilgisi; size en yakın ilanları göstermek, aramayı hızlandırmak ve doğru eşleşmeyi
+              bulmanızı sağlamak için kullanılır.
+            </p>
+
+            <ul class="mt-5 space-y-3 text-left">
+              <li
+                v-for="item in locationReasons"
+                :key="item.title"
+                class="flex items-start gap-3 rounded-xl border border-gray-200 bg-gray-50/80 p-3"
+              >
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <component :is="item.icon" class="w-5 h-5" />
+                </span>
+                <div class="min-w-0">
+                  <p class="text-sm font-semibold text-gray-900">{{ item.title }}</p>
+                  <p class="text-xs text-gray-500 mt-0.5 leading-relaxed">{{ item.text }}</p>
+                </div>
+              </li>
+            </ul>
+
+            <div class="mt-4 flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 p-3 text-left">
+              <Info class="w-5 h-5 shrink-0 text-amber-700 mt-0.5" />
+              <p class="text-xs text-amber-900 leading-relaxed">
+                Konum izni şu an kapalı. Devam etmek için tarayıcı veya cihaz ayarlarından konum erişimini açmanız
+                gerekiyor.
+              </p>
             </div>
           </div>
-          <p v-if="locationError" class="text-sm text-gray-600 mb-3">{{ locationError }}</p>
-          <template v-if="locationErrorCode === 1 && locationPermissionPlatform === 'android'">
-            <p class="text-sm font-medium text-gray-700 mb-2">Android için konum izni adımları:</p>
-            <ol class="text-sm text-gray-600 list-decimal list-inside space-y-1 mb-3">
-              <li>Tarayıcıda adres çubuğu yanındaki <strong>kilit</strong> simgesine dokunun.</li>
-              <li><strong>Site ayarları</strong> veya <strong>İzinler</strong> bölümünü açın.</li>
-              <li><strong>Konum</strong> iznini <strong>İzin ver</strong> olarak değiştirin.</li>
-              <li>Gerekirse Android Ayarlar &gt; Uygulamalar &gt; Tarayıcı &gt; İzinler kısmında Konum'u açın.</li>
-            </ol>
-          </template>
-          <template v-else-if="locationErrorCode === 1 && locationPermissionPlatform === 'ios'">
-            <p class="text-sm font-medium text-gray-700 mb-2">iOS için konum izni adımları:</p>
-            <ol class="text-sm text-gray-600 list-decimal list-inside space-y-1 mb-3">
-              <li>Safari'de adres çubuğundaki <strong>aA</strong> simgesine dokunun.</li>
-              <li><strong>Web Sitesi Ayarları</strong> bölümüne girin.</li>
-              <li><strong>Konum</strong> için <strong>İzin Ver</strong> seçin.</li>
-              <li>Gerekirse iOS Ayarlar &gt; Safari &gt; Konum bölümünde izinleri aktif edin.</li>
-            </ol>
-          </template>
-          <template v-else-if="locationErrorCode === 1 && locationPermissionPlatform === 'web'">
-            <p class="text-sm font-medium text-gray-700 mb-2">Web tarayıcı için konum izni adımları:</p>
-            <ol class="text-sm text-gray-600 list-decimal list-inside space-y-1 mb-3">
-              <li>Adres çubuğundaki <strong>kilit</strong> (veya bilgi) simgesine tıklayın.</li>
-              <li>Açılan pencerede <strong>Konum</strong> satırını bulun.</li>
-              <li>Konum erişimini <strong>İzin ver</strong> veya <strong>Açık</strong> yapın.</li>
-            </ol>
-          </template>
-          <div class="flex justify-end">
-            <button
-              type="button"
-              class="px-4 py-2 rounded-lg border border-gray-200 text-gray-700 font-medium hover:bg-gray-50 transition-colors"
-              @click="closeLocationModal"
-            >
-              Daha sonra
-            </button>
-          </div>
+
+          <button
+            type="button"
+            class="mt-4 w-full h-12 shrink-0 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors inline-flex items-center justify-center gap-2"
+            @click="onLocationSettingsPress"
+          >
+            <Settings class="w-4 h-4" />
+            Konum ayarlarına git
+          </button>
         </div>
       </div>
     </Transition>
@@ -81,7 +80,7 @@
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
-import { MapPin } from 'lucide-vue-next';
+import { GitCompare, Info, MapPin, Navigation, Settings, ShieldCheck } from 'lucide-vue-next';
 import Layout from './Layout.vue';
 import PremiumModal from './components/PremiumModal.vue';
 import OpenInAppBanner from './components/OpenInAppBanner.vue';
@@ -97,15 +96,30 @@ import { useAuthStore } from './stores/auth';
 const route = useRoute();
 const authStore = useAuthStore();
 const locationStore = useLocationStore();
-const { locationDeniedModalOpen, locationError, locationErrorCode, locationRequesting } = storeToRefs(locationStore);
-const { requestUserLocation, closeLocationModal } = locationStore;
-const locationPermissionPlatform = computed(() => {
-  if (typeof navigator === 'undefined') return 'web';
-  const ua = navigator.userAgent.toLowerCase();
-  if (ua.includes('android')) return 'android';
-  if (ua.includes('iphone') || ua.includes('ipad') || ua.includes('ipod')) return 'ios';
-  return 'web';
-});
+const { locationDeniedModalOpen, locationErrorCode } = storeToRefs(locationStore);
+const { retryLocationAfterSettings } = locationStore;
+
+const locationReasons = [
+  {
+    icon: Navigation,
+    title: 'Yakınınızdaki ilanlar',
+    text: 'Bulunduğunuz bölgeye yakın yük ve araç ilanlarını önce gösteririz.',
+  },
+  {
+    icon: GitCompare,
+    title: 'Size uygun eşleşme',
+    text: 'Araç tipiniz ve konumunuza uygun ilanları listenin üstünde önceliklendiririz.',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Gizlilik',
+    text: 'Konum yalnızca uygulama kullanılırken işlenir; izin vermezseniz temel özellikler çalışmaya devam eder.',
+  },
+];
+
+function onLocationSettingsPress() {
+  retryLocationAfterSettings();
+}
 
 const isOnline = ref(typeof navigator !== 'undefined' ? navigator.onLine : true);
 // Sadece çevrimdışıyken veya çevrimdışıyken bağlanınca bar göster; ilk yüklemede çevrimiçiysen gösterme
@@ -194,12 +208,20 @@ useHead({
 <style scoped>
 </style>
 <style>
-.modal-enter-active,
-.modal-leave-active {
-  transition: opacity 0.2s ease;
+.sheet-enter-active,
+.sheet-leave-active {
+  transition: opacity 0.25s ease;
 }
-.modal-enter-from,
-.modal-leave-to {
+.sheet-enter-active > div:last-child,
+.sheet-leave-active > div:last-child {
+  transition: transform 0.25s ease;
+}
+.sheet-enter-from,
+.sheet-leave-to {
   opacity: 0;
+}
+.sheet-enter-from > div:last-child,
+.sheet-leave-to > div:last-child {
+  transform: translateY(100%);
 }
 </style>

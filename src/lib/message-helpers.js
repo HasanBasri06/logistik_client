@@ -139,8 +139,22 @@ export function buildInboxMessagesList(rawMessages, currentUserId) {
         })
 }
 
+/** Mesaj bu sohbet işine (shipment_id) ait mi? */
+export function messageBelongsToShipmentThread(messageShipmentId, threadShipmentId) {
+    if (threadShipmentId != null && threadShipmentId !== '' && Number.isFinite(Number(threadShipmentId))) {
+        return messageShipmentId != null && Number(messageShipmentId) === Number(threadShipmentId)
+    }
+    return messageShipmentId == null
+}
+
+/** Ham API mesaj listesini iş bazlı filtrele */
+export function filterMessagesForShipmentThread(messages, threadShipmentId) {
+    if (!Array.isArray(messages)) return []
+    return messages.filter((m) => messageBelongsToShipmentThread(m.shipment_id, threadShipmentId))
+}
+
 /** Pusher: bu sohbet kanalına ait mi? */
-export function conversationEventMatchesThread(e, meId, otherUserId) {
+export function conversationEventMatchesThread(e, meId, otherUserId, threadShipmentId = undefined) {
     const isSystem = isSystemMessageType(e.type)
     const isRequest = isRequestMessageType(e.type)
     const forMe =
@@ -149,7 +163,8 @@ export function conversationEventMatchesThread(e, meId, otherUserId) {
     if (!forMe) return false
     const a = Number(e.sender_id)
     const b = Number(e.receiver_id)
-    return a === Number(otherUserId) || b === Number(otherUserId)
+    if (a !== Number(otherUserId) && b !== Number(otherUserId)) return false
+    return messageBelongsToShipmentThread(e.shipment_id, threadShipmentId)
 }
 
 export function mapConversationMessageFromEvent(e, currentUserId) {

@@ -104,6 +104,7 @@
                                         :show-accept-button="isCreator && canAcceptOffers"
                                         :accept-loading="acceptOfferLoadingId === req?.id"
                                         :messaging-disabled="!isShipmentActive"
+                                        :shipment-inactive="!isShipmentActive"
                                         @message-click="openMessagePanel"
                                         @accept-click="openAcceptOfferModal"
                                     />
@@ -146,8 +147,8 @@
                                             <p class="text-xs text-gray-500 truncate mt-0.5">
                                                 {{ [u.user_city, u.user_district].filter(Boolean).join(' / ') || '—' }}
                                             </p>
-                                            <p v-if="distanceKmByUserId[u.id] != null" class="text-xs text-primary font-medium mt-1">
-                                                ~{{ Math.round(distanceKmByUserId[u.id]) }} km
+                                            <p v-if="u.distance_km != null" class="text-xs text-primary font-medium mt-1">
+                                                ~{{ Math.round(u.distance_km) }} km
                                             </p>
                                         </div>
                                         <button
@@ -285,6 +286,7 @@
                                 v-model="newMessageText"
                                 type="text"
                                 placeholder="Mesajınızı yazın..."
+                                :maxlength="MESSAGE_MAX_LENGTH"
                                 :disabled="!isShipmentActive"
                                 class="flex-1 rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
                             />
@@ -417,6 +419,7 @@ import {
 } from '@/lib/message-helpers';
 import { useLocationStore } from '@/stores/location';
 import { storeToRefs } from 'pinia';
+import { MESSAGE_MAX_LENGTH } from '@/lib/message-limits';
 
 const route = useRoute();
 const router = useRouter();
@@ -605,16 +608,6 @@ const vehicleImageUrl = computed(() => {
 
 const closeUsersList = ref([]);
 const closeUsersLoading = ref(false);
-const distanceKmByUserId = ref({});
-
-function haversineKm(lat1, lon1, lat2, lon2) {
-    const R = 6371;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-}
 
 async function geocodeCityDistrict(city, district) {
     if (!city && !district) return null;
@@ -631,48 +624,22 @@ async function geocodeCityDistrict(city, district) {
     return null;
 }
 
-async function updateDistancesForCloseUsers() {
-    const coords = userCoords.value;
-    const list = closeUsersList.value;
-    if (!coords?.lat || !coords?.lng || !list.length) {
-        distanceKmByUserId.value = {};
-        return;
-    }
-    const map = {};
-    for (const u of list) {
-        const pt = await geocodeCityDistrict(u.user_city, u.user_district);
-        if (pt) map[u.id] = haversineKm(coords.lat, coords.lng, pt.lat, pt.lng);
-        await new Promise((r) => setTimeout(r, 200));
-    }
-    distanceKmByUserId.value = map;
-}
-
-function sortCloseUsersByDistance() {
-    const dist = distanceKmByUserId.value;
-    closeUsersList.value = closeUsersList.value.slice().sort((a, b) => {
-        const kmA = dist[a.id] ?? Infinity;
-        const kmB = dist[b.id] ?? Infinity;
-        return kmA - kmB;
-    });
-}
-
 async function fetchCloseUsers() {
     closeUsersLoading.value = true;
-    distanceKmByUserId.value = {};
     const s = shipment.value;
     const city = s?.f_where_city ?? userCity.value;
     const district = s?.f_where_district ?? userDistrict.value;
     try {
+        const ref = city ? await geocodeCityDistrict(city, district) : null;
         const res = await api.get('/auth/close-users', {
             params: {
                 user_city: city ?? undefined,
                 user_district: district ?? undefined,
+                ...(ref ? { ref_lat: ref.lat, ref_lng: ref.lng } : {}),
             },
         });
         const content = res.data?.content ?? res.data;
         closeUsersList.value = Array.isArray(content?.users) ? content.users : [];
-        await updateDistancesForCloseUsers();
-        sortCloseUsersByDistance();
     } catch (err) {
         console.error(err);
         closeUsersList.value = [];
@@ -758,8 +725,7 @@ usePusherMessages(computed(() => authStore.user?.id), {
         const uid = authStore.user?.id;
         if (!uid || !showMessagePanel.value || selectedReceiver.value?.id == null) return;
         const sid = shipment.value?.id;
-        if (sid != null && e.shipment_id != null && Number(e.shipment_id) !== Number(sid)) return;
-        if (!conversationEventMatchesThread(e, uid, Number(selectedReceiver.value.id))) return;
+        if (!conversationEventMatchesThread(e, uid, Number(selectedReceiver.value.id), sid ?? null)) return;
         const row = mapConversationMessageFromEvent(e, uid);
         panelMessages.value = [...panelMessages.value, row].sort(
             (x, y) => new Date(x.created_at) - new Date(y.created_at)

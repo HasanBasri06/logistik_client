@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <link rel="icon" href="/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=overlays-content">
-    <meta name="apple-itunes-app" content="app-id=6765674499, app-argument=https://tasibul.com">
+    <meta name="apple-itunes-app" content="app-id=6765674499, app-argument=https://www.tasibul.com/">
     <title>TaşıBul</title>
     <meta property="og:title" content="TaşıBul - Lojistik Platformu" />
     <meta property="og:description" content="Yükünüz için en uygun aracı bulun." />
@@ -23,11 +23,9 @@
           var ua = navigator.userAgent || '';
           if (!/Android/i.test(ua)) return;
           sessionStorage.setItem('tasibul_native_open_tried', '1');
-          var path = location.pathname + location.search + location.hash;
           var fallback = encodeURIComponent(location.href);
           location.href =
-            'intent://' + location.host + path +
-            '#Intent;scheme=https;package=com.tasibul.app;S.browser_fallback_url=' + fallback + ';end';
+            'intent://www.tasibul.com/#Intent;scheme=https;package=com.tasibul.app;S.browser_fallback_url=' + fallback + ';end';
         })();
     </script>
     <script>

@@ -463,10 +463,21 @@
                                         </span>
                                     </div>
                                     <div class="flex justify-start -mt-2">
-                                        <button type="button"
-                                            class="text-sm text-gray-600 hover:text-primary font-medium transition-colors">
+                                        <button
+                                            type="button"
+                                            class="text-sm text-gray-600 hover:text-primary font-medium transition-colors"
+                                            @click="goToForgotPassword"
+                                        >
                                             Şifremi Unuttum
                                         </button>
+                                    </div>
+
+                                    <div
+                                        v-if="loginInactiveAccount"
+                                        class="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm leading-relaxed text-blue-900"
+                                        role="status"
+                                    >
+                                        {{ loginInactiveAccount }}
                                     </div>
 
                                     <div class="flex flex-wrap items-center gap-3">
@@ -950,6 +961,7 @@ const loginErrors = ref({
     phone: "",
     password: ""
 });
+const loginInactiveAccount = ref("");
 
 const showLoginPassword = ref(false);
 const loginLoading = ref(false);
@@ -1137,14 +1149,27 @@ const handleLoginClick = () => {
 };
 
 const openLogin = () => {
+    if (authStore.isAuthenticated) {
+        router.push('/panel');
+        return;
+    }
     isRegister.value = false;
     showLogin.value = true;
 };
 
 const openRegister = () => {
+    if (authStore.isAuthenticated) {
+        router.push('/panel');
+        return;
+    }
     isRegister.value = true;
     showLogin.value = true;
 };
+
+function goToForgotPassword() {
+    showLogin.value = false;
+    router.push('/sifremi-unuttum');
+}
 
 watch(requestShowLoginModal, (v) => {
     if (v) {
@@ -1174,6 +1199,7 @@ watch(showLogin, (isOpen) => {
         loginAcceptKvkk.value = false;
         registerAcceptUyelik.value = false;
         registerAcceptKvkk.value = false;
+        loginInactiveAccount.value = '';
     }
 });
 
@@ -1262,6 +1288,7 @@ const handleAuthModalSubmit = () => {
 
 const handleLoginSubmit = async () => {
     loginErrors.value = { phone: "", password: "" };
+    loginInactiveAccount.value = "";
     loginLoading.value = true;
     try {
         await loginSchema.validate(loginForm.value, { abortEarly: false });
@@ -1289,6 +1316,10 @@ const handleLoginSubmit = async () => {
                 description: 'Doğrulama kodu',
                 duration: 5000
             });
+        } else if (result.accountInactive) {
+            loginInactiveAccount.value =
+                result.error ||
+                'Hesabınız kaldırılmış veya silinmiş olabilir. Lütfen destek ekibi ile iletişime geçiniz: destek@tasibul.com';
         } else {
             // Server'dan dönen hata mesajını toast ile göster
             let errorMessage = result.error || 'Giriş başarısız!';

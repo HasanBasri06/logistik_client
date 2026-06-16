@@ -2,18 +2,109 @@
 <template>
     <div class="min-h-screen flex flex-col">
         <Header />
-        <Content class="pt-16 mt-4 sm:mt-5 px-3 sm:px-4 relative pb-24 md:pb-8">
-            <div class="flex flex-col md:flex-row md:items-start md:gap-4 gap-6">
+        <Content class="pt-8 mt-4 sm:mt-5 px-3 sm:px-4 relative pb-24 md:pb-8">
+            <!-- İskelet loading -->
+            <div v-if="shipmentLoading" class="flex flex-col md:flex-row md:items-start md:gap-4 gap-6 animate-pulse">
+                <div class="w-full md:w-[800px] md:max-w-[800px] md:shrink-0 flex flex-col gap-4">
+                    <div class="hidden md:block h-9 w-48 rounded-lg bg-gray-200"></div>
+                    <div class="h-[240px] sm:h-[320px] md:h-[350px] rounded-md bg-gray-200"></div>
+                    <div class="rounded-md p-4 border border-gray-200 bg-white">
+                        <div class="flex flex-wrap items-center justify-between gap-3">
+                            <div class="flex gap-6">
+                                <div class="h-5 w-28 rounded bg-gray-200"></div>
+                                <div class="h-5 w-24 rounded bg-gray-200"></div>
+                            </div>
+                            <div class="h-5 w-20 rounded bg-gray-200"></div>
+                        </div>
+                    </div>
+                    <div class="rounded-md p-4 border border-gray-200 bg-white">
+                        <div class="h-4 w-32 rounded bg-gray-200 mb-3"></div>
+                        <div class="flex gap-3">
+                            <div class="w-10 h-10 rounded-full bg-gray-200"></div>
+                            <div class="w-10 h-10 rounded-full bg-gray-200"></div>
+                        </div>
+                    </div>
+                    <div class="rounded-md border border-gray-200 bg-white p-4 sm:p-6">
+                        <div class="h-5 w-44 rounded bg-gray-200 mb-4"></div>
+                        <div class="grid gap-3">
+                            <div v-for="n in 2" :key="`route-skel-${n}`" class="rounded-xl border border-gray-100 p-3.5">
+                                <div class="flex gap-3">
+                                    <div class="w-9 h-9 rounded-lg bg-gray-200 shrink-0"></div>
+                                    <div class="flex-1 space-y-2">
+                                        <div class="h-4 w-3/4 max-w-[240px] rounded bg-gray-200"></div>
+                                        <div class="flex gap-2">
+                                            <div class="h-6 w-16 rounded-full bg-gray-200"></div>
+                                            <div class="h-6 w-20 rounded-full bg-gray-200"></div>
+                                        </div>
+                                        <div class="h-4 w-24 rounded bg-gray-200"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="rounded-3xl border border-gray-200 bg-white overflow-hidden">
+                        <div class="px-4 sm:px-6 pt-5 pb-4 border-b border-gray-100">
+                            <div class="h-6 w-24 rounded-full bg-gray-200 mb-3"></div>
+                            <div class="h-6 w-40 rounded bg-gray-200"></div>
+                            <div class="h-4 w-64 max-w-full rounded bg-gray-200 mt-2"></div>
+                        </div>
+                        <div class="p-4 sm:p-6">
+                            <div class="h-20 rounded-2xl bg-gray-200"></div>
+                        </div>
+                        <div class="px-4 sm:px-6 pb-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div v-for="n in 4" :key="`feat-skel-${n}`" class="rounded-xl border border-gray-100 p-3.5 space-y-2">
+                                <div class="h-3 w-20 rounded bg-gray-200"></div>
+                                <div class="h-4 w-28 rounded bg-gray-200"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <aside class="w-full md:flex-1 flex flex-col gap-4 min-w-0">
+                    <div class="h-9 w-40 rounded-lg bg-gray-200"></div>
+                    <div class="rounded-lg border border-gray-200 bg-white overflow-hidden">
+                        <div class="p-4 sm:p-5">
+                            <div class="flex gap-4">
+                                <div class="flex flex-col items-center gap-2 shrink-0">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-gray-200"></div>
+                                    <div class="w-px h-20 bg-gray-200"></div>
+                                    <div class="w-1.5 h-1.5 rounded-full bg-gray-200"></div>
+                                </div>
+                                <div class="flex-1 space-y-8">
+                                    <div class="space-y-2">
+                                        <div class="h-3 w-14 rounded bg-gray-200"></div>
+                                        <div class="h-5 w-40 rounded bg-gray-200"></div>
+                                        <div class="h-4 w-28 rounded bg-gray-200"></div>
+                                    </div>
+                                    <div class="space-y-2">
+                                        <div class="h-3 w-14 rounded bg-gray-200"></div>
+                                        <div class="h-5 w-36 rounded bg-gray-200"></div>
+                                        <div class="h-4 w-28 rounded bg-gray-200"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="border-t border-gray-100 bg-gray-50 px-4 py-3 flex gap-3">
+                            <div class="flex-1 h-12 rounded-xl bg-gray-200"></div>
+                            <div class="flex-1 h-12 rounded-xl bg-gray-200"></div>
+                        </div>
+                    </div>
+                    <div class="rounded-md p-4 sm:p-6 border border-gray-200 bg-white">
+                        <div class="flex items-center gap-4">
+                            <div class="w-16 h-16 rounded-full bg-gray-200 shrink-0"></div>
+                            <div class="flex-1 space-y-2">
+                                <div class="h-5 w-36 rounded bg-gray-200"></div>
+                                <div class="h-4 w-24 rounded bg-gray-200"></div>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+
+            <div v-else class="flex flex-col md:flex-row md:items-start md:gap-4 gap-6">
             <!-- Sol kolon: mobilde tam genişlik, masaüstünde sabit genişlik -->
-            <div
-                class="w-full md:w-[800px] md:max-w-[800px] md:shrink-0 flex flex-col gap-4 transition-all duration-200"
-                :class="shipmentLoading ? 'opacity-60 pointer-events-none' : ''"
-            >
+            <div class="w-full md:w-[800px] md:max-w-[800px] md:shrink-0 flex flex-col gap-4">
                 <h2 class="text-xl sm:text-2xl font-semibold text-gray-900 h-9 hidden md:block">Taşıma Bilgileri</h2>
-                <div
-                    class="bg-white h-[240px] sm:h-[320px] md:h-[350px] rounded-md relative transition-colors duration-200"
-                    :class="shipmentLoading ? 'bg-gray-200 animate-pulse' : ''"
-                >
+                <div class="bg-white h-[240px] sm:h-[320px] md:h-[350px] rounded-md relative">
                     <div v-if="mapError" class="w-full h-[240px] sm:h-[320px] md:h-[350px] flex items-center justify-center bg-red-50 border border-red-200 rounded-md">
                         <div class="text-center p-4">
                             <p class="text-red-600 font-semibold mb-2">Harita Yüklenemedi</p>
@@ -41,8 +132,7 @@
                 </div>
                 <div
                     v-if="distance"
-                    class="rounded-md p-4 border border-gray-200 transition-colors duration-200"
-                    :class="shipmentLoading ? 'bg-gray-200 animate-pulse' : 'bg-white'"
+                    class="rounded-md p-4 border border-gray-200 bg-white"
                 >
                     <div class="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
                         <div class="flex flex-wrap items-center gap-3 sm:gap-4">
@@ -60,10 +150,7 @@
                 </div>
 
                 <!-- Bu ilanı paylaş -->
-                <div
-                    class="rounded-md p-4 border border-gray-200 transition-colors duration-200"
-                    :class="shipmentLoading ? 'bg-gray-200 animate-pulse' : 'bg-white'"
-                >
+                <div class="rounded-md p-4 border border-gray-200 bg-white">
                     <h3 class="text-sm font-semibold text-gray-900 mb-3">Bu ilanı paylaş</h3>
                     <p v-if="shipmentLoadError" class="text-sm text-red-600">{{ shipmentLoadError }}</p>
                     <div class="flex items-center gap-3">
@@ -93,10 +180,7 @@
                 </div>
 
                 <!-- Yol Üzerindeki İlanlar -->
-                <div
-                    class="rounded-md border border-gray-200 shadow-sm p-4 sm:p-6 transition-colors duration-200"
-                    :class="shipmentLoading ? 'bg-gray-200 animate-pulse' : 'bg-white'"
-                >
+                <div class="rounded-md border border-gray-200 shadow-sm p-4 sm:p-6 bg-white">
                     <h3 class="text-base sm:text-lg font-semibold text-primary mb-3">Yol Üzerindeki İlanlar</h3>
                     <p v-if="routeCities.length" class="text-sm text-gray-500 mb-4">
                         <span class="font-medium text-gray-700">Yol üzerindeki şehirler:</span>
@@ -146,7 +230,7 @@
                     <p v-if="routeListingsLoading" class="text-sm text-gray-500 py-2">
                         Yol üzerindeki ilanlar yükleniyor...
                     </p>
-                    <p v-else-if="!routeListings.length && !shipmentLoading" class="text-sm text-gray-500 py-2">
+                    <p v-else-if="!routeListings.length" class="text-sm text-gray-500 py-2">
                         Bu rota üzerinde şu an listelenen ilan yok.
                     </p>
                     <p v-else-if="!routeListings.length && distance" class="text-sm text-gray-500 py-2">
@@ -155,10 +239,7 @@
                 </div>
 
                 <!-- İlan Açıklaması -->
-                <div
-                    class="relative overflow-hidden rounded-3xl border border-gray-200/80 shadow-[0_12px_34px_rgba(15,23,42,0.08)] transition-colors duration-200"
-                    :class="shipmentLoading ? 'bg-gray-200 animate-pulse' : 'bg-white'"
-                >
+                <div class="relative overflow-hidden rounded-3xl border border-gray-200/80 shadow-[0_12px_34px_rgba(15,23,42,0.08)] bg-white">
                     <div class="absolute -top-20 -right-14 w-52 h-52 rounded-full bg-primary/10 blur-3xl pointer-events-none"></div>
                     <div class="relative px-4 sm:px-6 pt-5 pb-4 border-b border-gray-100 bg-gradient-to-r from-primary/[0.08] via-white to-white">
                         <div class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white/80 px-3 py-1 text-[11px] font-semibold text-primary tracking-wide uppercase">
@@ -197,17 +278,11 @@
                     </div>
                 </div>
             </div>
-            <aside
-                class="w-full md:flex-1 flex flex-col gap-4 transition-all duration-200 min-w-0 md:sticky md:top-24 md:self-start"
-                :class="shipmentLoading ? 'opacity-60 pointer-events-none' : ''"
-            >
+            <aside class="w-full md:flex-1 flex flex-col gap-4 min-w-0 md:sticky md:top-24 md:self-start">
                 <h2 class="text-xl sm:text-2xl font-semibold text-gray-900 h-9">Rota Bilgileri</h2>
                     
                     <!-- Kalkış ve Varış -->
-                    <div
-                        class="rounded-lg border border-gray-200 shadow-sm overflow-hidden transition-colors duration-200"
-                        :class="shipmentLoading ? 'bg-gray-200 animate-pulse' : 'bg-white'"
-                    >
+                    <div class="rounded-lg border border-gray-200 shadow-sm overflow-hidden bg-white">
                         <div class="p-4 sm:p-5">
                             <div class="flex items-start gap-4">
                                 <!-- Sol: Yuvarlaklar ve Çizgi -->
@@ -289,10 +364,7 @@
                     </div>
     
                     <!-- İlan Oluşturan Kişi Bilgileri -->
-                    <div
-                        class="rounded-md p-4 sm:p-6 border border-gray-200 shadow-sm h-auto transition-colors duration-200"
-                        :class="shipmentLoading ? 'bg-gray-200 animate-pulse' : 'bg-white'"
-                    >
+                    <div class="rounded-md p-4 sm:p-6 border border-gray-200 shadow-sm h-auto bg-white">
                         <div class="flex items-center gap-3 sm:gap-4">
                             <!-- Profil Resmi -->
                             <div class="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0">
@@ -320,18 +392,6 @@
                         </div>
                     </div>
             </aside>
-            </div>
-
-            <!-- Loading overlay: PrimeVue ProgressSpinner -->
-            <div
-                v-if="shipmentLoading"
-                class="absolute inset-0 z-10 flex items-center justify-center bg-white/70 rounded-lg"
-            >
-                <ProgressSpinner
-                    style="width: 48px; height: 48px"
-                    strokeWidth="4"
-                    aria-label="Yükleniyor"
-                />
             </div>
         </Content>
 
@@ -531,6 +591,7 @@
                                     v-model="newOfferMessageText"
                                     type="text"
                                     ref="message_input"
+                                    :maxlength="MESSAGE_MAX_LENGTH"
                                     :placeholder="canSendOfferMessage ? 'Mesajınızı yazın...' : 'Mesaj için önce araç ekleyin.'"
                                     class="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
                                     :disabled="!canSendOfferMessage"
@@ -605,7 +666,6 @@
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick, useTemplateRef } from 'vue';
 import { useRoute } from 'vue-router';
-import ProgressSpinner from 'primevue/progressspinner';
 import Header from '@/components/Header.vue';
 import Content from '@/components/Content.vue';
 import api from '@/api';
@@ -618,6 +678,7 @@ import {
     mapConversationMessageFromEvent,
 } from '@/lib/message-helpers';
 import TeklifVerModal from '@/components/TeklifVerModal.vue';
+import { MESSAGE_MAX_LENGTH } from '@/lib/message-limits';
 import { useHead } from '@vueuse/head';
 import { storeToRefs } from 'pinia';
 
@@ -1181,8 +1242,7 @@ usePusherMessages(computed(() => authStore.user?.id), {
         const receiverId = shipment.value?.creater_id ?? shipment.value?.creator?.id;
         if (!receiverId) return;
         const sid = shipment.value?.id;
-        if (sid != null && e.shipment_id != null && Number(e.shipment_id) !== Number(sid)) return;
-        if (!conversationEventMatchesThread(e, userId, Number(receiverId))) return;
+        if (!conversationEventMatchesThread(e, userId, Number(receiverId), sid ?? null)) return;
         const row = mapConversationMessageFromEvent(e, userId);
         const preview = offerPanelMessages.value.find((m) => m.type === 'preview');
         const rest = offerPanelMessages.value.filter((m) => m.type !== 'preview');

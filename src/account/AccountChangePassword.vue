@@ -122,23 +122,10 @@
 
                         <div class="mt-5 flex flex-col gap-2">
                             <label class="text-sm font-semibold text-gray-700">Doğrulama kodu</label>
-                            <InputOtp
+                            <OtpAutofillInput
                                 v-model="modalOtp"
-                                :length="6"
-                                :integerOnly="true"
                                 :disabled="loading"
                                 :invalid="!!modalOtpError"
-                                :unstyled="true"
-                                :pt="{
-                                    root: { class: 'flex gap-2 flex-1 flex-wrap justify-center' },
-                                    pcInputText: {
-                                        root: {
-                                            class: modalOtpError
-                                                ? 'w-11 h-12 sm:w-12 sm:h-14 rounded-md text-lg text-center tracking-[0.35em] font-semibold border border-red-400 bg-white text-gray-700 outline-none focus:ring-2 focus:ring-red-200'
-                                                : 'w-11 h-12 sm:w-12 sm:h-14 rounded-md text-lg text-center tracking-[0.35em] font-semibold border border-gray-200 bg-white text-gray-700 outline-none focus:ring-2 focus:ring-primary/20'
-                                        }
-                                    }
-                                }"
                             />
                             <span v-if="modalOtpError" class="text-xs text-red-500">{{ modalOtpError }}</span>
                         </div>
@@ -188,7 +175,7 @@ import { nextTick, ref } from 'vue';
 import * as yup from 'yup';
 import api from '@/api';
 import { toast } from 'vue-sonner';
-import { InputOtp } from 'primevue';
+import OtpAutofillInput from '@/components/OtpAutofillInput.vue';
 
 const passwordForm = ref({
     newPassword: '',
