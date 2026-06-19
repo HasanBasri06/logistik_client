@@ -14,7 +14,7 @@ function formatRate(value) {
 }
 
 export const usePricingPlansStore = defineStore('pricingPlans', () => {
-    const baseMonthlyPrice = 299;
+    const baseMonthlyPrice = 1;
 
     const rawPlans = [
         {
