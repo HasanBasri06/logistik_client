@@ -615,7 +615,12 @@ async function geocodeCityDistrict(city, district) {
     try {
         const res = await fetch(
             `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&countrycodes=tr`,
-            { headers: { 'Accept-Language': 'tr' } }
+            {
+                headers: {
+                    'Accept-Language': 'tr',
+                    'User-Agent': 'TasibulLogistics/1.0 (close-users geocode)',
+                },
+            }
         );
         const data = await res.json();
         const item = data?.[0];

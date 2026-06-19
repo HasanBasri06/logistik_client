@@ -24,7 +24,7 @@ export const usePricingPlansStore = defineStore('pricingPlans', () => {
             discountPercent: 0,
             description: 'Kısa süreli kullanım için ideal başlangıç paketi.',
             badge: null,
-            price: 299,
+            price: 1,
         },
         {
             id: 'quarterly',
