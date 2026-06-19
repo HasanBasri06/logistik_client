@@ -417,9 +417,9 @@ async function submitPayment() {
 
         if (redirectUrl && typeof redirectUrl === 'string') {
             window.open(redirectUrl, '_blank');
-            toast.success('Ödeme başarıyla oluşturuldu.', {
-                description: 'Ödeme adımı yeni sekmede açıldı.',
-                duration: 5000,
+            toast.success('3D doğrulama sayfası açıldı.', {
+                description: 'Banka doğrulamasını tamamladıktan sonra premium aktif olacaktır.',
+                duration: 6000,
             });
             close();
             return;
@@ -431,9 +431,9 @@ async function submitPayment() {
                 w.document.open();
                 w.document.write(html);
                 w.document.close();
-                toast.success('Ödeme başarıyla oluşturuldu.', {
-                    description: '3D / banka sayfası yeni sekmede açıldı.',
-                    duration: 5000,
+                toast.success('3D doğrulama sayfası açıldı.', {
+                    description: 'Banka doğrulamasını tamamladıktan sonra premium aktif olacaktır.',
+                    duration: 6000,
                 });
                 close();
                 return;
@@ -442,8 +442,21 @@ async function submitPayment() {
             return;
         }
 
-        toast.success(res.data?.message || 'Ödeme başarıyla oluşturuldu.', { duration: 5000 });
-        close();
+        const pending =
+            isObj && (content.status === 'pending' || content.status === 'wait_callback');
+        if (pending) {
+            toast.success(res.data?.message || 'Ödeme işlemi devam ediyor.', {
+                description: 'Onay sonrası premium aktif olacaktır.',
+                duration: 6000,
+            });
+            close();
+            return;
+        }
+
+        toast.error(res.data?.message || 'Ödeme adımı başlatılamadı. Lütfen tekrar deneyin.', {
+            description: 'Ödeme',
+            duration: 6000,
+        });
     } catch (err) {
         let msg = err?.response?.data?.message || err?.message || 'Ödeme alınamadı.';
         if (err?.code === 'ECONNABORTED') {

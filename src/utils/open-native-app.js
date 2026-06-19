@@ -5,7 +5,7 @@ const SESSION_STAY_WEB_KEY = 'tasibul_stay_on_web';
 const SESSION_APP_OPENED_KEY = 'tasibul_app_opened';
 
 /** Ödeme dönüşü vb. — uygulamaya atlamadan web’de kal */
-const SKIP_PATH_PREFIXES = ['/basarili', '/basarisiz'];
+const SKIP_PATH_PREFIXES = ['/odeme/basarili', '/odeme/hata', '/basarili', '/basarisiz'];
 
 export function isAndroid() {
   if (typeof navigator === 'undefined') return false;
