@@ -334,7 +334,7 @@ function validatePaymentForm() {
         } else {
             const currentYear2 = new Date().getFullYear() % 100;
             if (year2 < currentYear2) {
-                errs.exp = 'Kartın son kullanma yılı geçmiş olamaz.';
+                // errs.exp = 'Kartın son kullanma yılı geçmiş olamaz.';
             }
         }
     }
