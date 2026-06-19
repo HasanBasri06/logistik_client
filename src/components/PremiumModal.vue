@@ -332,12 +332,9 @@ function validatePaymentForm() {
         if (mm.length !== 2 || yy.length !== 2 || Number.isNaN(month) || month < 1 || month > 12 || Number.isNaN(year2)) {
             errs.exp = 'Son kullanma tarihi MM/YY formatında olmalıdır.';
         } else {
-            const now = new Date();
-            const currentYear2 = now.getFullYear() % 100;
-            const currentMonth = now.getMonth() + 1; // 1-12
-            // Yıl bugünden küçükse veya aynı yılda ay bugünden küçükse geçersiz
-            if (year2 < currentYear2 || (year2 === currentYear2 && month < currentMonth)) {
-                errs.exp = 'Kartın son kullanma tarihi geçmiş olamaz.';
+            const currentYear2 = new Date().getFullYear() % 100;
+            if (year2 < currentYear2) {
+                errs.exp = 'Kartın son kullanma yılı geçmiş olamaz.';
             }
         }
     }
