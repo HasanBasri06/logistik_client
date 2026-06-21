@@ -14,7 +14,7 @@ function formatRate(value) {
 }
 
 export const usePricingPlansStore = defineStore('pricingPlans', () => {
-    const baseMonthlyPrice = 1;
+    const baseMonthlyPrice = 299;
 
     const rawPlans = [
         {
@@ -24,7 +24,7 @@ export const usePricingPlansStore = defineStore('pricingPlans', () => {
             discountPercent: 0,
             description: 'Kısa süreli kullanım için ideal başlangıç paketi.',
             badge: null,
-            price: 1,
+            price: 299,
         },
         {
             id: 'quarterly',

@@ -404,6 +404,15 @@ async function submitPayment() {
 
         const content = res.data?.content;
         const isObj = content !== null && typeof content === 'object';
+        const merchantOid =
+            isObj && typeof content.merchant_oid === 'string' ? content.merchant_oid.trim() : '';
+        if (merchantOid) {
+            try {
+                sessionStorage.setItem('paytr_pending_merchant_oid', merchantOid);
+            } catch {
+                /* ignore */
+            }
+        }
         const redirectUrl = isObj ? content.paytr_redirect_url || content.location : undefined;
         const html =
             isObj && typeof content.paytr_html === 'string'
@@ -413,29 +422,34 @@ async function submitPayment() {
                   : null;
 
         if (redirectUrl && typeof redirectUrl === 'string') {
-            window.open(redirectUrl, '_blank');
-            toast.success('3D doğrulama sayfası açıldı.', {
-                description: 'Banka doğrulamasını tamamladıktan sonra premium aktif olacaktır.',
-                duration: 6000,
-            });
-            close();
+            window.location.assign(redirectUrl);
             return;
         }
 
         if (html) {
-            const w = window.open('', '_blank');
+            const w = window.open('', '_self');
             if (w) {
                 w.document.open();
                 w.document.write(html);
                 w.document.close();
-                toast.success('3D doğrulama sayfası açıldı.', {
-                    description: 'Banka doğrulamasını tamamladıktan sonra premium aktif olacaktır.',
-                    duration: 6000,
-                });
-                close();
                 return;
             }
-            toast.error('Pop-up engellendi. Tarayıcıda bu site için pop-up izni verin.', { duration: 6000 });
+            toast.error('3D doğrulama sayfası açılamadı.', { duration: 6000 });
+            return;
+        }
+
+        if (isObj && content.status === 'paid') {
+            await authStore.checkToken();
+            toast.success(res.data?.message || 'Ödeme başarılı.', {
+                description: 'Premium hesabınız aktif edildi.',
+                duration: 6000,
+            });
+            try {
+                sessionStorage.removeItem('paytr_pending_merchant_oid');
+            } catch {
+                /* ignore */
+            }
+            close();
             return;
         }
 

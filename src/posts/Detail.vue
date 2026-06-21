@@ -321,18 +321,11 @@
                         </div>
                         <!-- Teklif / İlanım butonları: sadece masaüstünde (mobilde altta fixed bar kullanılıyor) -->
                         <div
-                            v-if="!is_me"
+                            v-if="!is_me && !isCargoOwnerViewer"
                             class="hidden md:flex bg-gray-50 border-t border-gray-100 w-full px-4 py-3 gap-3"
                         >
                             <button
-                                v-if="isCargoOwnerViewer"
-                                type="button"
-                                class="flex-1 h-11 sm:h-12 rounded-xl border-2 border-primary text-primary bg-white font-semibold transition-all duration-200 text-sm sm:text-base"
-                            >
-                                Önizleme
-                            </button>
-                            <button
-                                v-else-if="shipment?.call_access !== 1"
+                                v-if="shipment?.call_access !== 1"
                                 @click="handleOfferClick"
                                 class="flex-1 h-11 sm:h-12 rounded-xl bg-primary text-white font-semibold transition-all duration-200 text-sm sm:text-base shadow-sm hover:bg-primary/90 hover:shadow-md"
                             >
@@ -345,7 +338,7 @@
                                 Mesaj ile Teklif
                             </button>
                             <button
-                                v-if="!isCargoOwnerViewer && shipment?.call_access == 1"
+                                v-if="shipment?.call_access == 1"
                                 type="button"
                                 @click="openCallModal"
                                 class="h-11 sm:h-12 px-5 flex-1 rounded-xl border-2 bg-primary text-white font-semibold transition-all duration-200 text-sm sm:text-base  shrink-0 items-center"
@@ -397,32 +390,25 @@
 
         <!-- Mobil: sabit alt bar (Teklif Ver / Mesaj ile Teklif / Ara) -->
         <div
-            v-if="!shipmentLoading && !is_me"
+            v-if="!shipmentLoading && !is_me && !isCargoOwnerViewer"
             class="fixed bottom-0 left-0 right-0 z-40 flex md:hidden bg-white/95 backdrop-blur-md border-t border-gray-100 shadow-[0_-8px_28px_rgba(15,23,42,0.12)] pb-[env(safe-area-inset-bottom)]"
         >
             <button
-                v-if="isCargoOwnerViewer"
-                type="button"
-                class="flex-1 h-14 py-3 px-3 border-t border-primary text-primary font-semibold text-sm bg-white"
-            >
-                Önizleme
-            </button>
-            <button
-                v-else-if="shipment?.call_access !== 1"
+                v-if="shipment?.call_access !== 1"
                 @click="handleOfferClick"
                 class="flex-1 h-14 py-3 px-3 bg-primary text-white font-semibold text-sm"
             >
                 Teklif Ver
             </button>
             <button
-                v-if="!isCargoOwnerViewer && shipment?.call_access !== 1"
+                v-if="shipment?.call_access !== 1"
                 @click="openMessageOfferPanel"
                 class="flex-1 h-14 py-3 px-3 border-t border-l border-gray-200 text-primary font-semibold text-sm bg-white"
             >
                 Mesaj ile Teklif
             </button>
             <button
-                v-if="!isCargoOwnerViewer && shipment?.call_access == 1"
+                v-if="shipment?.call_access == 1"
                 type="button"
                 @click="openCallModal"
                 class="group flex-1 h-16 py-3 px-4 rounded-2xl border border-primary/30 bg-gradient-to-r from-primary via-[#2f7f88] to-[#266a72] text-white font-semibold text-sm flex items-center justify-between gap-3 shadow-[0_10px_24px_rgba(57,131,140,0.28)] active:scale-[0.99] transition-all"
