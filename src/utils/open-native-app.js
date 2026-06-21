@@ -2,7 +2,6 @@ import { MOBILE_APP } from '@/config/mobile-app';
 
 const SESSION_TRY_KEY = 'tasibul_native_open_tried';
 const SESSION_STAY_WEB_KEY = 'tasibul_stay_on_web';
-const SESSION_APP_OPENED_KEY = 'tasibul_app_opened';
 
 /** Ödeme dönüşü vb. — uygulamaya atlamadan web’de kal */
 const SKIP_PATH_PREFIXES = ['/odeme/basarili', '/odeme/hata', '/basarili', '/basarisiz'];
@@ -29,25 +28,9 @@ export function markStayOnWeb() {
   }
 }
 
-export function wasNativeOpenAttempted() {
-  try {
-    return sessionStorage.getItem(SESSION_TRY_KEY) === '1';
-  } catch {
-    return false;
-  }
-}
-
 function markNativeOpenAttempted() {
   try {
     sessionStorage.setItem(SESSION_TRY_KEY, '1');
-  } catch {
-    /* ignore */
-  }
-}
-
-function markAppOpened() {
-  try {
-    sessionStorage.setItem(SESSION_APP_OPENED_KEY, '1');
   } catch {
     /* ignore */
   }
@@ -79,41 +62,8 @@ export function shouldSkipNativeOpen() {
   return SKIP_PATH_PREFIXES.some((p) => path === p || path.startsWith(`${p}/`));
 }
 
-/** Uygulama açılamadıysa banner (iOS + Android) */
-export function shouldShowOpenInAppBanner() {
-  if (!isMobileWeb()) return false;
-  try {
-    if (sessionStorage.getItem(SESSION_STAY_WEB_KEY) === '1') return false;
-    if (sessionStorage.getItem(SESSION_APP_OPENED_KEY) === '1') return false;
-    return sessionStorage.getItem(SESSION_TRY_KEY) === '1';
-  } catch {
-    return false;
-  }
-}
-
 function currentPageUrl() {
   return window.location.href;
-}
-
-function attachAppOpenedListener() {
-  const onHide = () => {
-    if (document.hidden) {
-      markAppOpened();
-      document.removeEventListener('visibilitychange', onHide);
-      window.removeEventListener('pagehide', onHide);
-      window.removeEventListener('blur', onHide);
-    }
-  };
-  document.addEventListener('visibilitychange', onHide);
-  window.addEventListener('pagehide', onHide);
-  window.addEventListener('blur', onHide);
-  return onHide;
-}
-
-function detachAppOpenedListener(onHide) {
-  document.removeEventListener('visibilitychange', onHide);
-  window.removeEventListener('pagehide', onHide);
-  window.removeEventListener('blur', onHide);
 }
 
 /** Android App Links intent — yüklüyse uygulama, değilse mevcut web sayfası */
@@ -130,16 +80,12 @@ function tryOpenAndroidApp() {
 
 /** iOS Universal Link — yüklüyse uygulama açılır */
 function tryOpenIOSApp() {
-  const onHide = attachAppOpenedListener();
   window.location.href = MOBILE_APP.openUrl;
-  window.setTimeout(() => {
-    detachAppOpenedListener(onHide);
-  }, 2500);
 }
 
 /**
  * Mobil cihazda native uygulamayı dene; yüklü değilse web’de kal.
- * Oturum başına bir kez dener (banner ile tekrar açılabilir).
+ * Oturum başına bir kez dener.
  */
 export function tryOpenNativeApp() {
   if (!isMobileWeb()) return;
@@ -159,17 +105,6 @@ export function tryOpenNativeApp() {
     return;
   }
 
-  if (isIOS()) {
-    tryOpenIOSApp();
-  }
-}
-
-/** Kullanıcı “Uygulamada aç”a bastığında */
-export function openInNativeApp() {
-  if (isAndroid()) {
-    tryOpenAndroidApp();
-    return;
-  }
   if (isIOS()) {
     tryOpenIOSApp();
   }

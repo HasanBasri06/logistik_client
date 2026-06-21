@@ -73,7 +73,6 @@
   </Teleport>
   <!-- Premium'a geç modalı (payment_confirm === 0 iken ilan oluşturmaya tıklanınca) -->
   <PremiumModal />
-  <OpenInAppBanner />
 </template>
 
 <script setup>
@@ -83,7 +82,6 @@ import { storeToRefs } from 'pinia';
 import { GitCompare, Info, MapPin, Navigation, Settings, ShieldCheck } from 'lucide-vue-next';
 import Layout from './Layout.vue';
 import PremiumModal from './components/PremiumModal.vue';
-import OpenInAppBanner from './components/OpenInAppBanner.vue';
 import {
   applyStayOnWebFromQuery,
   appleItunesAppMetaContent,
