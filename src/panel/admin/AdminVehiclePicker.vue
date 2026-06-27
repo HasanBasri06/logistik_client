@@ -233,7 +233,13 @@ async function fetchCars() {
 watch(
     () => [props.carId, props.carDetailId],
     () => {
-        if (!cars.value.length || !props.carId) return;
+        if (!props.carId) {
+            selectedCar.value = null;
+            selectedDetails.value = [];
+            return;
+        }
+
+        if (!cars.value.length) return;
         const car = cars.value.find((entry) => entry.id === Number(props.carId));
         if (!car) return;
         selectedCar.value = car;

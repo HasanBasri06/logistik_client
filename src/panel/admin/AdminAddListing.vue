@@ -5,12 +5,13 @@
 
         <form class="mt-8 flex max-w-2xl flex-col gap-5" @submit.prevent="handleSubmit">
             <div class="flex flex-col gap-2">
-                <AdminUserSearch v-model="form.createrId" />
+                <AdminUserSearch :key="`user-${formKey}`" v-model="form.createrId" />
                 <span v-if="errors.createrId" class="text-xs text-red-500">{{ errors.createrId }}</span>
             </div>
 
             <div class="flex flex-col gap-2">
                 <AdminVehiclePicker
+                    :key="`car-${formKey}`"
                     v-model:car-id="form.carId"
                     v-model:car-detail-id="form.carDetailId"
                 />
@@ -205,6 +206,45 @@ import AdminUserSearch from '@/panel/admin/AdminUserSearch.vue';
 
 const adminStore = useAdminStore();
 const submitting = ref(false);
+const formKey = ref(0);
+
+function createInitialFormState() {
+    return {
+        createrId: null,
+        carId: null,
+        carDetailId: null,
+        postTypeId: '',
+        fromCity: '',
+        fromDistrict: '',
+        toCity: '',
+        toDistrict: '',
+        weight: '',
+        price: '',
+        callAccess: '',
+        departureTime: '',
+        timeArrival: '',
+        departureDate: '',
+    };
+}
+
+function createInitialErrors() {
+    return {
+        createrId: '',
+        carId: '',
+        carDetailId: '',
+        postTypeId: '',
+        fromCity: '',
+        fromDistrict: '',
+        toCity: '',
+        toDistrict: '',
+        weight: '',
+        price: '',
+        callAccess: '',
+        departureTime: '',
+        timeArrival: '',
+        departureDate: '',
+    };
+}
 
 const cities = ref([]);
 const fromDistricts = ref([]);
@@ -215,39 +255,9 @@ const toDistrictsLoading = ref(false);
 const postTypes = ref([]);
 const postTypesLoading = ref(false);
 
-const form = ref({
-    createrId: null,
-    carId: null,
-    carDetailId: null,
-    postTypeId: '',
-    fromCity: '',
-    fromDistrict: '',
-    toCity: '',
-    toDistrict: '',
-    weight: '',
-    price: '',
-    callAccess: '',
-    departureTime: '',
-    timeArrival: '',
-    departureDate: '',
-});
+const form = ref(createInitialFormState());
 
-const errors = ref({
-    createrId: '',
-    carId: '',
-    carDetailId: '',
-    postTypeId: '',
-    fromCity: '',
-    fromDistrict: '',
-    toCity: '',
-    toDistrict: '',
-    weight: '',
-    price: '',
-    callAccess: '',
-    departureTime: '',
-    timeArrival: '',
-    departureDate: '',
-});
+const errors = ref(createInitialErrors());
 
 const optionalNumber = (label) =>
     yup
@@ -366,24 +376,11 @@ function onToCityChange() {
 }
 
 function resetForm() {
-    form.value = {
-        createrId: null,
-        carId: null,
-        carDetailId: null,
-        postTypeId: '',
-        fromCity: '',
-        fromDistrict: '',
-        toCity: '',
-        toDistrict: '',
-        weight: '',
-        price: '',
-        callAccess: '',
-        departureTime: '',
-        timeArrival: '',
-        departureDate: '',
-    };
+    form.value = createInitialFormState();
     fromDistricts.value = [];
     toDistricts.value = [];
+    errors.value = createInitialErrors();
+    formKey.value += 1;
 }
 
 function applyServerErrors(errorDetails) {
@@ -414,22 +411,7 @@ function applyServerErrors(errorDetails) {
 }
 
 async function handleSubmit() {
-    errors.value = {
-        createrId: '',
-        carId: '',
-        carDetailId: '',
-        postTypeId: '',
-        fromCity: '',
-        fromDistrict: '',
-        toCity: '',
-        toDistrict: '',
-        weight: '',
-        price: '',
-        callAccess: '',
-        departureTime: '',
-        timeArrival: '',
-        departureDate: '',
-    };
+    errors.value = createInitialErrors();
 
     try {
         await listingSchema.validate(

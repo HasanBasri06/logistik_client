@@ -133,9 +133,9 @@ watch(
     () => props.modelValue,
     async (value) => {
         if (!value) {
-            if (!searchQuery.value) {
-                selectedUser.value = null;
-            }
+            selectedUser.value = null;
+            searchQuery.value = '';
+            showDropdown.value = false;
             return;
         }
 

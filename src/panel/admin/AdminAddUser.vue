@@ -120,11 +120,19 @@ import { useAdminStore } from '@/stores/admin';
 const adminStore = useAdminStore();
 const submitting = ref(false);
 
+function generateAdminEmail() {
+    let digits = '';
+    for (let i = 0; i < 10; i++) {
+        digits += Math.floor(Math.random() * 10);
+    }
+    return `tasibul${digits}@gmail.com`;
+}
+
 const form = ref({
     userType: 'cargo_owner',
     firstName: '',
     lastName: '',
-    email: 'tasibul@gmail.com',
+    email: generateAdminEmail(),
     phone: '',
     password: '',
 });
@@ -206,7 +214,7 @@ function resetForm() {
         userType: 'cargo_owner',
         firstName: '',
         lastName: '',
-        email: 'tasibul@gmail.com',
+        email: generateAdminEmail(),
         phone: '',
         password: '',
     };
