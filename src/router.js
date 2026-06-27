@@ -1,5 +1,6 @@
 import { createMemoryHistory, createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "./stores/auth";
+import { useAdminStore } from "./stores/admin";
 import Home from "./Home.vue";
 import Layout from "./Layout.vue";
 import HomePanel from "./panel/Home.vue";
@@ -36,6 +37,11 @@ import IptalVeIadeKosullariPage from "./pages/IptalVeIadeKosullariPage.vue";
 import PaytrPaymentOkPage from "./pages/PaytrPaymentOkPage.vue";
 import PaytrPaymentFailPage from "./pages/PaytrPaymentFailPage.vue";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage.vue";
+import BeunAdminPage from "./panel/admin/Beun.vue";
+import AdminLayout from "./panel/admin/AdminLayout.vue";
+import BeunAdminMainPage from "./panel/admin/BeunMain.vue";
+import AdminAddUserPage from "./panel/admin/AdminAddUser.vue";
+import AdminAddListingPage from "./panel/admin/AdminAddListing.vue";
 
 const routes = [
     {
@@ -377,6 +383,48 @@ const routes = [
         }
     },
     {
+        path: '/panel/admin/beun',
+        component: BeunAdminPage,
+        meta: {
+            title: 'Admin Giriş',
+            requiresAuth: false,
+            isAdminLogin: true,
+        },
+    },
+    {
+        path: '/panel/admin/beun',
+        component: AdminLayout,
+        meta: {
+            requiresAdminAuth: true,
+        },
+        children: [
+            {
+                path: 'main',
+                component: BeunAdminMainPage,
+                meta: {
+                    title: 'Admin Panel',
+                    requiresAdminAuth: true,
+                },
+            },
+            {
+                path: 'kullanici-ekle',
+                component: AdminAddUserPage,
+                meta: {
+                    title: 'Kullanıcı Ekle',
+                    requiresAdminAuth: true,
+                },
+            },
+            {
+                path: 'ilan-ekle',
+                component: AdminAddListingPage,
+                meta: {
+                    title: 'İlan Ekle',
+                    requiresAdminAuth: true,
+                },
+            },
+        ],
+    },
+    {
         path: '/:pathMatch(.*)*',
         component: NotFound,
         name: 'not-found',
@@ -399,12 +447,50 @@ export const router = createRouter({
 // Router guard: Auth kontrolü ve yönlendirmeler
 router.beforeEach(async (to, from, next) => {
     const authStore = useAuthStore()
-    const token = localStorage.getItem('token')
+    const adminStore = useAdminStore()
+    const userToken = localStorage.getItem('token')
+    const adminToken = localStorage.getItem('admin_token')
+
+    const requiresAdminAuth = to.matched.some((record) => record.meta.requiresAdminAuth)
+
+    if (requiresAdminAuth) {
+        if (!adminToken) {
+            next('/panel/admin/beun')
+            return
+        }
+
+        const isValidAdmin = await adminStore.checkToken()
+        if (!isValidAdmin) {
+            next('/panel/admin/beun')
+            return
+        }
+
+        next()
+        return
+    }
+
+    if (to.path === '/panel/admin/beun' || to.meta.isAdminLogin) {
+        if (adminToken) {
+            const isValidAdmin = await adminStore.checkToken()
+            if (isValidAdmin) {
+                next('/panel/admin/beun/main')
+                return
+            }
+            adminStore.logout()
+        }
+        next()
+        return
+    }
+
+    if (to.path.startsWith('/panel/admin')) {
+        next()
+        return
+    }
     
     // Anasayfa hariç tüm route'lar için auth kontrolü
     if (to.path !== '/' && to.meta.requiresAuth !== false) {
         // Token yoksa anasayfaya yönlendir
-        if (!token) {
+        if (!userToken) {
             next({
                 path: '/',
                 query: {
@@ -426,7 +512,7 @@ router.beforeEach(async (to, from, next) => {
     
     // Eğer kullanıcı authenticated ise giriş/kayıt sayfalarına gitmesin → /panel
     const guestOnlyPaths = ['/', '/sifremi-unuttum']
-    if (token && guestOnlyPaths.includes(to.path)) {
+    if (userToken && guestOnlyPaths.includes(to.path)) {
         const isValid = await authStore.checkToken()
         if (isValid) {
             const pending = sessionStorage.getItem('pendingSearch')
@@ -440,14 +526,14 @@ router.beforeEach(async (to, from, next) => {
         }
     }
 
-    if (token && to.meta.authorization && to.meta.authorization !== authStore.user?.type) {
+    if (userToken && to.meta.authorization && to.meta.authorization !== authStore.user?.type) {
         next('/')
         return
     }
 
     // İlan detayına giriş: payment_confirm 0/false ise /panel'e at ve Premium modalı göster
     if (
-        token &&
+        userToken &&
         (to.path.startsWith('/posts/') || to.path.startsWith('/product/')) &&
         (authStore.user?.payment_confirm === 0 || authStore.user?.payment_confirm === false)
     ) {

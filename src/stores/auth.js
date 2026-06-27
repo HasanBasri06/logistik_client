@@ -207,7 +207,10 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     const checkToken = async () => {
-        if (!token.value) {
+        const storedToken = localStorage.getItem('token')
+        token.value = storedToken
+
+        if (!storedToken) {
             return false
         }
 
@@ -231,7 +234,10 @@ export const useAuthStore = defineStore('auth', () => {
      * Güncel kullanıcıyı sunucudan alır (profil foto vb.). Ağ/geçici hata durumunda oturumu silmez; yalnızca 401’de temizler.
      */
     const refreshUser = async () => {
-        if (!token.value) {
+        const storedToken = localStorage.getItem('token')
+        token.value = storedToken
+
+        if (!storedToken) {
             return false
         }
         try {
