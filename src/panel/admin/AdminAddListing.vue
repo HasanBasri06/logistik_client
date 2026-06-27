@@ -1,18 +1,24 @@
 <template>
     <div class="rounded-2xl border border-gray-200 bg-white p-6 md:p-8 shadow-sm">
         <h1 class="text-2xl font-bold text-gray-900">İlan Ekle</h1>
-        <p class="mt-2 text-sm text-gray-500">Yeni ilan bilgilerini girin. Tüm alanlar isteğe bağlıdır.</p>
+        <p class="mt-2 text-sm text-gray-500">Ekleyen kullanıcı, araç ve yük türü zorunludur. Diğer alanlar isteğe bağlıdır.</p>
 
         <form class="mt-8 flex max-w-2xl flex-col gap-5" @submit.prevent="handleSubmit">
-            <AdminUserSearch v-model="form.createrId" />
-
-            <AdminVehiclePicker
-                v-model:car-id="form.carId"
-                v-model:car-detail-id="form.carDetailId"
-            />
+            <div class="flex flex-col gap-2">
+                <AdminUserSearch v-model="form.createrId" />
+                <span v-if="errors.createrId" class="text-xs text-red-500">{{ errors.createrId }}</span>
+            </div>
 
             <div class="flex flex-col gap-2">
-                <label class="text-sm font-medium text-gray-700" for="postTypeId">Taşınacak Yükün Türü</label>
+                <AdminVehiclePicker
+                    v-model:car-id="form.carId"
+                    v-model:car-detail-id="form.carDetailId"
+                />
+                <span v-if="errors.carId" class="text-xs text-red-500">{{ errors.carId }}</span>
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <label class="text-sm font-medium text-gray-700" for="postTypeId">Taşınacak Yükün Türü <span class="text-red-500">*</span></label>
                 <select
                     id="postTypeId"
                     v-model="form.postTypeId"
@@ -227,6 +233,7 @@ const form = ref({
 });
 
 const errors = ref({
+    createrId: '',
     carId: '',
     carDetailId: '',
     postTypeId: '',
@@ -251,9 +258,22 @@ const optionalNumber = (label) =>
         .positive(`${label} 0'dan büyük olmalıdır.`);
 
 const listingSchema = yup.object({
-    carId: yup.number().nullable().optional(),
+    createrId: yup
+        .number()
+        .nullable()
+        .transform((value, originalValue) => (originalValue === '' || originalValue == null ? null : value))
+        .required('Ekleyen kullanıcı seçilmelidir.'),
+    carId: yup
+        .number()
+        .nullable()
+        .transform((value, originalValue) => (originalValue === '' || originalValue == null ? null : value))
+        .required('Araç seçilmelidir.'),
     carDetailId: yup.number().nullable().optional(),
-    postTypeId: yup.number().nullable().optional(),
+    postTypeId: yup
+        .number()
+        .nullable()
+        .transform((value, originalValue) => (originalValue === '' || originalValue == null ? null : value))
+        .required('Taşınacak yükün türü seçilmelidir.'),
     fromCity: yup.string().nullable().optional(),
     fromDistrict: yup.string().nullable().optional(),
     toCity: yup.string().nullable().optional(),
@@ -395,6 +415,7 @@ function applyServerErrors(errorDetails) {
 
 async function handleSubmit() {
     errors.value = {
+        createrId: '',
         carId: '',
         carDetailId: '',
         postTypeId: '',
@@ -414,6 +435,7 @@ async function handleSubmit() {
         await listingSchema.validate(
             {
                 ...form.value,
+                createrId: form.value.createrId === '' || form.value.createrId == null ? null : Number(form.value.createrId),
                 carId: form.value.carId === '' || form.value.carId == null ? null : Number(form.value.carId),
                 carDetailId: form.value.carDetailId === '' || form.value.carDetailId == null ? null : Number(form.value.carDetailId),
                 postTypeId: form.value.postTypeId === '' ? null : Number(form.value.postTypeId),
@@ -434,10 +456,10 @@ async function handleSubmit() {
     submitting.value = true;
     try {
         const result = await adminStore.createShipment({
-            creater_id: form.value.createrId || null,
-            car_id: form.value.carId || null,
+            creater_id: form.value.createrId,
+            car_id: form.value.carId,
             car_detail_id: form.value.carDetailId || null,
-            post_type_id: form.value.postTypeId === '' ? null : Number(form.value.postTypeId),
+            post_type_id: Number(form.value.postTypeId),
             from_city: form.value.fromCity || null,
             from_district: form.value.fromDistrict || null,
             to_city: form.value.toCity || null,
