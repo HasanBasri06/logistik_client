@@ -124,7 +124,7 @@ const form = ref({
     userType: 'cargo_owner',
     firstName: '',
     lastName: '',
-    email: '',
+    email: 'tasibul@gmail.com',
     phone: '',
     password: '',
 });
@@ -206,7 +206,7 @@ function resetForm() {
         userType: 'cargo_owner',
         firstName: '',
         lastName: '',
-        email: '',
+        email: 'tasibul@gmail.com',
         phone: '',
         password: '',
     };
