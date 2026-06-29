@@ -5,13 +5,12 @@
 
         <form class="mt-8 flex max-w-2xl flex-col gap-5" @submit.prevent="handleSubmit">
             <div class="flex flex-col gap-2">
-                <AdminUserSearch :key="`user-${formKey}`" v-model="form.createrId" />
+                <AdminUserSearch v-model="form.createrId" />
                 <span v-if="errors.createrId" class="text-xs text-red-500">{{ errors.createrId }}</span>
             </div>
 
             <div class="flex flex-col gap-2">
                 <AdminVehiclePicker
-                    :key="`car-${formKey}`"
                     v-model:car-id="form.carId"
                     v-model:car-detail-id="form.carDetailId"
                 />
@@ -206,7 +205,6 @@ import AdminUserSearch from '@/panel/admin/AdminUserSearch.vue';
 
 const adminStore = useAdminStore();
 const submitting = ref(false);
-const formKey = ref(0);
 
 function createInitialFormState() {
     return {
@@ -375,17 +373,6 @@ function onToCityChange() {
     loadDistricts(form.value.toCity, 'to');
 }
 
-function resetFormAfterSuccess() {
-    form.value.postTypeId = '';
-    form.value.weight = '';
-    form.value.price = '';
-    form.value.callAccess = '';
-    form.value.departureTime = '';
-    form.value.timeArrival = '';
-    form.value.departureDate = '';
-    errors.value = createInitialErrors();
-}
-
 function applyServerErrors(errorDetails) {
     if (!errorDetails || typeof errorDetails !== 'object') return;
 
@@ -459,7 +446,6 @@ async function handleSubmit() {
 
         if (result.success) {
             toast.success(result.data?.message || 'İlan başarıyla oluşturuldu.', { duration: 5000 });
-            resetFormAfterSuccess();
             return;
         }
 
