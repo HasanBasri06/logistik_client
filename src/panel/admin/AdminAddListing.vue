@@ -375,12 +375,15 @@ function onToCityChange() {
     loadDistricts(form.value.toCity, 'to');
 }
 
-function resetForm() {
-    form.value = createInitialFormState();
-    fromDistricts.value = [];
-    toDistricts.value = [];
+function resetFormAfterSuccess() {
+    form.value.postTypeId = '';
+    form.value.weight = '';
+    form.value.price = '';
+    form.value.callAccess = '';
+    form.value.departureTime = '';
+    form.value.timeArrival = '';
+    form.value.departureDate = '';
     errors.value = createInitialErrors();
-    formKey.value += 1;
 }
 
 function applyServerErrors(errorDetails) {
@@ -456,7 +459,7 @@ async function handleSubmit() {
 
         if (result.success) {
             toast.success(result.data?.message || 'İlan başarıyla oluşturuldu.', { duration: 5000 });
-            resetForm();
+            resetFormAfterSuccess();
             return;
         }
 
