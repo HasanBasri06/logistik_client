@@ -5,10 +5,13 @@
             <input
                 id="creatorSearch"
                 v-model="searchQuery"
-                type="text"
+                type="search"
+                autocomplete="off"
+                autocorrect="off"
+                autocapitalize="off"
+                spellcheck="false"
                 placeholder="İsim ile ara..."
                 class="h-11 w-full rounded-lg border border-gray-200 px-4 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                @focus="openDropdown"
                 @input="onSearchInput"
             />
             <button
@@ -21,7 +24,7 @@
             </button>
 
             <div
-                v-if="showDropdown && (users.length || usersLoading || searchQuery)"
+                v-if="showDropdown && searchQuery.trim() && (users.length || usersLoading)"
                 class="absolute z-20 mt-1 max-h-56 w-full overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg"
             >
                 <div v-if="usersLoading" class="px-4 py-3 text-sm text-gray-500">
@@ -76,17 +79,16 @@ function userTypeLabel(type) {
     return type;
 }
 
-function openDropdown() {
-    showDropdown.value = true;
-    if (!users.value.length) {
-        fetchUsers();
-    }
-}
-
 async function fetchUsers() {
+    const query = searchQuery.value.trim();
+    if (!query) {
+        users.value = [];
+        return;
+    }
+
     usersLoading.value = true;
     try {
-        const result = await adminStore.searchUsers(searchQuery.value.trim());
+        const result = await adminStore.searchUsers(query);
         users.value = result.success ? result.users : [];
     } finally {
         usersLoading.value = false;
@@ -101,6 +103,13 @@ function onSearchInput() {
     }
 
     clearTimeout(searchTimer);
+    const query = searchQuery.value.trim();
+    if (!query) {
+        showDropdown.value = false;
+        users.value = [];
+        return;
+    }
+
     searchTimer = setTimeout(() => {
         showDropdown.value = true;
         fetchUsers();
@@ -118,9 +127,10 @@ function selectUser(user) {
 function clearSelection() {
     selectedUser.value = null;
     searchQuery.value = '';
+    users.value = [];
+    showDropdown.value = false;
     emit('update:modelValue', null);
     emit('user-selected', null);
-    fetchUsers();
 }
 
 function onDocumentClick(event) {
