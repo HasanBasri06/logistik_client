@@ -52,6 +52,7 @@ const navItems = [
     { label: 'Ana Sayfa', to: '/panel/admin/beun/main' },
     { label: 'Kullanıcı Ekle', to: '/panel/admin/beun/kullanici-ekle' },
     { label: 'İlan Ekle', to: '/panel/admin/beun/ilan-ekle' },
+    { label: 'Kullanıcı İşlemleri', to: '/panel/admin/beun/evraklar' },
 ];
 
 function isActive(path) {

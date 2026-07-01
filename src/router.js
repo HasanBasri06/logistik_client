@@ -42,6 +42,7 @@ import AdminLayout from "./panel/admin/AdminLayout.vue";
 import BeunAdminMainPage from "./panel/admin/BeunMain.vue";
 import AdminAddUserPage from "./panel/admin/AdminAddUser.vue";
 import AdminAddListingPage from "./panel/admin/AdminAddListing.vue";
+import AdminUserDocumentsPage from "./panel/admin/AdminUserDocuments.vue";
 
 const routes = [
     {
@@ -419,6 +420,14 @@ const routes = [
                 component: AdminAddListingPage,
                 meta: {
                     title: 'İlan Ekle',
+                    requiresAdminAuth: true,
+                },
+            },
+            {
+                path: 'evraklar',
+                component: AdminUserDocumentsPage,
+                meta: {
+                    title: 'Kullanıcı Evrakları',
                     requiresAdminAuth: true,
                 },
             },

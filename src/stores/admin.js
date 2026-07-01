@@ -108,6 +108,22 @@ export const useAdminStore = defineStore('admin', () => {
         }
     }
 
+    const fetchUserDocuments = async (search = '') => {
+        try {
+            const response = await api.get('/admin/users/documents', {
+                params: search ? { search } : {},
+            })
+            const users = response.data?.content?.users ?? []
+            return { success: true, users }
+        } catch (error) {
+            return {
+                success: false,
+                users: [],
+                error: error.response?.data?.message || error.message,
+            }
+        }
+    }
+
     const createUser = async (payload) => {
         try {
             const response = await api.post('/admin/users', payload)
@@ -135,6 +151,7 @@ export const useAdminStore = defineStore('admin', () => {
         logout,
         createShipment,
         searchUsers,
+        fetchUserDocuments,
         createUser,
     }
 })
