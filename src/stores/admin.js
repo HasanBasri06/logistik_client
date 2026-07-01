@@ -156,6 +156,42 @@ export const useAdminStore = defineStore('admin', () => {
         }
     }
 
+    const approveUser = async (userId) => {
+        try {
+            const response = await api.post(`/admin/users/${userId}/approve`)
+            return { success: true, data: response.data }
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.message || error.message,
+            }
+        }
+    }
+
+    const revokeUserApproval = async (userId) => {
+        try {
+            const response = await api.post(`/admin/users/${userId}/revoke-approval`)
+            return { success: true, data: response.data }
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.message || error.message,
+            }
+        }
+    }
+
+    const rejectUser = async (userId, description = '') => {
+        try {
+            const response = await api.post(`/admin/users/${userId}/reject`, { description })
+            return { success: true, data: response.data }
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.message || error.message,
+            }
+        }
+    }
+
     return {
         token,
         admin,
@@ -169,5 +205,8 @@ export const useAdminStore = defineStore('admin', () => {
         searchUsers,
         fetchUserDocuments,
         createUser,
+        approveUser,
+        revokeUserApproval,
+        rejectUser,
     }
 })

@@ -41,14 +41,24 @@
                             {{ user.email }} · {{ user.phone }} · {{ userTypeLabel(user.type) }}
                         </p>
                     </div>
-                    <span
-                        class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"
-                        :class="user.email_verify
-                            ? 'bg-green-50 text-green-700'
-                            : 'bg-amber-50 text-amber-700'"
-                    >
-                        E-posta: {{ user.email_verify ? 'Doğrulandı' : 'Doğrulanmadı' }}
-                    </span>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span
+                            class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"
+                            :class="user.verified
+                                ? 'bg-green-50 text-green-700'
+                                : 'bg-gray-100 text-gray-600'"
+                        >
+                            Hesap: {{ user.verified ? 'Onaylı' : 'Onaysız' }}
+                        </span>
+                        <span
+                            class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium"
+                            :class="user.email_verify
+                                ? 'bg-green-50 text-green-700'
+                                : 'bg-amber-50 text-amber-700'"
+                        >
+                            E-posta: {{ user.email_verify ? 'Doğrulandı' : 'Doğrulanmadı' }}
+                        </span>
+                    </div>
                 </div>
 
                 <div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -90,6 +100,33 @@
                         </div>
                         <p v-else class="mt-2 text-sm text-gray-400">Yüklenmemiş</p>
                     </div>
+                </div>
+
+                <div class="mt-5 flex flex-wrap items-center justify-end gap-2 border-t border-gray-100 pt-4">
+                    <button
+                        type="button"
+                        class="inline-flex h-10 items-center rounded-lg border border-gray-300 bg-white px-4 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        :disabled="actionUserId === user.id"
+                        @click="openRejectModal(user)"
+                    >
+                        Reddet
+                    </button>
+                    <button
+                        type="button"
+                        class="inline-flex h-10 items-center rounded-lg border border-red-200 bg-red-50 px-4 text-sm font-medium text-red-600 transition-colors hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
+                        :disabled="!user.verified || actionUserId === user.id"
+                        @click="openConfirmModal('revoke', user)"
+                    >
+                        Onayı Geri Al
+                    </button>
+                    <button
+                        type="button"
+                        class="inline-flex h-10 items-center rounded-lg bg-green-600 px-4 text-sm font-semibold text-white transition-colors hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+                        :disabled="user.verified || actionUserId === user.id"
+                        @click="openConfirmModal('approve', user)"
+                    >
+                        Onayla
+                    </button>
                 </div>
             </article>
 
@@ -137,6 +174,86 @@
 
         <Teleport to="body">
             <div
+                v-if="confirmModal"
+                class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/55 p-4"
+                @click.self="closeConfirmModal"
+            >
+                <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-5 shadow-2xl sm:p-6">
+                    <h3 class="text-lg font-semibold text-gray-900">Emin misiniz?</h3>
+                    <p class="mt-2 text-sm text-gray-600">
+                        <template v-if="confirmModal.type === 'approve'">
+                            {{ confirmModal.user.full_name }} adlı kullanıcının hesabını onaylamak istediğinize emin misiniz?
+                        </template>
+                        <template v-else>
+                            {{ confirmModal.user.full_name }} adlı kullanıcının onayını geri almak istediğinize emin misiniz?
+                        </template>
+                    </p>
+                    <div class="mt-5 flex justify-end gap-2">
+                        <button
+                            type="button"
+                            class="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50"
+                            :disabled="actionSubmitting"
+                            @click="closeConfirmModal"
+                        >
+                            Vazgeç
+                        </button>
+                        <button
+                            type="button"
+                            class="rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+                            :class="confirmModal.type === 'approve'
+                                ? 'bg-green-600 hover:bg-green-700'
+                                : 'bg-red-600 hover:bg-red-700'"
+                            :disabled="actionSubmitting"
+                            @click="submitConfirmModal"
+                        >
+                            {{ actionSubmitting ? 'İşleniyor...' : 'Evet' }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </Teleport>
+
+        <Teleport to="body">
+            <div
+                v-if="rejectModal"
+                class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/55 p-4"
+                @click.self="closeRejectModal"
+            >
+                <div class="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-5 shadow-2xl sm:p-6">
+                    <h3 class="text-lg font-semibold text-gray-900">Kullanıcıyı Reddet</h3>
+                    <p class="mt-2 text-sm text-gray-600">
+                        {{ rejectModal.user.full_name }} için red açıklaması girin.
+                    </p>
+                    <textarea
+                        v-model="rejectDescription"
+                        rows="4"
+                        placeholder="Açıklama (isteğe bağlı)"
+                        class="mt-4 w-full resize-y rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    />
+                    <div class="mt-5 flex justify-end gap-2">
+                        <button
+                            type="button"
+                            class="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50"
+                            :disabled="actionSubmitting"
+                            @click="closeRejectModal"
+                        >
+                            Vazgeç
+                        </button>
+                        <button
+                            type="button"
+                            class="rounded-lg bg-gray-800 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-gray-900 disabled:cursor-not-allowed disabled:opacity-60"
+                            :disabled="actionSubmitting"
+                            @click="submitRejectModal"
+                        >
+                            {{ actionSubmitting ? 'Gönderiliyor...' : 'Reddet' }}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </Teleport>
+
+        <Teleport to="body">
+            <div
                 v-if="preview"
                 class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
                 @click.self="closePreview"
@@ -177,6 +294,7 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue';
+import { toast } from 'vue-sonner';
 import { useAdminStore } from '@/stores/admin';
 
 const adminStore = useAdminStore();
@@ -198,6 +316,11 @@ const preview = ref(null);
 const currentPage = ref(1);
 const lastPage = ref(1);
 const total = ref(0);
+const confirmModal = ref(null);
+const rejectModal = ref(null);
+const rejectDescription = ref('');
+const actionSubmitting = ref(false);
+const actionUserId = ref(null);
 let searchTimer = null;
 
 const visiblePages = computed(() => {
@@ -226,6 +349,86 @@ function openPreview(label, url) {
 
 function closePreview() {
     preview.value = null;
+}
+
+function updateUserVerified(userId, verified) {
+    const index = users.value.findIndex((entry) => entry.id === userId);
+    if (index !== -1) {
+        users.value[index] = { ...users.value[index], verified };
+    }
+}
+
+function openConfirmModal(type, user) {
+    confirmModal.value = { type, user };
+}
+
+function closeConfirmModal() {
+    if (actionSubmitting.value) return;
+    confirmModal.value = null;
+}
+
+function openRejectModal(user) {
+    rejectModal.value = { user };
+    rejectDescription.value = '';
+}
+
+function closeRejectModal() {
+    if (actionSubmitting.value) return;
+    rejectModal.value = null;
+    rejectDescription.value = '';
+}
+
+async function submitConfirmModal() {
+    if (!confirmModal.value || actionSubmitting.value) return;
+
+    const { type, user } = confirmModal.value;
+    actionSubmitting.value = true;
+    actionUserId.value = user.id;
+
+    try {
+        const result = type === 'approve'
+            ? await adminStore.approveUser(user.id)
+            : await adminStore.revokeUserApproval(user.id);
+
+        if (!result.success) {
+            toast.error(result.error || 'İşlem başarısız.', { duration: 5000 });
+            return;
+        }
+
+        updateUserVerified(user.id, type === 'approve');
+        toast.success(
+            result.data?.message || (type === 'approve' ? 'Kullanıcı onaylandı.' : 'Onay geri alındı.'),
+            { duration: 5000 },
+        );
+        confirmModal.value = null;
+    } finally {
+        actionSubmitting.value = false;
+        actionUserId.value = null;
+    }
+}
+
+async function submitRejectModal() {
+    if (!rejectModal.value || actionSubmitting.value) return;
+
+    const { user } = rejectModal.value;
+    actionSubmitting.value = true;
+    actionUserId.value = user.id;
+
+    try {
+        const result = await adminStore.rejectUser(user.id, rejectDescription.value.trim());
+
+        if (!result.success) {
+            toast.error(result.error || 'Red işlemi başarısız.', { duration: 5000 });
+            return;
+        }
+
+        toast.success(result.data?.message || 'Red talebi alındı.', { duration: 5000 });
+        rejectModal.value = null;
+        rejectDescription.value = '';
+    } finally {
+        actionSubmitting.value = false;
+        actionUserId.value = null;
+    }
 }
 
 async function fetchUsers(page = currentPage.value) {
