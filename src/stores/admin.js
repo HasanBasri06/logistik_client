@@ -108,17 +108,33 @@ export const useAdminStore = defineStore('admin', () => {
         }
     }
 
-    const fetchUserDocuments = async (search = '') => {
+    const fetchUserDocuments = async ({ search = '', page = 1, perPage = 10 } = {}) => {
         try {
             const response = await api.get('/admin/users/documents', {
-                params: search ? { search } : {},
+                params: {
+                    ...(search ? { search } : {}),
+                    page,
+                    per_page: perPage,
+                },
             })
-            const users = response.data?.content?.users ?? []
-            return { success: true, users }
+            const content = response.data?.content ?? {}
+            const users = content.users ?? []
+            return {
+                success: true,
+                users,
+                currentPage: content.current_page ?? page,
+                lastPage: content.last_page ?? 1,
+                perPage: content.per_page ?? perPage,
+                total: content.total ?? users.length,
+            }
         } catch (error) {
             return {
                 success: false,
                 users: [],
+                currentPage: 1,
+                lastPage: 1,
+                perPage,
+                total: 0,
                 error: error.response?.data?.message || error.message,
             }
         }

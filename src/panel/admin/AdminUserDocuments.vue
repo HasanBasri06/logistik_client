@@ -15,7 +15,7 @@
             />
         </div>
 
-        <div v-if="loading" class="mt-10 flex items-center justify-center gap-2 text-sm text-gray-500">
+        <div v-if="loading && !users.length" class="mt-10 flex items-center justify-center gap-2 text-sm text-gray-500">
             <i class="pi pi-spin pi-spinner" />
             Yükleniyor...
         </div>
@@ -24,7 +24,7 @@
             {{ error }}
         </div>
 
-        <div v-else-if="!users.length" class="mt-10 text-center text-sm text-gray-500">
+        <div v-else-if="!users.length && !loading" class="mt-10 text-center text-sm text-gray-500">
             Kullanıcı bulunamadı.
         </div>
 
@@ -92,6 +92,47 @@
                     </div>
                 </div>
             </article>
+
+            <nav
+                v-if="lastPage > 1"
+                class="flex flex-wrap items-center justify-between gap-4 border-t border-gray-100 pt-6"
+                aria-label="Sayfalama"
+            >
+                <p class="text-sm text-gray-500">
+                    Toplam {{ total }} kullanıcı · Sayfa {{ currentPage }} / {{ lastPage }}
+                </p>
+                <div class="flex items-center gap-2">
+                    <button
+                        type="button"
+                        class="inline-flex h-9 items-center rounded-lg border border-gray-200 px-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        :disabled="currentPage <= 1 || loading"
+                        @click="goToPage(currentPage - 1)"
+                    >
+                        Önceki
+                    </button>
+                    <button
+                        v-for="page in visiblePages"
+                        :key="page"
+                        type="button"
+                        class="inline-flex h-9 min-w-9 items-center justify-center rounded-lg border px-3 text-sm font-medium transition-colors"
+                        :class="page === currentPage
+                            ? 'border-primary bg-primary text-white'
+                            : 'border-gray-200 text-gray-700 hover:bg-gray-50'"
+                        :disabled="loading"
+                        @click="goToPage(page)"
+                    >
+                        {{ page }}
+                    </button>
+                    <button
+                        type="button"
+                        class="inline-flex h-9 items-center rounded-lg border border-gray-200 px-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                        :disabled="currentPage >= lastPage || loading"
+                        @click="goToPage(currentPage + 1)"
+                    >
+                        Sonraki
+                    </button>
+                </div>
+            </nav>
         </div>
 
         <Teleport to="body">
@@ -135,10 +176,11 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { useAdminStore } from '@/stores/admin';
 
 const adminStore = useAdminStore();
+const PER_PAGE = 10;
 
 const documentFields = [
     { key: 'profile_image', label: 'Profil Fotoğrafı' },
@@ -153,7 +195,20 @@ const loading = ref(false);
 const error = ref('');
 const searchQuery = ref('');
 const preview = ref(null);
+const currentPage = ref(1);
+const lastPage = ref(1);
+const total = ref(0);
 let searchTimer = null;
+
+const visiblePages = computed(() => {
+    const pages = [];
+    const start = Math.max(1, currentPage.value - 2);
+    const end = Math.min(lastPage.value, currentPage.value + 2);
+    for (let page = start; page <= end; page += 1) {
+        pages.push(page);
+    }
+    return pages;
+});
 
 function userTypeLabel(type) {
     if (type === 'vehicle_owner') return 'Araç Sahibi';
@@ -173,27 +228,48 @@ function closePreview() {
     preview.value = null;
 }
 
-async function fetchUsers() {
+async function fetchUsers(page = currentPage.value) {
     loading.value = true;
     error.value = '';
 
     try {
-        const result = await adminStore.fetchUserDocuments(searchQuery.value.trim());
+        const result = await adminStore.fetchUserDocuments({
+            search: searchQuery.value.trim(),
+            page,
+            perPage: PER_PAGE,
+        });
         if (!result.success) {
             error.value = result.error || 'Kullanıcılar yüklenemedi.';
             users.value = [];
+            currentPage.value = 1;
+            lastPage.value = 1;
+            total.value = 0;
             return;
         }
         users.value = result.users;
+        currentPage.value = result.currentPage;
+        lastPage.value = result.lastPage;
+        total.value = result.total;
     } finally {
         loading.value = false;
     }
 }
 
+function goToPage(page) {
+    if (page < 1 || page > lastPage.value || page === currentPage.value || loading.value) {
+        return;
+    }
+    currentPage.value = page;
+    fetchUsers(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 function onSearchInput() {
     clearTimeout(searchTimer);
     searchTimer = setTimeout(() => {
-        fetchUsers();
+        currentPage.value = 1;
+        users.value = [];
+        fetchUsers(1);
     }, 300);
 }
 
