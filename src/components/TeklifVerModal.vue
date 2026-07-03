@@ -284,6 +284,7 @@
 import { Carousel, Slide } from 'vue3-carousel';
 import 'vue3-carousel/carousel.css';
 import api from '@/api';
+import { createUserCar } from '@/lib/userCarApi';
 import { useAuthStore } from '@/stores/auth';
 import { useMessageStore } from '@/stores/message';
 import { toast } from 'vue-sonner';
@@ -523,7 +524,7 @@ async function saveAddVehicle() {
     addPlakaError.value = '';
     addVehicleLoading.value = true;
     try {
-        await api.post('/auth/create-car-by-user', {
+        await createUserCar({
             car_id: addSelectedCar.value.id,
             car_detail_id: addSelectedDetailId.value || null,
             plaka: addPlaka.value.trim(),

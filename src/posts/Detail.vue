@@ -252,7 +252,7 @@
                     
                     <!-- Açıklama Metni -->
                     <div class="relative p-4 sm:p-6 pb-4">
-                        <p class="text-sm text-gray-700 leading-relaxed rounded-2xl bg-gray-50/90 border border-gray-100 px-4 py-3.5">
+                        <p class="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap rounded-2xl bg-gray-50/90 border border-gray-100 px-4 py-3.5">
                             {{ postDescription || 'İlan açıklaması yok.' }}
                         </p>
                     </div>
@@ -797,7 +797,11 @@ const ilanOzelIstek = computed(() => {
     const o = shipment.value?.special_requests ?? shipment.value?.ozel_istek ?? shipment.value?.notes ?? '';
     return String(o).trim() || 'Yok';
 });
-const postDescription = ref('');
+const postDescription = computed(() => {
+    const ex = shipment.value?.explanation;
+    const text = ex != null ? String(ex).trim() : '';
+    return text;
+});
 
 
 

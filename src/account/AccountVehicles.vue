@@ -40,7 +40,7 @@
                 <!-- Orta: resim -->
                 <div class="flex-1 flex items-center justify-center px-4 py-4 min-h-[140px] bg-gray-50/50">
                     <img
-                        :src="getCarImageUrl(userCar.carDetail?.image || userCar.car?.image)"
+                        :src="getUserCarCardImageUrl(userCar)"
                         :alt="userCar.car?.name"
                         class="max-h-[140px] w-full object-contain"
                     />
@@ -81,6 +81,47 @@
                 <div class="p-6 flex-1 min-h-0 overflow-y-auto">
                     <p class="text-sm text-gray-500 mb-1">Araç</p>
                     <p class="text-lg font-semibold text-gray-900 mb-4">{{ editingUserCar?.car?.name || 'Araç' }} <span v-if="editingUserCar?.carDetail" class="text-sm font-normal text-gray-500">({{ editingUserCar.carDetail.value || editingUserCar.carDetail.name }})</span></p>
+
+                    <p class="text-sm font-medium text-gray-700 mb-1">Araç Fotoğrafları</p>
+                    <p class="text-xs text-gray-500 mb-3">İsteğe bağlı — en fazla 2 adet (JPG, PNG, WEBP · max 5MB)</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+                        <div
+                            v-for="slot in editVehicleImageSlots"
+                            :key="slot.key"
+                            class="rounded-xl border border-dashed border-gray-300 bg-gray-50 overflow-hidden min-h-[120px] flex flex-col"
+                        >
+                            <img
+                                v-if="slot.preview"
+                                :src="slot.preview"
+                                :alt="`Araç fotoğrafı ${slot.index}`"
+                                class="w-full h-28 object-cover"
+                            />
+                            <div v-else class="flex-1 flex flex-col items-center justify-center gap-1 p-3 text-center">
+                                <i class="pi pi-camera text-xl text-gray-400"></i>
+                                <span class="text-xs text-gray-500">Fotoğraf {{ slot.index }}</span>
+                            </div>
+                            <div class="flex border-t border-gray-200 bg-white">
+                                <label class="flex-1 py-2 text-center text-sm font-medium text-primary cursor-pointer hover:bg-primary/5">
+                                    {{ slot.preview ? 'Değiştir' : 'Yükle' }}
+                                    <input
+                                        type="file"
+                                        accept="image/jpeg,image/png,image/webp"
+                                        class="hidden"
+                                        @change="(e) => handleEditVehicleImageSelect(slot.key, e)"
+                                    />
+                                </label>
+                                <button
+                                    v-if="slot.preview"
+                                    type="button"
+                                    class="px-3 py-2 text-sm text-red-600 hover:bg-red-50 border-l border-gray-200"
+                                    @click="clearEditVehicleImage(slot.key)"
+                                >
+                                    Kaldır
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     <label for="edit-plaka-input" class="block text-sm font-medium text-gray-700 mb-1">Plaka <span class="text-red-500">*</span></label>
                     <input
                         id="edit-plaka-input"
@@ -194,6 +235,49 @@
                         </template>
                     </div>
                 </div>
+
+                <!-- İsteğe bağlı araç fotoğrafları -->
+                <div class="px-6 pb-2 shrink-0">
+                    <p class="text-sm font-medium text-gray-700 mb-1">Araç Fotoğrafları</p>
+                    <p class="text-xs text-gray-500 mb-3">İsteğe bağlı — en fazla 2 adet (JPG, PNG, WEBP · max 5MB)</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div
+                            v-for="slot in vehicleImageSlots"
+                            :key="slot.key"
+                            class="rounded-xl border border-dashed border-gray-300 bg-gray-50 overflow-hidden min-h-[120px] flex flex-col"
+                        >
+                            <img
+                                v-if="slot.preview"
+                                :src="slot.preview"
+                                :alt="`Araç fotoğrafı ${slot.index}`"
+                                class="w-full h-28 object-cover"
+                            />
+                            <div v-else class="flex-1 flex flex-col items-center justify-center gap-1 p-3 text-center">
+                                <i class="pi pi-camera text-xl text-gray-400"></i>
+                                <span class="text-xs text-gray-500">Fotoğraf {{ slot.index }}</span>
+                            </div>
+                            <div class="flex border-t border-gray-200 bg-white">
+                                <label class="flex-1 py-2 text-center text-sm font-medium text-primary cursor-pointer hover:bg-primary/5">
+                                    {{ slot.preview ? 'Değiştir' : 'Yükle' }}
+                                    <input
+                                        type="file"
+                                        accept="image/jpeg,image/png,image/webp"
+                                        class="hidden"
+                                        @change="(e) => handleVehicleImageSelect(slot.key, e)"
+                                    />
+                                </label>
+                                <button
+                                    v-if="slot.preview"
+                                    type="button"
+                                    class="px-3 py-2 text-sm text-red-600 hover:bg-red-50 border-l border-gray-200"
+                                    @click="clearVehicleImage(slot.key)"
+                                >
+                                    Kaldır
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 
                 <!-- Modal Footer - Plaka (sol) | İptal + Ekle (sağ) -->
                 <div class="flex justify-between items-center gap-4 p-6 border-t border-gray-200">
@@ -241,9 +325,10 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue';
+import { ref, watch, onMounted, computed } from 'vue';
 import Carousel from 'primevue/carousel';
 import api from '@/api';
+import { createUserCar, updateUserCar, userCarImageUrl } from '@/lib/userCarApi';
 
 const showEditVehicleModal = ref(false);
 const editingUserCar = ref(null);
@@ -251,10 +336,88 @@ const editPlate = ref('');
 const editPlakaError = ref('');
 const editVehicleLoading = ref(false);
 
+const MAX_VEHICLE_IMAGE_MB = 5;
+
+const editVehicleImage1File = ref(null);
+const editVehicleImage2File = ref(null);
+const editVehicleImage1Preview = ref('');
+const editVehicleImage2Preview = ref('');
+const editRemoveImage1 = ref(false);
+const editRemoveImage2 = ref(false);
+
+const editVehicleImageSlots = computed(() => [
+    { key: 1, index: 1, preview: editRemoveImage1.value ? '' : editVehicleImage1Preview.value },
+    { key: 2, index: 2, preview: editRemoveImage2.value ? '' : editVehicleImage2Preview.value },
+]);
+
+function revokeEditVehiclePreview(url) {
+    if (url && url.startsWith('blob:')) URL.revokeObjectURL(url);
+}
+
+function resetEditVehicleImages() {
+    revokeEditVehiclePreview(editVehicleImage1Preview.value);
+    revokeEditVehiclePreview(editVehicleImage2Preview.value);
+    editVehicleImage1File.value = null;
+    editVehicleImage2File.value = null;
+    editVehicleImage1Preview.value = '';
+    editVehicleImage2Preview.value = '';
+    editRemoveImage1.value = false;
+    editRemoveImage2.value = false;
+}
+
+function clearEditVehicleImage(slot) {
+    if (slot === 1) {
+        if (editVehicleImage1File.value) {
+            revokeEditVehiclePreview(editVehicleImage1Preview.value);
+            editVehicleImage1File.value = null;
+            editVehicleImage1Preview.value = editingUserCar.value ? (userCarImageUrl(editingUserCar.value, 1) ?? '') : '';
+            editRemoveImage1.value = !editVehicleImage1Preview.value;
+        } else {
+            revokeEditVehiclePreview(editVehicleImage1Preview.value);
+            editVehicleImage1Preview.value = '';
+            editRemoveImage1.value = true;
+        }
+        return;
+    }
+    if (editVehicleImage2File.value) {
+        revokeEditVehiclePreview(editVehicleImage2Preview.value);
+        editVehicleImage2File.value = null;
+        editVehicleImage2Preview.value = editingUserCar.value ? (userCarImageUrl(editingUserCar.value, 2) ?? '') : '';
+        editRemoveImage2.value = !editVehicleImage2Preview.value;
+    } else {
+        revokeEditVehiclePreview(editVehicleImage2Preview.value);
+        editVehicleImage2Preview.value = '';
+        editRemoveImage2.value = true;
+    }
+}
+
+function handleEditVehicleImageSelect(slot, event) {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) return;
+    if (file.size > MAX_VEHICLE_IMAGE_MB * 1024 * 1024) return;
+    if (slot === 1) {
+        revokeEditVehiclePreview(editVehicleImage1Preview.value);
+        editVehicleImage1File.value = file;
+        editVehicleImage1Preview.value = URL.createObjectURL(file);
+        editRemoveImage1.value = false;
+        return;
+    }
+    revokeEditVehiclePreview(editVehicleImage2Preview.value);
+    editVehicleImage2File.value = file;
+    editVehicleImage2Preview.value = URL.createObjectURL(file);
+    editRemoveImage2.value = false;
+}
+
 function editVehicle(userCar) {
     editingUserCar.value = userCar;
     editPlate.value = userCar.plate ?? userCar.plaka ?? '';
     editPlakaError.value = '';
+    resetEditVehicleImages();
+    editVehicleImage1Preview.value = userCarImageUrl(userCar, 1) ?? '';
+    editVehicleImage2Preview.value = userCarImageUrl(userCar, 2) ?? '';
     showEditVehicleModal.value = true;
 }
 
@@ -263,6 +426,7 @@ function closeEditVehicleModal() {
     editingUserCar.value = null;
     editPlate.value = '';
     editPlakaError.value = '';
+    resetEditVehicleImages();
 }
 
 function onEditPlakaInput(e) {
@@ -279,7 +443,10 @@ async function saveEditVehicle() {
     editPlakaError.value = '';
     editVehicleLoading.value = true;
     try {
-        await api.put(`/cars/my/${uc.id}`, { plaka: editPlate.value.trim() });
+        await updateUserCar(uc.id, editPlate.value.trim(), {
+            vehicleImages: [editVehicleImage1File.value, editVehicleImage2File.value],
+            removeImages: [editRemoveImage1.value, editRemoveImage2.value],
+        });
         closeEditVehicleModal();
         await fetchMyCars();
     } catch (err) {
@@ -321,6 +488,54 @@ const selectedCar = ref(null);
 const selectedDetailId = ref(null);
 const plaka = ref('');
 const plakaError = ref('');
+
+const vehicleImage1File = ref(null);
+const vehicleImage2File = ref(null);
+const vehicleImage1Preview = ref('');
+const vehicleImage2Preview = ref('');
+
+const vehicleImageSlots = computed(() => [
+    { key: 1, index: 1, preview: vehicleImage1Preview.value },
+    { key: 2, index: 2, preview: vehicleImage2Preview.value },
+]);
+
+function revokeVehiclePreview(url) {
+    if (url && url.startsWith('blob:')) URL.revokeObjectURL(url);
+}
+
+function clearVehicleImage(slot) {
+    if (slot === 1) {
+        revokeVehiclePreview(vehicleImage1Preview.value);
+        vehicleImage1File.value = null;
+        vehicleImage1Preview.value = '';
+        return;
+    }
+    revokeVehiclePreview(vehicleImage2Preview.value);
+    vehicleImage2File.value = null;
+    vehicleImage2Preview.value = '';
+}
+
+function handleVehicleImageSelect(slot, event) {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) return;
+    if (file.size > MAX_VEHICLE_IMAGE_MB * 1024 * 1024) return;
+    if (slot === 1) {
+        revokeVehiclePreview(vehicleImage1Preview.value);
+        vehicleImage1File.value = file;
+        vehicleImage1Preview.value = URL.createObjectURL(file);
+        return;
+    }
+    revokeVehiclePreview(vehicleImage2Preview.value);
+    vehicleImage2File.value = file;
+    vehicleImage2Preview.value = URL.createObjectURL(file);
+}
+
+function getUserCarCardImageUrl(userCar) {
+    return getCarImageUrl(userCar.carDetail?.image || userCar.car?.image);
+}
 
 /**
  * Plaka maskeleme: 2 rakam (01-81 il kodu, sadece sayı) + boşluk + 1-3 harf (A-Z) + boşluk + 1-4 rakam
@@ -432,6 +647,8 @@ const closeAddVehicleModal = () => {
     plaka.value = '';
     plakaError.value = '';
     carouselPage.value = 0;
+    clearVehicleImage(1);
+    clearVehicleImage(2);
 };
 
 async function saveVehicle() {
@@ -444,11 +661,14 @@ async function saveVehicle() {
     plakaError.value = '';
     addVehicleLoading.value = true;
     try {
-        await api.post('/auth/create-car-by-user', {
-            car_id: car.id,
-            car_detail_id: selectedDetailId.value || null,
-            plaka: plaka.value.trim(),
-        });
+        await createUserCar(
+            {
+                car_id: car.id,
+                car_detail_id: selectedDetailId.value || null,
+                plaka: plaka.value.trim(),
+            },
+            [vehicleImage1File.value, vehicleImage2File.value]
+        );
         closeAddVehicleModal();
         await fetchMyCars();
     } catch (err) {

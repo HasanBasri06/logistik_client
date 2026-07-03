@@ -5,59 +5,84 @@
             <div class="flex flex-col gap-6 lg:flex-row lg:gap-8">
                 <!-- Sol: Ana içerik -->
                 <div class="flex-1 min-w-0 flex flex-col gap-6 order-2 lg:order-1">
-                    <!-- İlan özeti kartı (mobilde üstte) -->
+                    <!-- Yakındaki sürücüler (sadece giriş yapmış kullanıcıya gösterilir) -->
                     <section
-                        v-if="!loading && !error && shipment"
+                        v-if="!loading && !error && shipment && authStore.isAuthenticated"
                         class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden"
                     >
-                        <div class="p-5 md:p-6">
-                            <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-6">
-                                <div class="flex flex-col gap-1">
-                                    <p class="text-xs font-medium text-primary uppercase tracking-wide">Güzergah</p>
-                                    <div class="flex flex-wrap items-center gap-2 md:gap-3">
-                                        <span class="text-lg md:text-xl font-bold text-gray-900">{{ routeFrom }}</span>
-                                        <i class="pi pi-arrow-right text-primary text-sm"></i>
-                                        <span class="text-lg md:text-xl font-bold text-gray-900">{{ routeTo }}</span>
+                        <div class="px-5 py-4 border-b border-gray-100 bg-gray-50/80">
+                            <h2 class="text-base font-semibold text-gray-900">Yakındaki Sürücüler</h2>
+                            <p class="text-xs text-gray-500 mt-0.5">Konum paylaştığınızda size yakın sürücüler listelenir.</p>
+                        </div>
+                        <div class="p-5">
+                            <template v-if="closeUsersLoading">
+                                <p class="text-sm text-gray-500 flex items-center gap-2">
+                                    <i class="pi pi-spin pi-spinner text-primary"></i>
+                                    Yükleniyor...
+                                </p>
+                            </template>
+                            <template v-else-if="closeUsersList.length === 0">
+                                <p class="text-sm text-gray-500">Henüz yakın sürücü bilgisi yok.</p>
+                            </template>
+                            <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div
+                                    v-for="u in closeUsersList"
+                                    :key="u.id"
+                                    class="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/50 p-4 hover:border-primary/30 hover:bg-primary/5 transition-colors"
+                                >
+                                    <span
+                                        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/15 text-sm font-semibold text-primary"
+                                        :title="u.full_name || u.first_name || '?'"
+                                    >
+                                        {{ (u.full_name || u.first_name || '?')[0] }}
+                                    </span>
+                                    <div class="min-w-0 flex-1">
+                                        <p class="text-sm font-semibold text-gray-900 truncate">
+                                            {{ u.full_name || [u.first_name, u.last_name].filter(Boolean).join(' ') || 'Kullanıcı' }}
+                                        </p>
+                                        <p class="text-xs text-gray-500 truncate mt-0.5">
+                                            {{ [u.user_city, u.user_district].filter(Boolean).join(' / ') || '—' }}
+                                        </p>
+                                        <p v-if="u.distance_km != null" class="text-xs text-primary font-medium mt-1">
+                                            ~{{ Math.round(u.distance_km) }} km
+                                        </p>
                                     </div>
+                                    <button
+                                        type="button"
+                                        class="shrink-0 flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition-colors"
+                                        :class="
+                                            isShipmentActive
+                                                ? 'hover:border-primary hover:bg-primary/10 hover:text-primary'
+                                                : 'opacity-50 cursor-not-allowed'
+                                        "
+                                        :disabled="!isShipmentActive"
+                                        title="Mesaj gönder"
+                                        @click="openMessagePanel({ user: u, fromCloseUser: true })"
+                                    >
+                                        <i class="pi pi-comments text-base"></i>
+                                    </button>
                                 </div>
-                                <div class="flex items-center gap-3 pt-2 md:pt-0 md:pl-4 border-t border-gray-100 md:border-t-0 md:border-l md:border-gray-200">
-                                    <span class="text-2xl font-bold text-primary">{{ priceDisplay }}</span>
-                                </div>
                             </div>
-                            <div class="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-600">
-                                <span v-if="vehicleLabel" class="flex items-center gap-1.5">
-                                    <i class="pi pi-truck text-primary text-base"></i>
-                                    {{ vehicleLabel }}
-                                </span>
-                                <span v-if="weightDisplay" class="flex items-center gap-1.5">
-                                    <i class="pi pi-box text-primary text-base"></i>
-                                    {{ weightDisplay }}
-                                </span>
-                                <span v-if="timeDisplay" class="flex items-center gap-1.5">
-                                    <i class="pi pi-clock text-primary text-base"></i>
-                                    {{ timeDisplay }}
-                                </span>
-                                <span class="flex items-center gap-1.5">
-                                    <i class="pi pi-tag text-primary text-base"></i>
-                                    {{ postTypeLabel }}
-                                </span>
+                        </div>
+                    </section>
+
+                    <!-- İlan açıklaması -->
+                    <section
+                        v-if="explanationText"
+                        class="relative overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
+                    >
+                        <div class="relative px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-primary/[0.08] via-white to-white">
+                            <div class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white/80 px-3 py-1 text-[11px] font-semibold text-primary tracking-wide uppercase">
+                                <i class="pi pi-file-edit"></i>
+                                İlan Detayı
                             </div>
-                            <div v-if="isCreator && shipment?.status !== 'active'" class="mt-4 pt-4 border-t border-gray-100">
-                                <span
-                                    class="inline-flex items-center rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-700"
-                                >
-                                    İlan şu an listelenmemektedir
-                                </span>
-                            </div>
-                            <div v-else-if="isCreator && shipment?.status === 'active'" class="mt-4 pt-4 border-t border-gray-100">
-                                <button
-                                    type="button"
-                                    class="w-full sm:w-auto px-4 py-2.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 text-sm font-semibold transition-colors"
-                                    @click="openCancelModal"
-                                >
-                                    İptal Et
-                                </button>
-                            </div>
+                            <h2 class="text-lg font-semibold text-gray-900 mt-2">İlan Açıklaması</h2>
+                            <p class="text-xs text-gray-500 mt-1">Yük sahibinin taşıma hakkında paylaştığı notlar</p>
+                        </div>
+                        <div class="p-5">
+                            <p class="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap rounded-xl bg-gray-50 border border-gray-100 px-4 py-3.5">
+                                {{ explanationText }}
+                            </p>
                         </div>
                     </section>
 
@@ -111,64 +136,6 @@
                                 </div>
                             </div>
                         </section>
-
-                        <!-- En yakın kullanıcılar (sadece giriş yapmış kullanıcıya gösterilir) -->
-                        <section v-if="authStore.isAuthenticated" class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-                            <div class="px-5 py-4 border-b border-gray-100 bg-gray-50/80">
-                                <h2 class="text-base font-semibold text-gray-900">Yakındaki taşıyıcılar</h2>
-                                <p class="text-xs text-gray-500 mt-0.5">Konum paylaştığınızda size yakın kullanıcılar listelenir.</p>
-                            </div>
-                            <div class="p-5">
-                                <template v-if="closeUsersLoading">
-                                    <p class="text-sm text-gray-500 flex items-center gap-2">
-                                        <i class="pi pi-spin pi-spinner text-primary"></i>
-                                        Yükleniyor...
-                                    </p>
-                                </template>
-                                <template v-else-if="closeUsersList.length === 0">
-                                    <p class="text-sm text-gray-500">Henüz yakın kullanıcı bilgisi yok.</p>
-                                </template>
-                                <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <div
-                                        v-for="u in closeUsersList"
-                                        :key="u.id"
-                                        class="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/50 p-4 hover:border-primary/30 hover:bg-primary/5 transition-colors"
-                                    >
-                                        <span
-                                            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/15 text-sm font-semibold text-primary"
-                                            :title="u.full_name || u.first_name || '?'"
-                                        >
-                                            {{ (u.full_name || u.first_name || '?')[0] }}
-                                        </span>
-                                        <div class="min-w-0 flex-1">
-                                            <p class="text-sm font-semibold text-gray-900 truncate">
-                                                {{ u.full_name || [u.first_name, u.last_name].filter(Boolean).join(' ') || 'Kullanıcı' }}
-                                            </p>
-                                            <p class="text-xs text-gray-500 truncate mt-0.5">
-                                                {{ [u.user_city, u.user_district].filter(Boolean).join(' / ') || '—' }}
-                                            </p>
-                                            <p v-if="u.distance_km != null" class="text-xs text-primary font-medium mt-1">
-                                                ~{{ Math.round(u.distance_km) }} km
-                                            </p>
-                                        </div>
-                                        <button
-                                            type="button"
-                                            class="shrink-0 flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 text-gray-500 transition-colors"
-                                            :class="
-                                                isShipmentActive
-                                                    ? 'hover:border-primary hover:bg-primary/10 hover:text-primary'
-                                                    : 'opacity-50 cursor-not-allowed'
-                                            "
-                                            :disabled="!isShipmentActive"
-                                            title="Mesaj gönder"
-                                            @click="openMessagePanel({ user: u, fromCloseUser: true })"
-                                        >
-                                            <i class="pi pi-comments text-base"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
                     </template>
                 </div>
 
@@ -191,9 +158,52 @@
                                 <span v-else-if="!vehicleImageUrl" class="text-sm text-gray-400">—</span>
                             </div>
                         </div>
+
                         <div class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden p-5">
-                            <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Yük tipi</p>
-                            <p class="text-base font-semibold text-gray-900">{{ postTypeLabel }}</p>
+                            <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Güzergah</p>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="text-base font-bold text-gray-900">{{ routeFrom }}</span>
+                                <i class="pi pi-arrow-right text-primary text-xs"></i>
+                                <span class="text-base font-bold text-gray-900">{{ routeTo }}</span>
+                            </div>
+                        </div>
+                        <div class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden p-5">
+                            <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Fiyat</p>
+                            <span class="text-2xl font-bold text-primary">{{ priceDisplay }}</span>
+                            <div class="mt-3 pt-3 border-t border-gray-100 flex flex-wrap gap-x-4 gap-y-2 text-sm text-gray-600">
+                                <span v-if="vehicleLabel" class="flex items-center gap-1.5">
+                                    <i class="pi pi-truck text-primary text-base"></i>
+                                    {{ vehicleLabel }}
+                                </span>
+                                <span v-if="weightDisplay" class="flex items-center gap-1.5">
+                                    <i class="pi pi-box text-primary text-base"></i>
+                                    {{ weightDisplay }}
+                                </span>
+                                <span v-if="timeDisplay" class="flex items-center gap-1.5">
+                                    <i class="pi pi-clock text-primary text-base"></i>
+                                    {{ timeDisplay }}
+                                </span>
+                                <span class="flex items-center gap-1.5">
+                                    <i class="pi pi-tag text-primary text-base"></i>
+                                    {{ postTypeLabel }}
+                                </span>
+                            </div>
+                            <div v-if="isCreator && shipment?.status !== 'active'" class="mt-4 pt-4 border-t border-gray-100">
+                                <span
+                                    class="inline-flex items-center rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-700"
+                                >
+                                    İlan şu an listelenmemektedir
+                                </span>
+                            </div>
+                            <div v-else-if="isCreator && shipment?.status === 'active'" class="mt-4 pt-4 border-t border-gray-100">
+                                <button
+                                    type="button"
+                                    class="w-full px-4 py-2.5 rounded-lg bg-red-100 hover:bg-red-200 text-red-700 text-sm font-semibold transition-colors"
+                                    @click="openCancelModal"
+                                >
+                                    İptal Et
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </aside>
@@ -588,6 +598,11 @@ const priceDisplay = computed(() => {
 const postTypeLabel = computed(() => {
     const pt = shipment.value?.post_type ?? shipment.value?.postType;
     return pt?.value ?? '—';
+});
+
+const explanationText = computed(() => {
+    const ex = shipment.value?.explanation;
+    return ex != null && String(ex).trim() ? String(ex).trim() : '';
 });
 
 function getCarImageUrl(image) {

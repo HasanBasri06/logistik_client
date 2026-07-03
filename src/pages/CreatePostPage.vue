@@ -380,6 +380,20 @@
               </div>
               </div>
 
+              <!-- İlan açıklaması (isteğe bağlı) -->
+              <div class="w-full rounded-xl border border-slate-200 bg-slate-50/50 p-4 sm:p-5 mt-4">
+                <label class="block text-base font-semibold text-gray-800 mb-0.5">İlan Açıklaması</label>
+                <p class="text-sm text-gray-500 mb-3">Taşıyıcılara iletmek istediğiniz ek notlar (isteğe bağlı)</p>
+                <textarea
+                  v-model="explanation"
+                  rows="4"
+                  maxlength="500"
+                  placeholder="Örn: Yük paletli, forklift ile yüklenecek, teslimat saat 14:00–18:00 arası..."
+                  class="w-full min-h-[110px] px-4 py-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm text-gray-800 resize-y"
+                />
+                <p class="text-xs text-gray-400 mt-1 text-right">{{ explanation.length }}/500</p>
+              </div>
+
               <!-- Mesafe ve süre (her iki yer seçildiğinde) -->
               <div
                 v-if="routeInfo"
@@ -517,6 +531,8 @@ import api from "@/api";
 import { usePostStore } from "@/stores/post";
 import { useShipmentsStore } from "@/stores/shipments";
 import { useAuthStore } from "@/stores/auth";
+import { useLocationStore } from "@/stores/location";
+import { resolveCityNameForFilter, pickDistrict } from "@/lib/locations";
 import { storeToRefs } from "pinia";
 
 const loadingGifUrl = new URL("../assets/gifs/loading_gif.gif", import.meta.url).href;
@@ -524,8 +540,10 @@ const loadingGifUrl = new URL("../assets/gifs/loading_gif.gif", import.meta.url)
 const postStore = usePostStore();
 const shipmentsStore = useShipmentsStore();
 const authStore = useAuthStore();
+const locationStore = useLocationStore();
 const { page, limit } = storeToRefs(postStore);
 const { user: authUser, canPublishListing } = storeToRefs(authStore);
+const yukGpsPrefillAttempted = ref(false);
 
 /** Sadece aktif adresler (modal listesi) */
 const activeAddresses = computed(() => {
@@ -583,6 +601,7 @@ const routeLoading = ref(false);
 const routeStatusRef = ref(null);
 const selectedPriceType = ref('sabit');
 const canContactByCall = ref(true);
+const explanation = ref('');
 
 /** Adreslerim modalı: yüklenecek/boşaltılacak yer için aktif adreslerden seçim */
 const addressesModalOpen = ref(false);
@@ -724,6 +743,80 @@ async function onBosaltilanCityChange() {
   } finally {
     bosaltilanDistrictsLoading.value = false;
   }
+}
+
+async function applyYuklenecekFromGeo(geoCity, geoDistrict) {
+  if (yuklenecekYer.value.city?.trim()) return true;
+  const cityName = resolveCityNameForFilter(geoCity, cities.value);
+  if (!cityName) return false;
+
+  yuklenecekYer.value.city = cityName;
+  await onYuklenecekCityChange();
+
+  if (geoDistrict && yuklenecekDistricts.value.length) {
+    const picked = pickDistrict(yuklenecekDistricts.value, geoDistrict);
+    if (picked?.name) yuklenecekYer.value.district = picked.name;
+  }
+  return Boolean(yuklenecekYer.value.city?.trim());
+}
+
+async function reverseGeocodeCityDistrict(lat, lng) {
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json&addressdetails=1&zoom=18`,
+      { headers: { 'Accept-Language': 'tr' } }
+    );
+    const data = await res.json();
+    const addr = data?.address;
+    if (!addr) return { city: null, district: null };
+    const isTurkey = (addr.country_code || data.country_code || '').toLowerCase() === 'tr';
+    if (isTurkey) {
+      return {
+        city: addr.state || null,
+        district: addr.state_district || addr.county || null,
+      };
+    }
+    return {
+      city: addr.state || addr.city || addr.town || addr.village || addr.municipality || null,
+      district: addr.state_district || addr.county || null,
+    };
+  } catch (_) {
+    return { city: null, district: null };
+  }
+}
+
+async function prefillYuklenecekFromLocation() {
+  if (yuklenecekYer.value.city?.trim()) return;
+  if (!cities.value.length) await fetchCities();
+  if (!cities.value.length) return;
+
+  if (locationStore.userCity || locationStore.userDistrict) {
+    if (await applyYuklenecekFromGeo(locationStore.userCity, locationStore.userDistrict)) return;
+  }
+
+  const profileCity = authUser.value?.user_city;
+  const profileDistrict = authUser.value?.user_district;
+  if (profileCity || profileDistrict) {
+    if (await applyYuklenecekFromGeo(profileCity, profileDistrict)) return;
+  }
+
+  if (yukGpsPrefillAttempted.value || !navigator.geolocation) return;
+  yukGpsPrefillAttempted.value = true;
+
+  await new Promise((resolve) => {
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { city, district } = await reverseGeocodeCityDistrict(
+          position.coords.latitude,
+          position.coords.longitude
+        );
+        await applyYuklenecekFromGeo(city, district);
+        resolve();
+      },
+      () => resolve(),
+      { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
+    );
+  });
 }
 
 async function fetchUserAddresses() {
@@ -872,10 +965,10 @@ watch(
   { deep: true }
 );
 
-watch(routeLoading, async (isLoading) => {
-  if (!isLoading) return;
+watch([routeLoading, routeInfo], async ([loading, info]) => {
+  if (loading || !info) return;
   await nextTick();
-  routeStatusRef.value?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  routeStatusRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
 
 const postTypeImages = import.meta.glob('../assets/images/post_types/*', { eager: true, import: 'default' });
@@ -939,11 +1032,26 @@ async function fetchPostTypes() {
 
 watch(
   page,
-  (p) => {
+  async (p) => {
     if (p === 2) fetchPostTypes();
-    if (p === 3) fetchCities();
+    if (p === 3) {
+      await fetchCities();
+      await prefillYuklenecekFromLocation();
+    }
   },
   { immediate: true }
+);
+
+watch(
+  () => [
+    locationStore.userCity,
+    locationStore.userDistrict,
+    authUser.value?.user_city,
+    authUser.value?.user_district,
+  ],
+  () => {
+    if (page.value === 3) prefillYuklenecekFromLocation();
+  }
 );
 
 const canGoNext = computed(() => {
@@ -1017,6 +1125,7 @@ function getShipmentFormData() {
     selectedPriceType: selectedPriceType.value,
     calculatedPrice: price,
     call_verify: canContactByCall.value,
+    explanation: explanation.value.trim() || undefined,
   };
 }
 
