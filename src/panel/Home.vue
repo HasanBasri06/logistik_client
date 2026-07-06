@@ -15,6 +15,15 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                     </span>
                     <span class="text-sm text-gray-600 truncate flex-1">{{ mobileSearchSummary }}</span>
+                    <button
+                        v-if="hasSearchLocations"
+                        type="button"
+                        class="flex items-center justify-center w-7 h-7 shrink-0 rounded bg-red-500 text-white hover:bg-red-600 transition-colors"
+                        aria-label="Aramayı temizle"
+                        @click.stop="clearSearchLocations"
+                    >
+                        <i class="pi pi-times text-xs"></i>
+                    </button>
                     <ChevronDown class="w-5 h-5 text-gray-400 shrink-0" />
                 </div>
 
@@ -90,12 +99,23 @@
                             />
                         </div>
                     </div>
-                    <div class="w-full sm:w-[150px] shrink-0 order-5 min-h-10 sm:min-h-0 sm:self-stretch">
+                    <div class="w-full sm:w-auto shrink-0 order-5 min-h-10 sm:min-h-0 sm:self-stretch flex items-stretch gap-1.5">
+                        
                         <button
                             @click="handleSearch"
-                            class="w-full h-full min-h-10 sm:min-h-0 bg-primary rounded-lg text-sm font-semibold text-white hover:bg-primary/90 transition-colors"
+                            class="flex-1 sm:max-w-[150px] px-6 h-full min-h-10 sm:min-h-0 bg-primary rounded-lg text-sm font-semibold text-white hover:bg-primary/90 transition-colors"
                         >
                             Ara
+                        </button>
+
+                        <button
+                            v-if="hasSearchLocations"
+                            type="button"
+                            class="flex items-center justify-center w-10 h-full min-h-10 sm:min-h-0 shrink-0 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors"
+                            aria-label="Aramayı temizle"
+                            @click="clearSearchLocations"
+                        >
+                            <i class="pi pi-times text-sm"></i>
                         </button>
                     </div>
                 </div>
@@ -110,7 +130,7 @@
                 >
                     <div
                         v-show="fromDropdownOpen"
-                        class="absolute left-0 right-0 top-full mt-1 z-50 w-full h-[200px] rounded-lg border border-gray-200 bg-white shadow-lg overflow-hidden"
+                        class="absolute left-0 right-0 top-full mt-1 z-50 w-full h-[400px] rounded-lg border border-gray-200 bg-white shadow-lg overflow-hidden"
                     >
                         <div class="grid grid-cols-3 w-full h-full divide-x divide-gray-200">
                             <div class="flex flex-col overflow-hidden">
@@ -384,84 +404,6 @@
             </Transition>
         </Teleport>
 
-        <!-- Mobil: Sevkiyat filtreleri full modal (web ile aynı seçenekler: Sırala, Gidiş Saati, Hesap) -->
-        <Teleport to="body">
-            <Transition name="modal">
-                <div
-                    v-if="mobileFilterOptionsOpen"
-                    class="fixed inset-0 z-[100] flex flex-col bg-white sm:hidden"
-                    role="dialog"
-                    aria-modal="true"
-                    aria-labelledby="mobile-filter-options-title"
-                >
-                    <div class="flex items-center justify-between shrink-0 px-4 py-3 border-b border-gray-200">
-                        <h2 id="mobile-filter-options-title" class="text-lg font-semibold text-gray-900">Filtrele</h2>
-                        <button
-                            type="button"
-                            class="p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700"
-                            aria-label="Kapat"
-                            @click="mobileFilterOptionsOpen = false"
-                        >
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                        </button>
-                    </div>
-                    <div class="flex-1 overflow-y-auto p-4 space-y-6">
-                        <div
-                            v-for="section in filterSections"
-                            :key="section.modelKey"
-                            class="flex flex-col gap-3"
-                        >
-                            <h3 class="text-base font-semibold text-gray-900">{{ section.label }}</h3>
-                            <div class="flex flex-col gap-2">
-                                <label
-                                    v-for="opt in section.options"
-                                    :key="opt.value"
-                                    class="flex items-center px-4 py-3 rounded-lg border border-gray-200 cursor-pointer transition-all duration-200 gap-3 hover:border-primary/40 hover:bg-primary/5 has-checked:border-primary has-checked:bg-primary/10 group"
-                                >
-                                    <input
-                                        v-if="section.type === 'radio'"
-                                        type="radio"
-                                        :name="section.name"
-                                        :value="opt.value"
-                                        v-model="filters[section.modelKey]"
-                                        class="w-4 h-4 accent-primary cursor-pointer focus:outline-2 focus:outline-primary focus:outline-offset-2"
-                                        @change="handleFilterChange(section.modelKey, opt.value)"
-                                    />
-                                    <input
-                                        v-else
-                                        type="checkbox"
-                                        v-model="filters[section.modelKey]"
-                                        :true-value="opt.value"
-                                        :false-value="null"
-                                        class="w-4 h-4 accent-primary cursor-pointer focus:outline-2 focus:outline-primary focus:outline-offset-2"
-                                        @change="handleFilterChange(section.modelKey)"
-                                    />
-                                    <span class="text-sm text-gray-700 font-medium flex-1 group-has-checked:text-primary group-has-checked:font-semibold">{{ opt.label }}</span>
-                                </label>
-                            </div>
-                        </div>
-                        <button
-                            type="button"
-                            @click="clearFilters"
-                            :disabled="!hasActiveFiltersValue"
-                            class="w-full px-4 py-3 rounded-lg border border-gray-200 bg-white text-gray-700 text-sm font-medium cursor-pointer transition-all duration-200 hover:border-primary hover:bg-primary/5 hover:text-primary disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:border-gray-200 disabled:hover:text-gray-700"
-                        >
-                            Seçilenleri Temizle
-                        </button>
-                    </div>
-                    <div class="shrink-0 p-4 border-t border-gray-200 bg-gray-50">
-                        <button
-                            type="button"
-                            @click="mobileFilterOptionsOpen = false"
-                            class="w-full h-12 bg-primary rounded-xl text-base font-semibold text-white hover:bg-primary/90 transition-colors"
-                        >
-                            Uygula
-                        </button>
-                    </div>
-                </div>
-            </Transition>
-        </Teleport>
-
         <!-- Mobil: Şehir/İlçe seçim full modal (Nereden veya Nereye - web ile aynı ekran) -->
         <Teleport to="body">
             <Transition name="modal">
@@ -484,6 +426,26 @@
                         <h2 :id="mobileLocationPickerFor === 'from' ? 'mobile-location-from-title' : 'mobile-location-to-title'" class="text-lg font-semibold text-gray-900">
                             {{ mobileLocationPickerFor === 'from' ? 'Nereden' : 'Nereye' }} seçin
                         </h2>
+                    </div>
+                    <div class="mx-4 mb-3 flex items-center justify-between gap-3 px-3 py-3 rounded-2xl border border-gray-200 bg-slate-50 shrink-0">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-semibold text-gray-900">Doğrulanmış profil görüntüle</p>
+                            <p class="text-xs text-gray-500 mt-0.5">Yalnızca onaylı hesaplara ait ilanlar listelenir</p>
+                        </div>
+                        <button
+                            type="button"
+                            role="switch"
+                            :aria-checked="isVerifiedProfileFilterEnabled"
+                            aria-label="Doğrulanmış profil görüntüle"
+                            class="relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40"
+                            :class="isVerifiedProfileFilterEnabled ? 'bg-primary' : 'bg-gray-300'"
+                            @click="onToggleVerifiedProfileFilter(!isVerifiedProfileFilterEnabled)"
+                        >
+                            <span
+                                class="inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform"
+                                :class="isVerifiedProfileFilterEnabled ? 'translate-x-6' : 'translate-x-1'"
+                            />
+                        </button>
                     </div>
                     <div class="flex-1 flex flex-col min-h-0 overflow-hidden">
                         <!-- Web ile aynı: 3 bölüm (Şehirler | İlçeler | Seçilen) -->
@@ -782,13 +744,6 @@
                             <div class="flex items-center justify-between w-full md:justify-start gap-3">
                                 <span v-if="!isCargoOwner" class="text-sm text-gray-500">Sevkiyatlar</span>
                                 <span v-else class="flex-1 min-w-0 shrink" aria-hidden="true" />
-                                <button
-                                    type="button"
-                                    class="md:hidden flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 bg-white text-gray-700 text-sm font-medium hover:border-primary hover:bg-primary/5 hover:text-primary transition-colors"
-                                    @click="mobileFilterOptionsOpen = true"
-                                >
-                                    Filtrele
-                                </button>
                             </div>
 
                             <section v-if="myPostList.length" class="flex flex-col gap-3">
@@ -1091,6 +1046,11 @@ const mobileSearchSummary = computed(() => {
     return `${from} → ${to}`;
 });
 
+const hasSearchLocations = computed(() => !!(
+    fromCity.value || fromDistrict.value || toCity.value || toDistrict.value
+    || fromLocationDisplayName.value || toLocationDisplayName.value
+));
+
 const departureTime = ref(null);
 const returnTime = ref(null);
 const fromCityDropdownOpen = ref(false);
@@ -1098,7 +1058,6 @@ const fromDropdownOpen = ref(false);
 const toDropdownOpen = ref(false);
 const searchBarRef = ref(null);
 const mobileFilterOpen = ref(false);
-const mobileFilterOptionsOpen = ref(false); // Mobil: sevkiyat listesi filtreleri (Sırala, Gidiş Saati, Hesap)
 const mobileLocationPickerOpen = ref(false);
 const mobileLocationPickerFor = ref('from'); // 'from' | 'to'
 
@@ -1146,6 +1105,13 @@ const hasActiveFiltersValue = computed(() => {
     return filters.order !== null || filters.departureTime !== null || filters.verified !== null;
 });
 
+const isVerifiedProfileFilterEnabled = computed(() => filters.verified === 'verified');
+
+const onToggleVerifiedProfileFilter = (enabled) => {
+    filters.verified = enabled ? 'verified' : null;
+    handleFilterChange('verified');
+};
+
 const clearFilters = () => {
     filters.order = null;
     filters.departureTime = null;
@@ -1186,15 +1152,11 @@ const setDefaultLocations = () => {
     const qFrom = route.query.from;
     const qTo = route.query.to;
 
-    if (!fromCity.value) {
-        fromCity.value = (qFrom && apiCities.value.find(c => c.name === qFrom))
-            || apiCities.value.find(c => c.name === 'Ankara')
-            || null;
+    if (!fromCity.value && qFrom) {
+        fromCity.value = apiCities.value.find(c => c.name === qFrom) || null;
     }
-    if (!toCity.value) {
-        toCity.value = (qTo && apiCities.value.find(c => c.name === qTo))
-            || apiCities.value.find(c => c.name === 'İstanbul')
-            || null;
+    if (!toCity.value && qTo) {
+        toCity.value = apiCities.value.find(c => c.name === qTo) || null;
     }
 };
 
@@ -1496,8 +1458,8 @@ const clearMobileLocationPickerSelection = () => {
     }
 };
 
-/** Mobil arama modalında (Nereden → Nereye inputuna tıklanınca açılan) tüm nereden/nereye değerlerini temizler */
-const clearMobileSearchLocations = () => {
+/** Arama çubuğundaki şehir/ilçe ve tarih filtrelerini temizler, listeyi yeniler */
+const clearSearchLocations = () => {
     fromCity.value = null;
     fromDistrict.value = null;
     fromLocationDisplayName.value = null;
@@ -1506,6 +1468,26 @@ const clearMobileSearchLocations = () => {
     toDistrict.value = null;
     toLocationDisplayName.value = null;
     toTempCity.value = null;
+    fromCitySearch.value = '';
+    fromDistrictSearch.value = '';
+    toCitySearch.value = '';
+    toDistrictSearch.value = '';
+    departureTime.value = null;
+    returnTime.value = null;
+    fromDropdownOpen.value = false;
+    toDropdownOpen.value = false;
+    updatePageQuery(1);
+    shipmentsStore.fetchShipments({
+        f_where_city: null,
+        f_where_district: null,
+        t_where_city: null,
+        t_where_district: null,
+    });
+};
+
+/** Mobil arama modalında tüm nereden/nereye değerlerini temizler */
+const clearMobileSearchLocations = () => {
+    clearSearchLocations();
 };
 
 const selectToLocationByMap = () => {
