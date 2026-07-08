@@ -72,6 +72,29 @@ export const useAdminStore = defineStore('admin', () => {
         }
     }
 
+    const fetchDashboard = async () => {
+        try {
+            const response = await api.get('/admin/dashboard')
+            const content = response.data?.content ?? {}
+            return {
+                success: true,
+                todayUsers: content.today_users ?? [],
+                todayUsersCount: content.today_users_count ?? 0,
+                totalUsers: content.total_users ?? 0,
+                totalShipments: content.total_shipments ?? 0,
+                totalCallRequests: content.total_call_requests ?? 0,
+                recentShipments: content.recent_shipments ?? [],
+                todayRequests: content.today_requests ?? [],
+                todayRequestsCount: content.today_requests_count ?? 0,
+            }
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.message || error.message,
+            }
+        }
+    }
+
     const logout = () => {
         setToken(null)
     }
@@ -88,6 +111,50 @@ export const useAdminStore = defineStore('admin', () => {
                 error: errorMessage,
                 errorDetails,
                 response: error.response,
+            }
+        }
+    }
+
+    const fetchAllShipments = async ({ search = '', page = 1, perPage = 15 } = {}) => {
+        try {
+            const response = await api.get('/admin/shipments', {
+                params: {
+                    ...(search ? { search } : {}),
+                    page,
+                    per_page: perPage,
+                },
+            })
+            const content = response.data?.content ?? {}
+            const shipments = content.shipments ?? []
+            return {
+                success: true,
+                shipments,
+                currentPage: content.current_page ?? page,
+                lastPage: content.last_page ?? 1,
+                perPage: content.per_page ?? perPage,
+                total: content.total ?? shipments.length,
+            }
+        } catch (error) {
+            return {
+                success: false,
+                shipments: [],
+                currentPage: 1,
+                lastPage: 1,
+                perPage,
+                total: 0,
+                error: error.response?.data?.message || error.message,
+            }
+        }
+    }
+
+    const deleteShipment = async (shipmentId) => {
+        try {
+            const response = await api.delete(`/admin/shipments/${shipmentId}`)
+            return { success: true, data: response.data }
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.message || error.message,
             }
         }
     }
@@ -172,6 +239,34 @@ export const useAdminStore = defineStore('admin', () => {
         }
     }
 
+    const extendUserPayment = async (userId, payload) => {
+        try {
+            const response = await api.post(`/admin/users/${userId}/extend-payment`, payload)
+            return { success: true, data: response.data }
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.message || error.message,
+                errorDetails: error.response?.data?.errors || error.response?.data?.error || null,
+            }
+        }
+    }
+
+    const deleteUser = async (userId, password) => {
+        try {
+            const response = await api.delete(`/admin/users/${userId}`, {
+                data: { password },
+            })
+            return { success: true, data: response.data }
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.message || error.message,
+                errorDetails: error.response?.data?.errors || error.response?.data?.error || null,
+            }
+        }
+    }
+
     const createUser = async (payload) => {
         try {
             const response = await api.post('/admin/users', payload)
@@ -232,11 +327,16 @@ export const useAdminStore = defineStore('admin', () => {
         setToken,
         login,
         checkToken,
+        fetchDashboard,
         logout,
         createShipment,
+        fetchAllShipments,
+        deleteShipment,
         searchUsers,
         fetchUserDocuments,
         fetchAllUsers,
+        extendUserPayment,
+        deleteUser,
         createUser,
         approveUser,
         revokeUserApproval,

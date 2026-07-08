@@ -44,6 +44,7 @@ import AdminAddUserPage from "./panel/admin/AdminAddUser.vue";
 import AdminAddListingPage from "./panel/admin/AdminAddListing.vue";
 import AdminUserDocumentsPage from "./panel/admin/AdminUserDocuments.vue";
 import AdminAllUsersPage from "./panel/admin/AdminAllUsers.vue";
+import AdminAllListingsPage from "./panel/admin/AdminAllListings.vue";
 
 const routes = [
     {
@@ -421,6 +422,14 @@ const routes = [
                 component: AdminAddListingPage,
                 meta: {
                     title: 'İlan Ekle',
+                    requiresAdminAuth: true,
+                },
+            },
+            {
+                path: 'ilanlar',
+                component: AdminAllListingsPage,
+                meta: {
+                    title: 'Tüm İlanlarım',
                     requiresAdminAuth: true,
                 },
             },

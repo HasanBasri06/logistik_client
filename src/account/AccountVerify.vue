@@ -180,8 +180,38 @@
                         </div>
                     </div>
                     
+                    <!-- İlan Yayınlama (yalnızca yük sahibi) -->
+                    <div v-if="isCargoOwner" class="">
+                        <div class="flex items-center gap-3 mb-4">
+                            <i 
+                                :class="[
+                                    'pi',
+                                    verificationStatus.listings ? 'pi-check-circle text-green-600' : 'pi-times-circle text-gray-400'
+                                ]"
+                                style="font-size: 24px;"
+                            ></i>
+                            <div>
+                                <p class="text-sm font-medium text-gray-900">İlan Yayınlama</p>
+                                <p :class="['text-xs', verificationStatus.listings ? 'text-green-600 font-medium' : 'text-gray-500']">
+                                    {{ verificationStatus.listings ? 'Doğrulandı' : `En az ${listingsRequired} ilan yayınlayın` }}
+                                </p>
+                            </div>
+                        </div>
+                        <div v-if="!verificationStatus.listings" class="flex flex-col gap-2">
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div 
+                                    class="bg-primary h-2 rounded-full transition-all duration-300"
+                                    :style="{ width: listingsProgress + '%' }"
+                                ></div>
+                            </div>
+                            <p class="text-xs text-gray-500">
+                                {{ listingsCount }} / {{ listingsRequired }} ilan yayınlandı
+                            </p>
+                        </div>
+                    </div>
+
                     <!-- SRC Doğrulaması -->
-                    <div class="">
+                    <div v-if="!isCargoOwner" class="">
                         <div class="flex items-center gap-3 mb-4">
                             <i 
                                 :class="[
@@ -236,7 +266,7 @@
                     </div>
                     
                     <!-- Psikoteknik Doğrulaması -->
-                    <div class="">
+                    <div v-if="!isCargoOwner" class="">
                         <div class="flex items-center gap-3 mb-4">
                             <i 
                                 :class="[
@@ -291,7 +321,7 @@
                     </div>
                     
                     <!-- Ehliyet Bilgisi -->
-                    <div class="">
+                    <div v-if="!isCargoOwner" class="">
                         <div class="flex items-center gap-3 mb-4">
                             <i 
                                 :class="[
@@ -501,11 +531,23 @@ const verificationStatus = ref({
     src: false,
     psychotechnical: false,
     license: false,
+    listings: false,
     verified: false,
 });
 
-const totalCount = 7;
+const isCargoOwner = computed(() => user.value?.type === 'cargo_owner');
+
 const serverCompletedCount = ref(0);
+const serverTotalCount = ref(7);
+const listingsCount = ref(0);
+const listingsRequired = ref(3);
+
+const totalCount = computed(() => serverTotalCount.value || (isCargoOwner.value ? 5 : 7));
+
+const listingsProgress = computed(() => {
+    if (listingsRequired.value <= 0) return 0;
+    return Math.min(100, Math.round((listingsCount.value / listingsRequired.value) * 100));
+});
 
 async function fetchVerificationStatus() {
     try {
@@ -517,6 +559,15 @@ async function fetchVerificationStatus() {
         }
         if (typeof data?.completed_count === 'number') {
             serverCompletedCount.value = data.completed_count;
+        }
+        if (typeof data?.total_count === 'number') {
+            serverTotalCount.value = data.total_count;
+        }
+        if (typeof data?.listings_count === 'number') {
+            listingsCount.value = data.listings_count;
+        }
+        if (typeof data?.listings_required === 'number') {
+            listingsRequired.value = data.listings_required;
         }
     } catch (_) {
         // Oturum yoksa veya hata olursa mevcut state kalır
@@ -531,11 +582,11 @@ onMounted(async () => {
 
 /** Mobil ile aynı: oturum açmış kullanıcı için telefon adımı tamamlanmış sayılır */
 const completedCount = computed(() => {
-    return Math.min(totalCount, serverCompletedCount.value + 1);
+    return Math.min(totalCount.value, serverCompletedCount.value + 1);
 });
 
 const overallProgress = computed(() => {
-    return totalCount > 0 ? Math.round((completedCount.value / totalCount) * 100) : 0;
+    return totalCount.value > 0 ? Math.round((completedCount.value / totalCount.value) * 100) : 0;
 });
 
 const activationLoading = ref(false);

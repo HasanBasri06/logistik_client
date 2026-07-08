@@ -11,7 +11,12 @@
                     >
                         <i class="pi pi-bars text-lg" />
                     </button>
-                    <span class="shrink-0 text-lg font-bold text-gray-900">TaşıBul Admin</span>
+                    <RouterLink
+                        to="/panel/admin/beun/main"
+                        class="shrink-0 text-lg font-bold text-gray-900 transition-colors hover:text-primary"
+                    >
+                        TaşıBul Admin
+                    </RouterLink>
                 </div>
 
                 <div class="flex items-center gap-3 shrink-0">
@@ -126,13 +131,20 @@ const adminStore = useAdminStore();
 const navItems = [
     { label: 'Ana Sayfa', to: '/panel/admin/beun/main', icon: 'pi pi-home' },
     { label: 'Kullanıcı Ekle', to: '/panel/admin/beun/kullanici-ekle', icon: 'pi pi-user-plus' },
-    { label: 'İlan Ekle', to: '/panel/admin/beun/ilan-ekle', icon: 'pi pi-plus-circle' },
     {
         label: 'Kullanıcı İşlemleri',
         icon: 'pi pi-users',
         children: [
             { label: 'Onay Bekleyen Kullanıcılar', to: '/panel/admin/beun/evraklar', icon: 'pi pi-clock' },
             { label: 'Kullanıcılarımız', to: '/panel/admin/beun/kullanicilar', icon: 'pi pi-id-card' },
+        ],
+    },
+    {
+        label: 'İlan İşlemleri',
+        icon: 'pi pi-briefcase',
+        children: [
+            { label: 'İlan Ekle', to: '/panel/admin/beun/ilan-ekle', icon: 'pi pi-plus-circle' },
+            { label: 'Tüm İlanlarım', to: '/panel/admin/beun/ilanlar', icon: 'pi pi-list' },
         ],
     },
 ];
