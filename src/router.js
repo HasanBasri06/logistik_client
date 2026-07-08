@@ -43,6 +43,7 @@ import BeunAdminMainPage from "./panel/admin/BeunMain.vue";
 import AdminAddUserPage from "./panel/admin/AdminAddUser.vue";
 import AdminAddListingPage from "./panel/admin/AdminAddListing.vue";
 import AdminUserDocumentsPage from "./panel/admin/AdminUserDocuments.vue";
+import AdminAllUsersPage from "./panel/admin/AdminAllUsers.vue";
 
 const routes = [
     {
@@ -428,6 +429,14 @@ const routes = [
                 component: AdminUserDocumentsPage,
                 meta: {
                     title: 'Kullanıcı Evrakları',
+                    requiresAdminAuth: true,
+                },
+            },
+            {
+                path: 'kullanicilar',
+                component: AdminAllUsersPage,
+                meta: {
+                    title: 'Kullanıcılarımız',
                     requiresAdminAuth: true,
                 },
             },
