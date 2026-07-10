@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import api from '@/api';
+import { isMobileWeb } from '@/utils/open-native-app';
 
 const geolocationOptions = {
     enableHighAccuracy: false,
@@ -81,7 +82,7 @@ export const useLocationStore = defineStore('location', () => {
         if (!navigator.geolocation) {
             locationError.value = 'Tarayıcınız konum bilgisini desteklemiyor.';
             locationErrorCode.value = null;
-            if (showModalOnError) {
+            if (showModalOnError && isMobileWeb()) {
                 locationDeniedModalOpen.value = true;
             }
             return;
@@ -146,12 +147,16 @@ export const useLocationStore = defineStore('location', () => {
             (err) => {
                 locationRequesting.value = false;
                 setLocationErrorMessage(err);
-                if (showModalOnError && err.code === 1) {
+                if (showModalOnError && err.code === 1 && isMobileWeb()) {
                     locationDeniedModalOpen.value = true;
                 }
             },
             geolocationOptions
         );
+    }
+
+    function shouldAutoRequestLocation() {
+        return isMobileWeb();
     }
 
     function closeLocationModal() {
@@ -177,6 +182,7 @@ export const useLocationStore = defineStore('location', () => {
         locationDeniedModalOpen,
         locationRequesting,
         requestUserLocation,
+        shouldAutoRequestLocation,
         closeLocationModal,
         retryLocationAfterSettings,
         clearLocationError

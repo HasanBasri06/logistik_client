@@ -574,8 +574,8 @@
             </Transition>
         </Teleport>
 
-        <!-- Konum gerekli uyarısı: mobilde kompakt, masaüstünde geniş -->
-        <Content v-if="authStore.isAuthenticated && showKonumBanner" class="my-2 sm:my-5 flex">
+        <!-- Konum gerekli uyarısı: mobilde kompakt, masaüstünde tarayıcı yönergesi -->
+        <Content v-if="showMobileKonumBanner" class="my-2 sm:my-5 flex">
             <div class="w-full max-w-[1200px] mx-auto px-0 sm:px-4">
                 <div class="flex flex-wrap items-center gap-2 sm:gap-4 rounded-lg sm:rounded-xl border border-amber-200 bg-amber-50/80 px-3 py-2.5 sm:px-5 sm:py-4">
                     <span class="flex items-center justify-center w-8 h-8 sm:w-11 sm:h-11 rounded-full bg-amber-100 text-amber-600 shrink-0">
@@ -596,6 +596,48 @@
                         <span v-if="locationRequesting" class="inline-block w-3.5 h-3.5 sm:w-4 sm:h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                         {{ locationRequesting ? 'Alınıyor...' : 'Konum izni ver' }}
                     </button>
+                </div>
+            </div>
+        </Content>
+
+        <Content v-if="showWebKonumBanner" class="my-2 sm:my-5 flex">
+            <div class="w-full max-w-[1200px] mx-auto px-0 sm:px-4">
+                <div class="rounded-lg sm:rounded-xl border border-blue-200 bg-blue-50/80 px-3 py-3 sm:px-5 sm:py-4">
+                    <div class="flex items-start gap-3">
+                        <span class="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-blue-100 text-blue-600 shrink-0">
+                            <MapPin class="w-4 h-4 sm:w-5 sm:h-5" />
+                        </span>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs sm:text-sm font-semibold text-blue-900">
+                                Konum izni kapalı — {{ webLocationHelp.browser }}
+                            </p>
+                            <p class="text-xs sm:text-sm text-blue-800/90 mt-1">
+                                Web’de konum zorunlu değildir; izin verirseniz size yakın ilanları önceliklendirebiliriz.
+                                Aşağıdaki adımlarla tarayıcıdan konumu açabilirsiniz:
+                            </p>
+                            <ol class="mt-3 space-y-1.5 text-xs sm:text-sm text-blue-900/90 list-decimal list-inside">
+                                <li v-for="(step, index) in webLocationHelp.steps" :key="index">{{ step }}</li>
+                            </ol>
+                            <div class="mt-4 flex flex-wrap gap-2">
+                                <button
+                                    type="button"
+                                    :disabled="locationRequesting"
+                                    class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-600 text-white text-xs sm:text-sm font-medium hover:bg-blue-700 disabled:opacity-70 transition-colors"
+                                    @click="retryWebLocation"
+                                >
+                                    <span v-if="locationRequesting" class="inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                    {{ locationRequesting ? 'Deneniyor...' : 'Tekrar dene' }}
+                                </button>
+                                <button
+                                    type="button"
+                                    class="inline-flex items-center px-3 py-2 rounded-lg border border-blue-200 bg-white text-xs sm:text-sm font-medium text-blue-800 hover:bg-blue-50 transition-colors"
+                                    @click="dismissWebLocationHelp"
+                                >
+                                    Kapat
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </Content>
@@ -898,6 +940,13 @@ import 'leaflet/dist/leaflet.css';
 import { useShipmentsStore } from '@/stores/shipments';
 import { useLocationStore } from '@/stores/location';
 import { useAuthStore } from '@/stores/auth';
+import { isMobileWeb } from '@/utils/open-native-app';
+import {
+    dismissLocationHelp,
+    getWebLocationInstructions,
+    isLocationHelpDismissed,
+    isWebDesktop,
+} from '@/lib/location-permission-help';
 
 // Lokasyon: API'den şehir/ilçe
 const apiCities = ref([]);
@@ -1530,8 +1579,10 @@ const { list: shipmentsList, myPostList, otherPostList, loading: shipmentsLoadin
 /** Panel ilan başlıkları: yük sahibi → Benim / Diğer sevkiyatlar; araç sahibi → tek başlık Sevkiyatlar */
 const isCargoOwner = computed(() => authStore.user?.type === 'cargo_owner');
 const locationStore = useLocationStore();
-const { locationError, userCoords, locationRequesting } = storeToRefs(locationStore);
-const { requestUserLocation } = locationStore;
+const { locationError, locationErrorCode, userCoords, locationRequesting } = storeToRefs(locationStore);
+const { requestUserLocation, shouldAutoRequestLocation } = locationStore;
+const locationHelpDismissed = ref(isLocationHelpDismissed());
+const webLocationHelp = getWebLocationInstructions();
 
 // İlk giriş panel turu (vue3-tour) – hesap bazlı, her hesap için bir kez
 // Mobil: masaüstü hedefleri `hidden sm:flex` ile DOM'da gizli; Popper sağ üste düşer — ayrı mobil hedefler kullanılır.
@@ -1650,10 +1701,29 @@ const panelTourOptions = {
     },
 };
 
-const showKonumBanner = computed(() => {
-    // Kullanıcı giriş yapmış ve henüz koordinat alınmamışsa banner göster
-    return authStore.isAuthenticated && !userCoords.value;
-});
+const showMobileKonumBanner = computed(() => (
+    isMobileWeb()
+    && authStore.isAuthenticated
+    && !userCoords.value
+));
+
+const showWebKonumBanner = computed(() => (
+    isWebDesktop()
+    && authStore.isAuthenticated
+    && !userCoords.value
+    && !locationHelpDismissed.value
+    && (locationErrorCode.value === 1 || Boolean(locationError.value))
+));
+
+function retryWebLocation() {
+    requestUserLocation(false);
+}
+
+function dismissWebLocationHelp() {
+    dismissLocationHelp();
+    locationHelpDismissed.value = true;
+    locationStore.clearLocationError();
+}
 
 const handleShipmentCanceled = (id) => {
     if (!id) return;
@@ -1690,8 +1760,7 @@ onMounted(async () => {
     if (!authStore.isAuthenticated) return;
     // Tur kararı her zaman backend'den: panele her girişte güncel kullanıcı alınıyor (localStorage'a güvenilmez)
     await authStore.checkToken();
-    if (!userCoords.value) {
-        // Her girişte panel sayfasında konum iste
+    if (!userCoords.value && shouldAutoRequestLocation()) {
         requestUserLocation();
     }
     // DB'de panel_tour_completed_at dolu değilse turu göster

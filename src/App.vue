@@ -16,7 +16,7 @@
   <Teleport to="body">
     <Transition name="sheet">
       <div
-        v-show="authStore.isAuthenticated && locationDeniedModalOpen && locationErrorCode === 1"
+        v-show="authStore.isAuthenticated && locationDeniedModalOpen && locationErrorCode === 1 && isMobileWeb()"
         class="fixed inset-0 z-[100] flex items-end justify-center bg-black/50"
         role="dialog"
         aria-modal="true"
@@ -85,6 +85,7 @@ import PremiumModal from './components/PremiumModal.vue';
 import {
   applyStayOnWebFromQuery,
   appleItunesAppMetaContent,
+  isMobileWeb,
   tryOpenNativeApp,
 } from './utils/open-native-app';
 import { useHead } from '@vueuse/head';
@@ -161,7 +162,7 @@ onBeforeUnmount(() => {
   window.removeEventListener('offline', setOffline);
 });
 
-// Konum isteği sadece panel sayfasında (Home.vue) yapılıyor; modal sadece reddedildiğinde açılır, yenilemede tekrar açılmaz.
+// Konum isteği panel sayfasında yapılır; reddedildiğinde yalnızca mobilde modal açılır.
 
 const layout = computed(() => route.meta.layout || Layout);
 
