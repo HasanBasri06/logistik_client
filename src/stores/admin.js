@@ -80,9 +80,12 @@ export const useAdminStore = defineStore('admin', () => {
                 success: true,
                 todayUsers: content.today_users ?? [],
                 todayUsersCount: content.today_users_count ?? 0,
+                yesterdayUsers: content.yesterday_users ?? [],
+                yesterdayUsersCount: content.yesterday_users_count ?? 0,
                 totalUsers: content.total_users ?? 0,
                 totalShipments: content.total_shipments ?? 0,
                 totalCallRequests: content.total_call_requests ?? 0,
+                totalSearches: content.total_searches ?? 0,
                 recentShipments: content.recent_shipments ?? [],
                 todayRequests: content.today_requests ?? [],
                 todayRequestsCount: content.today_requests_count ?? 0,
@@ -115,11 +118,12 @@ export const useAdminStore = defineStore('admin', () => {
         }
     }
 
-    const fetchSearchAnalysis = async ({ search = '', page = 1, perPage = 15 } = {}) => {
+    const fetchSearchAnalysis = async ({ search = '', page = 1, perPage = 15, listingStatus = '' } = {}) => {
         try {
             const response = await api.get('/admin/search-analysis', {
                 params: {
                     ...(search ? { search } : {}),
+                    ...(listingStatus ? { listing_status: listingStatus } : {}),
                     page,
                     per_page: perPage,
                 },
@@ -136,6 +140,9 @@ export const useAdminStore = defineStore('admin', () => {
                 summary: {
                     mostSearchedCity: content.summary?.most_searched_city ?? null,
                     mostZeroResultSearch: content.summary?.most_zero_result_search ?? null,
+                    totalSearches: content.summary?.total_searches ?? 0,
+                    listedSearches: content.summary?.listed_searches ?? 0,
+                    unlistedSearches: content.summary?.unlisted_searches ?? 0,
                 },
             }
         } catch (error) {

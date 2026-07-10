@@ -97,7 +97,10 @@
                 class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/55 p-4"
                 @click.self="closeFormModal"
             >
-                <div class="w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-5 shadow-2xl sm:p-6 max-h-[90vh] overflow-y-auto">
+                <div
+                    class="w-full rounded-2xl border border-gray-200 bg-white p-5 shadow-2xl sm:p-6 max-h-[90vh] overflow-y-auto transition-all duration-200"
+                    :class="detailsExpanded ? 'max-w-3xl' : 'max-w-lg'"
+                >
                     <h3 class="text-lg font-semibold text-gray-900">
                         {{ formMode === 'create' ? 'Yeni Araç Ekle' : 'Araç Düzenle' }}
                     </h3>
@@ -157,6 +160,95 @@
                             </div>
                         </div>
 
+                        <div class="border-t border-gray-100 pt-4">
+                            <button
+                                type="button"
+                                class="flex w-full items-center justify-between rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-left transition-colors hover:bg-gray-100"
+                                @click="detailsExpanded = !detailsExpanded"
+                            >
+                                <div>
+                                    <p class="text-sm font-semibold text-gray-900">Ek Seçenekler</p>
+                                    <p class="mt-0.5 text-xs text-gray-500">
+                                        Detay görselleri ve varyantları yönetin
+                                        <span v-if="activeDetailsCount">({{ activeDetailsCount }})</span>
+                                    </p>
+                                </div>
+                                <i
+                                    class="pi text-gray-500"
+                                    :class="detailsExpanded ? 'pi-chevron-up' : 'pi-chevron-down'"
+                                />
+                            </button>
+
+                            <div v-show="detailsExpanded" class="mt-4 space-y-4">
+                                <p v-if="!visibleCarDetails.length" class="rounded-lg border border-dashed border-gray-200 px-4 py-6 text-center text-sm text-gray-500">
+                                    Henüz ek seçenek eklenmedi.
+                                </p>
+
+                                <div
+                                    v-for="(detail, index) in visibleCarDetails"
+                                    :key="detail.key"
+                                    class="rounded-xl border border-gray-200 bg-gray-50/70 p-4"
+                                >
+                                    <div class="mb-3 flex items-center justify-between gap-3">
+                                        <p class="text-sm font-semibold text-gray-900">Seçenek {{ index + 1 }}</p>
+                                        <button
+                                            type="button"
+                                            class="inline-flex h-8 items-center rounded-lg border border-red-200 px-3 text-xs font-medium text-red-600 hover:bg-red-50"
+                                            @click="removeDetail(detail.key)"
+                                        >
+                                            Sil
+                                        </button>
+                                    </div>
+
+                                    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                        <div>
+                                            <label class="text-sm font-medium text-gray-700">Ad</label>
+                                            <input
+                                                v-model="detail.name"
+                                                type="text"
+                                                placeholder="Örn. Dorse Tipi"
+                                                class="mt-1 h-11 w-full rounded-lg border border-gray-200 px-3 text-sm"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label class="text-sm font-medium text-gray-700">Değer</label>
+                                            <input
+                                                v-model="detail.value"
+                                                type="text"
+                                                placeholder="Örn. Tenteli Dorse"
+                                                class="mt-1 h-11 w-full rounded-lg border border-gray-200 px-3 text-sm"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-3">
+                                        <label class="text-sm font-medium text-gray-700">Detay Görseli</label>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            class="mt-1 block w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-primary/10 file:px-3 file:py-2 file:text-sm file:font-medium file:text-primary"
+                                            @change="onDetailImageChange(detail, $event)"
+                                        />
+                                        <img
+                                            v-if="detail.imagePreview"
+                                            :src="detail.imagePreview"
+                                            :alt="detail.value || 'Detay görseli'"
+                                            class="mt-3 h-24 w-36 rounded-lg border border-gray-200 bg-white object-contain"
+                                        />
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    class="inline-flex h-10 items-center gap-2 rounded-lg border border-dashed border-primary/40 px-4 text-sm font-medium text-primary hover:bg-primary/5"
+                                    @click="addDetail"
+                                >
+                                    <i class="pi pi-plus" />
+                                    Yeni Seçenek Ekle
+                                </button>
+                            </div>
+                        </div>
+
                         <div class="flex justify-end gap-2 pt-2">
                             <button type="button" class="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50" :disabled="submitting" @click="closeFormModal">
                                 Vazgeç
@@ -173,7 +265,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
 import { useAdminStore } from '@/stores/admin';
 
@@ -189,8 +281,14 @@ const editingCarId = ref(null);
 const submitting = ref(false);
 const imageFile = ref(null);
 const imagePreview = ref('');
+const detailsExpanded = ref(false);
+const carDetails = ref([]);
 const form = ref(emptyForm());
 let searchTimer = null;
+let detailKeyCounter = 0;
+
+const visibleCarDetails = computed(() => carDetails.value.filter((detail) => !detail._delete));
+const activeDetailsCount = computed(() => visibleCarDetails.value.length);
 
 function emptyForm() {
     return {
@@ -220,6 +318,54 @@ function statusClass(status) {
     return 'bg-gray-100 text-gray-600';
 }
 
+function emptyDetail() {
+    detailKeyCounter += 1;
+    return {
+        key: `detail-${detailKeyCounter}`,
+        id: null,
+        name: '',
+        value: '',
+        imagePreview: '',
+        imageFile: null,
+        _delete: false,
+    };
+}
+
+function resetDetailsState(details = []) {
+    carDetails.value = details.map((detail) => ({
+        key: `detail-${detail.id ?? ++detailKeyCounter}`,
+        id: detail.id ?? null,
+        name: detail.name ?? '',
+        value: detail.value ?? '',
+        imagePreview: detail.image_url ?? '',
+        imageFile: null,
+        _delete: false,
+    }));
+    detailsExpanded.value = carDetails.value.length > 0;
+}
+
+function addDetail() {
+    carDetails.value.push(emptyDetail());
+    detailsExpanded.value = true;
+}
+
+function removeDetail(key) {
+    const detail = carDetails.value.find((item) => item.key === key);
+    if (!detail) return;
+    if (detail.id) {
+        detail._delete = true;
+        return;
+    }
+    carDetails.value = carDetails.value.filter((item) => item.key !== key);
+}
+
+function onDetailImageChange(detail, event) {
+    const file = event.target.files?.[0] ?? null;
+    detail.imageFile = file;
+    if (!file) return;
+    detail.imagePreview = URL.createObjectURL(file);
+}
+
 function resetImageState(previewUrl = '') {
     imageFile.value = null;
     imagePreview.value = previewUrl;
@@ -230,6 +376,7 @@ function openCreateModal() {
     editingCarId.value = null;
     form.value = emptyForm();
     resetImageState();
+    resetDetailsState();
     formModalOpen.value = true;
 }
 
@@ -246,6 +393,7 @@ function openEditModal(car) {
         height: car.height ?? '',
     };
     resetImageState(car.image_url || '');
+    resetDetailsState(car.details ?? []);
     formModalOpen.value = true;
 }
 
@@ -273,6 +421,20 @@ function buildFormData() {
     if (form.value.width !== '') payload.append('width', String(form.value.width));
     if (form.value.height !== '') payload.append('height', String(form.value.height));
     if (imageFile.value) payload.append('image', imageFile.value);
+
+    carDetails.value.forEach((detail, index) => {
+        if (detail.id) payload.append(`details[${index}][id]`, String(detail.id));
+        payload.append(`details[${index}][name]`, detail.name.trim());
+        payload.append(`details[${index}][value]`, detail.value.trim());
+        if (detail._delete) {
+            payload.append(`details[${index}][_delete]`, '1');
+            return;
+        }
+        if (detail.imageFile) {
+            payload.append(`details[${index}][image]`, detail.imageFile);
+        }
+    });
+
     return payload;
 }
 

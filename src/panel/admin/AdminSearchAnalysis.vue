@@ -5,6 +5,44 @@
             Kullanıcıların yaptığı ilan aramalarını ve sonuç sayılarını görüntüleyin.
         </p>
 
+        <div class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <button
+                type="button"
+                class="rounded-2xl border p-5 text-left shadow-sm transition-colors"
+                :class="listingStatusFilter === ''
+                    ? 'border-primary bg-primary/5'
+                    : 'border-gray-200 bg-white hover:border-gray-300'"
+                @click="setListingStatusFilter('')"
+            >
+                <p class="text-sm text-gray-500">Toplam Arama</p>
+                <p class="mt-1 text-2xl font-bold text-gray-900">{{ summary.totalSearches }}</p>
+            </button>
+
+            <button
+                type="button"
+                class="rounded-2xl border p-5 text-left shadow-sm transition-colors"
+                :class="listingStatusFilter === 'listed'
+                    ? 'border-green-400 bg-green-50'
+                    : 'border-gray-200 bg-white hover:border-green-200'"
+                @click="setListingStatusFilter('listed')"
+            >
+                <p class="text-sm text-gray-500">İlan Listelendi</p>
+                <p class="mt-1 text-2xl font-bold text-green-700">{{ summary.listedSearches }}</p>
+            </button>
+
+            <button
+                type="button"
+                class="rounded-2xl border p-5 text-left shadow-sm transition-colors"
+                :class="listingStatusFilter === 'unlisted'
+                    ? 'border-red-400 bg-red-50'
+                    : 'border-gray-200 bg-white hover:border-red-200'"
+                @click="setListingStatusFilter('unlisted')"
+            >
+                <p class="text-sm text-gray-500">İlan Listelenmedi</p>
+                <p class="mt-1 text-2xl font-bold text-red-700">{{ summary.unlistedSearches }}</p>
+            </button>
+        </div>
+
         <div class="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
             <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
                 <div class="flex items-center gap-4">
@@ -75,7 +113,8 @@
                         <th class="px-3 py-3">Yükleme İlçesi</th>
                         <th class="px-3 py-3">Boşaltma Şehri</th>
                         <th class="px-3 py-3">Boşaltma İlçesi</th>
-                        <th class="px-3 py-3">Sonuç</th>
+                        <th class="px-3 py-3">Durum</th>
+                        <th class="px-3 py-3">Sonuç Sayısı</th>
                         <th class="px-3 py-3">Tarih</th>
                     </tr>
                 </thead>
@@ -93,6 +132,16 @@
                         <td class="px-3 py-3 text-gray-600">{{ record.f_where_district || '—' }}</td>
                         <td class="px-3 py-3 text-gray-600">{{ record.t_where_city || '—' }}</td>
                         <td class="px-3 py-3 text-gray-600">{{ record.t_where_district || '—' }}</td>
+                        <td class="px-3 py-3">
+                            <span
+                                class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold"
+                                :class="record.has_results
+                                    ? 'bg-green-50 text-green-700'
+                                    : 'bg-red-50 text-red-700'"
+                            >
+                                {{ record.has_results ? 'Listelendi' : 'Listelenmedi' }}
+                            </span>
+                        </td>
                         <td class="px-3 py-3">
                             <span class="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
                                 {{ record.count }}
@@ -161,9 +210,13 @@ const searchQuery = ref('');
 const currentPage = ref(1);
 const lastPage = ref(1);
 const total = ref(0);
+const listingStatusFilter = ref('');
 const summary = ref({
     mostSearchedCity: null,
     mostZeroResultSearch: null,
+    totalSearches: 0,
+    listedSearches: 0,
+    unlistedSearches: 0,
 });
 let searchTimer = null;
 
@@ -206,6 +259,7 @@ async function fetchRecords(page = currentPage.value) {
             search: searchQuery.value.trim(),
             page,
             perPage: PER_PAGE,
+            listingStatus: listingStatusFilter.value,
         });
         if (!result.success) {
             error.value = result.error || 'Arama analizleri yüklenemedi.';
@@ -216,6 +270,9 @@ async function fetchRecords(page = currentPage.value) {
             summary.value = {
                 mostSearchedCity: null,
                 mostZeroResultSearch: null,
+                totalSearches: 0,
+                listedSearches: 0,
+                unlistedSearches: 0,
             };
             return;
         }
@@ -226,10 +283,23 @@ async function fetchRecords(page = currentPage.value) {
         summary.value = {
             mostSearchedCity: result.summary?.mostSearchedCity ?? null,
             mostZeroResultSearch: result.summary?.mostZeroResultSearch ?? null,
+            totalSearches: result.summary?.totalSearches ?? 0,
+            listedSearches: result.summary?.listedSearches ?? 0,
+            unlistedSearches: result.summary?.unlistedSearches ?? 0,
         };
     } finally {
         loading.value = false;
     }
+}
+
+function setListingStatusFilter(status) {
+    if (listingStatusFilter.value === status) {
+        return;
+    }
+    listingStatusFilter.value = status;
+    currentPage.value = 1;
+    records.value = [];
+    fetchRecords(1);
 }
 
 function goToPage(page) {
