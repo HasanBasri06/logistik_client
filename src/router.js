@@ -45,6 +45,10 @@ import AdminAddListingPage from "./panel/admin/AdminAddListing.vue";
 import AdminUserDocumentsPage from "./panel/admin/AdminUserDocuments.vue";
 import AdminAllUsersPage from "./panel/admin/AdminAllUsers.vue";
 import AdminAllListingsPage from "./panel/admin/AdminAllListings.vue";
+import AdminSearchAnalysisPage from "./panel/admin/AdminSearchAnalysis.vue";
+import AdminSettingsCarsPage from "./panel/admin/AdminSettingsCars.vue";
+import AdminSettingsCitiesPage from "./panel/admin/AdminSettingsCities.vue";
+import AdminSettingsPostTypesPage from "./panel/admin/AdminSettingsPostTypes.vue";
 
 const routes = [
     {
@@ -434,6 +438,14 @@ const routes = [
                 },
             },
             {
+                path: 'arama-analizleri',
+                component: AdminSearchAnalysisPage,
+                meta: {
+                    title: 'Arama Analizleri',
+                    requiresAdminAuth: true,
+                },
+            },
+            {
                 path: 'evraklar',
                 component: AdminUserDocumentsPage,
                 meta: {
@@ -446,6 +458,30 @@ const routes = [
                 component: AdminAllUsersPage,
                 meta: {
                     title: 'Kullanıcılarımız',
+                    requiresAdminAuth: true,
+                },
+            },
+            {
+                path: 'ayarlar/araclar',
+                component: AdminSettingsCarsPage,
+                meta: {
+                    title: 'Araçlar',
+                    requiresAdminAuth: true,
+                },
+            },
+            {
+                path: 'ayarlar/sehirler',
+                component: AdminSettingsCitiesPage,
+                meta: {
+                    title: 'Şehirler',
+                    requiresAdminAuth: true,
+                },
+            },
+            {
+                path: 'ayarlar/yuk-tipleri',
+                component: AdminSettingsPostTypesPage,
+                meta: {
+                    title: 'Yük Tipleri',
                     requiresAdminAuth: true,
                 },
             },

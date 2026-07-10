@@ -217,7 +217,7 @@
                 >
                     <div
                         v-show="toDropdownOpen"
-                        class="absolute left-0 right-0 top-full mt-1 z-50 w-full h-[200px] rounded-lg border border-gray-200 bg-white shadow-lg overflow-hidden"
+                        class="absolute left-0 right-0 top-full mt-1 z-50 w-full h-[400px] rounded-lg border border-gray-200 bg-white shadow-lg overflow-hidden"
                     >
                         <div class="grid grid-cols-3 w-full h-full divide-x divide-gray-200">
                             <div class="flex flex-col overflow-hidden">
@@ -1127,6 +1127,7 @@ const swapCities = () => {
     toCity.value = fc;
     toDistrict.value = fd;
     toLocationDisplayName.value = fdName;
+    scheduleLocationSearch();
 };
 
 // Şehirler API
@@ -1194,6 +1195,7 @@ const selectFromCityTemp = async (city) => {
         if (mobileLocationPickerOpen.value && mobileLocationPickerFor.value === 'from') {
             mobileLocationPickerOpen.value = false;
         }
+        scheduleLocationSearch();
         return;
     }
     try {
@@ -1214,6 +1216,7 @@ const applyFromLocation = (district) => {
     fromDistrict.value = district;
     fromLocationDisplayName.value = null; // Liste seçiminde tam ad yerine Şehir/İlçe kullan
     fromDropdownOpen.value = false;
+    scheduleLocationSearch();
 };
 
 const applyFromLocationAndCloseMobilePicker = (district) => {
@@ -1416,6 +1419,7 @@ const selectToCityTemp = async (city) => {
         if (mobileLocationPickerOpen.value && mobileLocationPickerFor.value === 'to') {
             mobileLocationPickerOpen.value = false;
         }
+        scheduleLocationSearch();
         return;
     }
     try {
@@ -1436,6 +1440,7 @@ const applyToLocation = (district) => {
     toDistrict.value = district;
     toLocationDisplayName.value = null;
     toDropdownOpen.value = false;
+    scheduleLocationSearch();
 };
 
 const applyToLocationAndCloseMobilePicker = (district) => {
@@ -1714,6 +1719,187 @@ onMounted(async () => {
 onBeforeUnmount(() => {
     document.removeEventListener('click', handleClickOutside);
     window.removeEventListener('resize', updateTourBreakpoint);
+    clearTimeout(locationSearchDebounceTimer);
+    clearTimeout(fromCitySearchDebounceTimer);
+    clearTimeout(toCitySearchDebounceTimer);
+    clearTimeout(fromDistrictSearchDebounceTimer);
+    clearTimeout(toDistrictSearchDebounceTimer);
+});
+
+let locationSearchDebounceTimer = null;
+let fromCitySearchDebounceTimer = null;
+let toCitySearchDebounceTimer = null;
+let fromDistrictSearchDebounceTimer = null;
+let toDistrictSearchDebounceTimer = null;
+
+function scheduleLocationSearch() {
+    clearTimeout(locationSearchDebounceTimer);
+    locationSearchDebounceTimer = setTimeout(() => {
+        handleSearch();
+    }, 350);
+}
+
+function resolveCityFromSearchQuery(query) {
+    const q = (query || '').trim();
+    if (q.length < 2) return null;
+    const qNorm = norm(q);
+    if (qNorm === 'her yer' || (qNorm.length >= 2 && 'her yer'.startsWith(qNorm))) {
+        return herYerCityOption;
+    }
+    const matches = apiCities.value.filter(c => norm(c.name).includes(qNorm));
+    if (!matches.length) return null;
+    const sorted = sortCitiesWithPriority([...matches]);
+    const exact = sorted.find(c => norm(c.name) === qNorm);
+    if (exact) return exact;
+    const starts = sorted.find(c => norm(c.name).startsWith(qNorm));
+    return starts || sorted[0];
+}
+
+function resolveDistrictFromSearchQuery(query, districts) {
+    const q = (query || '').trim();
+    if (q.length < 2) return null;
+    const qNorm = norm(q);
+    if (qNorm === 'her yer' || 'her yer'.startsWith(qNorm)) return herYerOption;
+    const matches = districts.filter(d => norm(d.name).includes(qNorm));
+    if (!matches.length) return null;
+    const exact = matches.find(d => norm(d.name) === qNorm);
+    if (exact) return exact;
+    const starts = matches.find(d => norm(d.name).startsWith(qNorm));
+    return starts || matches[0];
+}
+
+async function ensureFromDistrictsLoaded(city) {
+    if (!city?.id) {
+        fromDistricts.value = [];
+        return;
+    }
+    if (fromTempCity.value?.id === city.id && fromDistricts.value.length) return;
+    try {
+        fromDistrictsLoading.value = true;
+        const res = await api.get(`/locations/cities/${city.id}/districts`);
+        const content = res.data?.content;
+        fromDistricts.value = Array.isArray(content) ? content : [];
+    } catch (err) {
+        console.error('İlçeler yüklenemedi:', err);
+        fromDistricts.value = [];
+    } finally {
+        fromDistrictsLoading.value = false;
+    }
+}
+
+async function ensureToDistrictsLoaded(city) {
+    if (!city?.id) {
+        toDistricts.value = [];
+        return;
+    }
+    if (toTempCity.value?.id === city.id && toDistricts.value.length) return;
+    try {
+        toDistrictsLoading.value = true;
+        const res = await api.get(`/locations/cities/${city.id}/districts`);
+        const content = res.data?.content;
+        toDistricts.value = Array.isArray(content) ? content : [];
+    } catch (err) {
+        console.error('İlçeler yüklenemedi:', err);
+        toDistricts.value = [];
+    } finally {
+        toDistrictsLoading.value = false;
+    }
+}
+
+async function applyFromCitySearch(query) {
+    const city = resolveCityFromSearchQuery(query);
+    if (!city) return;
+    fromTempCity.value = city;
+    if (city.id == null && city.name === 'Her yer') {
+        fromCity.value = herYerCityOption;
+        fromDistrict.value = null;
+        fromLocationDisplayName.value = null;
+        fromDistricts.value = [];
+        scheduleLocationSearch();
+        return;
+    }
+    fromCity.value = city;
+    fromLocationDisplayName.value = null;
+    await ensureFromDistrictsLoaded(city);
+    const districtQuery = (fromDistrictSearch.value || '').trim();
+    if (districtQuery.length >= 2) {
+        fromDistrict.value = resolveDistrictFromSearchQuery(districtQuery, fromDistricts.value);
+    } else {
+        fromDistrict.value = null;
+    }
+    scheduleLocationSearch();
+}
+
+async function applyToCitySearch(query) {
+    const city = resolveCityFromSearchQuery(query);
+    if (!city) return;
+    toTempCity.value = city;
+    if (city.id == null && city.name === 'Her yer') {
+        toCity.value = herYerCityOption;
+        toDistrict.value = null;
+        toLocationDisplayName.value = null;
+        toDistricts.value = [];
+        scheduleLocationSearch();
+        return;
+    }
+    toCity.value = city;
+    toLocationDisplayName.value = null;
+    await ensureToDistrictsLoaded(city);
+    const districtQuery = (toDistrictSearch.value || '').trim();
+    if (districtQuery.length >= 2) {
+        toDistrict.value = resolveDistrictFromSearchQuery(districtQuery, toDistricts.value);
+    } else {
+        toDistrict.value = null;
+    }
+    scheduleLocationSearch();
+}
+
+watch(fromCitySearch, (val) => {
+    const q = (val || '').trim();
+    if (q.length < 2) return;
+    clearTimeout(fromCitySearchDebounceTimer);
+    fromCitySearchDebounceTimer = setTimeout(() => {
+        applyFromCitySearch(q);
+    }, 350);
+});
+
+watch(toCitySearch, (val) => {
+    const q = (val || '').trim();
+    if (q.length < 2) return;
+    clearTimeout(toCitySearchDebounceTimer);
+    toCitySearchDebounceTimer = setTimeout(() => {
+        applyToCitySearch(q);
+    }, 350);
+});
+
+watch(fromDistrictSearch, (val) => {
+    const q = (val || '').trim();
+    if (q.length < 2 || !fromTempCity.value) return;
+    clearTimeout(fromDistrictSearchDebounceTimer);
+    fromDistrictSearchDebounceTimer = setTimeout(async () => {
+        await ensureFromDistrictsLoaded(fromTempCity.value);
+        const district = resolveDistrictFromSearchQuery(q, fromDistricts.value);
+        if (!district) return;
+        fromCity.value = fromTempCity.value;
+        fromDistrict.value = district;
+        fromLocationDisplayName.value = null;
+        scheduleLocationSearch();
+    }, 350);
+});
+
+watch(toDistrictSearch, (val) => {
+    const q = (val || '').trim();
+    if (q.length < 2 || !toTempCity.value) return;
+    clearTimeout(toDistrictSearchDebounceTimer);
+    toDistrictSearchDebounceTimer = setTimeout(async () => {
+        await ensureToDistrictsLoaded(toTempCity.value);
+        const district = resolveDistrictFromSearchQuery(q, toDistricts.value);
+        if (!district) return;
+        toCity.value = toTempCity.value;
+        toDistrict.value = district;
+        toLocationDisplayName.value = null;
+        scheduleLocationSearch();
+    }, 350);
 });
 
 function getSearchFormData() {

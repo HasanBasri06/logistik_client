@@ -56,13 +56,23 @@
                             :key="shipment.id"
                             :shipment="shipment"
                             :slug="String(shipment.slug)"
+                            :prevent-navigation="selectedStatus === 'done'"
+                            :show-attachments-list="selectedStatus === 'done'"
                             @canceled="onShipmentCanceled"
+                            @card-click="openAttachmentsModal"
                         />
                     </div>
                 </div>
             </div>
         </Content>
     </div>
+
+    <ShipmentAttachmentsModal
+        v-model:open="attachmentsModalOpen"
+        :shipment-id="selectedShipment?.id"
+        :route-label="attachmentsRouteLabel"
+        @uploaded="loadShipments"
+    />
 </template>
 
 <script setup>
@@ -72,6 +82,7 @@ import Header from '@/components/Header.vue';
 import Content from '@/components/Content.vue';
 import CargoOwner from '@/components/CargoOwner.vue';
 import Product from '@/components/Product.vue';
+import ShipmentAttachmentsModal from '@/components/ShipmentAttachmentsModal.vue';
 import api from '@/api';
 import { useAuthStore } from '@/stores/auth';
 
@@ -88,6 +99,24 @@ const statusCounts = ref({
     done: 0,
     canceled: 0,
 });
+
+const attachmentsModalOpen = ref(false);
+const selectedShipment = ref(null);
+
+const attachmentsRouteLabel = computed(() => {
+    const s = selectedShipment.value;
+    if (!s) return '';
+    const from = [s.f_where_city, s.f_where_district].filter(Boolean).join(' / ');
+    const to = [s.t_where_city, s.t_where_district].filter(Boolean).join(' / ');
+    if (from && to) return `${from} → ${to}`;
+    return from || to || '';
+});
+
+function openAttachmentsModal(shipment) {
+    if (selectedStatus.value !== 'done') return;
+    selectedShipment.value = shipment;
+    attachmentsModalOpen.value = true;
+}
 
 const postTabs = [
     { value: 'active', label: 'İlanda Olanlar', icon: 'pi-sync' },

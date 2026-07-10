@@ -169,7 +169,10 @@
                         </div>
                         <div class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden p-5">
                             <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Fiyat</p>
-                            <span class="text-2xl font-bold text-primary">{{ priceDisplay }}</span>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="text-2xl font-bold text-primary">{{ priceDisplay }}</span>
+                                <span v-if="showKdvLabel" class="text-sm font-semibold text-primary">+KDV</span>
+                            </div>
                             <div class="mt-3 pt-3 border-t border-gray-100 flex flex-wrap gap-x-4 gap-y-2 text-sm text-gray-600">
                                 <span v-if="vehicleLabel" class="flex items-center gap-1.5">
                                     <i class="pi pi-truck text-primary text-base"></i>
@@ -430,6 +433,7 @@ import {
 import { useLocationStore } from '@/stores/location';
 import { storeToRefs } from 'pinia';
 import { MESSAGE_MAX_LENGTH } from '@/lib/message-limits';
+import { vehicleImageUrl as catalogVehicleImageUrl } from '@/lib/catalog-assets';
 
 const route = useRoute();
 const router = useRouter();
@@ -595,6 +599,7 @@ const priceDisplay = computed(() => {
     if (typeof p === 'string') return p;
     return Number(p) === 0 ? 'Fiyat görüşülecektir' : `${Number(p).toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺`;
 });
+const showKdvLabel = computed(() => shouldShowKdvLabel(shipment.value));
 const postTypeLabel = computed(() => {
     const pt = shipment.value?.post_type ?? shipment.value?.postType;
     return pt?.value ?? '—';
@@ -606,13 +611,7 @@ const explanationText = computed(() => {
 });
 
 function getCarImageUrl(image) {
-    if (!image) return '';
-    if (typeof image === 'string' && image.startsWith('http')) return image;
-    try {
-        return new URL(`../assets/images/vehicles/${image}`, import.meta.url).href;
-    } catch {
-        return '';
-    }
+    return catalogVehicleImageUrl(image);
 }
 const vehicleImageUrl = computed(() => {
     const car = shipment.value?.car;

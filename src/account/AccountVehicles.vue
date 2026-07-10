@@ -328,6 +328,7 @@
 import { ref, watch, onMounted, computed } from 'vue';
 import Carousel from 'primevue/carousel';
 import api from '@/api';
+import { vehicleImageUrl } from '@/lib/catalog-assets';
 import { createUserCar, updateUserCar, userCarImageUrl } from '@/lib/userCarApi';
 
 const showEditVehicleModal = ref(false);
@@ -561,13 +562,7 @@ function onPlakaInput(e) {
 }
 
 function getCarImageUrl(image) {
-    if (!image) return '';
-    if (typeof image === 'string' && image.startsWith('http')) return image;
-    try {
-        return new URL(`../assets/images/vehicles/${image}`, import.meta.url).href;
-    } catch {
-        return '';
-    }
+    return vehicleImageUrl(image);
 }
 
 /** Seçili araç bu kart ise ve detay seçiliyse detay resmini, yoksa aracın resmini döner */

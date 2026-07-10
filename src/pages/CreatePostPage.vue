@@ -44,6 +44,48 @@
                   />
                 </button>
               </div>
+              <!-- KDV toggle -->
+              <div class="flex items-center justify-between gap-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+                <div>
+                  <p class="text-sm font-medium text-gray-800">KDV</p>
+                  <p class="text-xs text-gray-500">Fiyat KDV dahil ise açın</p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  :aria-checked="isKdv"
+                  aria-label="KDV"
+                  class="relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  :class="isKdv ? 'bg-primary' : 'bg-gray-300'"
+                  @click="isKdv = !isKdv"
+                >
+                  <span
+                    class="inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform"
+                    :class="isKdv ? 'translate-x-6' : 'translate-x-1'"
+                  />
+                </button>
+              </div>
+              <!-- Parça yük toggle -->
+              <div class="flex items-center justify-between gap-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+                <div>
+                  <p class="text-sm font-medium text-gray-800">Parça Yük mü?</p>
+                  <p class="text-xs text-gray-500">Kısmi / parça yük taşıması ise açın</p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  :aria-checked="partLoad"
+                  aria-label="Parça Yük mü?"
+                  class="relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  :class="partLoad ? 'bg-primary' : 'bg-gray-300'"
+                  @click="partLoad = !partLoad"
+                >
+                  <span
+                    class="inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform"
+                    :class="partLoad ? 'translate-x-6' : 'translate-x-1'"
+                  />
+                </button>
+              </div>
               <!-- Ağırlık input + kg/ton toggle -->
               <div ref="weightSectionRef" class="flex items-stretch w-full">
                 <input
@@ -528,6 +570,7 @@ import CargoOwner from "@/components/CargoOwner.vue";
 import VehicleSelection from "@/components/VehicleSelection.vue";
 import { DatePicker } from "primevue";
 import api from "@/api";
+import { postTypeImageUrl } from "@/lib/catalog-assets";
 import { usePostStore } from "@/stores/post";
 import { useShipmentsStore } from "@/stores/shipments";
 import { useAuthStore } from "@/stores/auth";
@@ -614,6 +657,8 @@ const postTypesError = ref(null);
 /** Ağırlık (Yük Tipi sayfası): değer + birim (kg default) */
 const weightValue = ref('');
 const weightUnit = ref('kg');
+const isKdv = ref(false);
+const partLoad = ref(false);
 const weightInputRef = ref(null);
 const weightSectionRef = ref(null);
 
@@ -971,7 +1016,9 @@ watch([routeLoading, routeInfo], async ([loading, info]) => {
   routeStatusRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
 
-const postTypeImages = import.meta.glob('../assets/images/post_types/*', { eager: true, import: 'default' });
+function getPostTypeImageUrl(image) {
+  return postTypeImageUrl(image);
+}
 
 function calculateRoutePrice() {
   const car = postStore.selectedCar;
@@ -987,14 +1034,6 @@ function formatPrice(value) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
-}
-
-function getPostTypeImageUrl(image) {
-  if (!image) return '';
-  if (image.startsWith('http')) return image;
-  const filename = image.includes('.') ? image : image + '.png';
-  const key = Object.keys(postTypeImages).find((k) => k.endsWith(filename));
-  return key ? postTypeImages[key] : '';
 }
 
 /** PrimeVue timeOnly Date → "HH:mm" */
@@ -1113,6 +1152,8 @@ function getShipmentFormData() {
     /** Ağırlık: değer + birim (kg/ton) */
     weight: parseWeightToRaw(weightValue.value) || undefined,
     weight_unit: weightUnit.value,
+    is_kdv: isKdv.value,
+    part_load: partLoad.value,
     /** Yüklenecek yer: sadece şehir ve ilçe isimleri */
     yuklenecekYer: { city: yuklenecekYer.value?.city ?? '', district: yuklenecekYer.value?.district ?? '' },
     /** Boşaltılacak yer: sadece şehir ve ilçe isimleri */

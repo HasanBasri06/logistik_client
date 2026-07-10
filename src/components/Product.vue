@@ -3,12 +3,22 @@
     class="w-full min-h-fit rounded-2xl bg-white border border-gray-200 overflow-hidden cursor-pointer transition-all duration-300 shadow-sm hover:border-primary hover:shadow-[0_4px_12px_rgba(57,131,140,0.15)] hover:-translate-y-0.5"
     @click="handleClick($event, shipment)"
   >
-    <!-- Kalkış tarihi — mobil ilan kartı ile aynı üst şerit -->
+    <!-- Kalkış tarihi / parça yük — mobil ilan kartı ile aynı üst şerit -->
     <div
-      class="w-full h-[25px] bg-primary px-4 flex flex-row justify-between items-center shrink-0"
+      class="w-full h-[25px] px-4 flex shrink-0 relative items-center"
+      :class="isPartLoad
+        ? 'bg-orange-500 grid grid-cols-3'
+        : 'bg-primary flex-row justify-between'"
     >
-      <span class="text-white text-xs font-semibold">Kalkış Tarihi</span>
-      <span class="text-white text-xs font-semibold">{{ departureDateText }}</span>
+      <template v-if="isPartLoad">
+        <span class="text-white text-xs font-semibold text-left">Kalkış Tarihi</span>
+        <span class="text-white text-xs font-semibold text-center">Parça Yük</span>
+        <span class="text-white text-xs font-semibold text-right">{{ departureDateText }}</span>
+      </template>
+      <template v-else>
+        <span class="text-white text-xs font-semibold">Kalkış Tarihi</span>
+        <span class="text-white text-xs font-semibold">{{ departureDateText }}</span>
+      </template>
     </div>
 
     <!-- Üst Bölüm: Nereden-Nereye ve Gidiş Saati -->
@@ -70,10 +80,18 @@
         >
           İptal Et
         </button>
-        <div
-          class="inline-flex items-center py-1.5 px-3 text-sm sm:px-3.5 rounded-full bg-primary/10 sm:text-xs font-semibold text-primary whitespace-nowrap"
-        >
-          {{ shipment?.price }}
+        <div class="flex flex-col items-end sm:flex-row sm:items-center gap-0.5 sm:gap-1.5">
+          <div
+            class="inline-flex items-center py-1.5 px-3 text-sm sm:px-3.5 rounded-full bg-primary/10 sm:text-xs font-semibold text-primary whitespace-nowrap"
+          >
+            {{ shipment?.price }}
+          </div>
+          <span
+            v-if="showKdvLabel"
+            class="text-[11px] font-semibold text-primary sm:text-xs"
+          >
+            +KDV
+          </span>
         </div>
       </div>
     </div>
@@ -160,6 +178,27 @@
         </div>
       </div>
     </div>
+
+    <!-- Tamamlanan ilan: gönderilen belgeler -->
+    <div
+      v-if="showAttachmentsList && attachmentItems.length"
+      class="border-t border-gray-100 bg-slate-50 px-4 py-3 sm:px-6"
+    >
+      <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Gönderilen Belgeler</p>
+      <ul class="divide-y divide-gray-200/80 rounded-lg border border-gray-200 bg-white overflow-hidden">
+        <li
+          v-for="item in visibleAttachmentItems"
+          :key="item.id"
+          class="flex items-center justify-between gap-3 px-3 py-2.5 text-sm"
+        >
+          <span class="font-medium text-gray-800 truncate min-w-0">{{ item.title }}</span>
+          <span class="text-xs text-gray-500 shrink-0">{{ formatAttachmentDate(item.created_at) }}</span>
+        </li>
+      </ul>
+      <p v-if="hasMoreAttachments" class="mt-2 text-sm font-medium text-blue-600">
+        +{{ extraAttachmentCount }} daha fazla belge
+      </p>
+    </div>
   </div>
 
   <!-- İptal Onay Modali -->
@@ -234,6 +273,8 @@ import { Star, ArrowRight, ArrowDown } from 'lucide-vue-next';
 import { useAuthStore } from '@/stores/auth';
 import { storeToRefs } from 'pinia';
 import api from '@/api';
+import { shouldShowKdvLabel } from '@/lib/shipment-kdv';
+import { isShipmentPartLoad } from '@/lib/shipment-part-load';
 
 const authStore = useAuthStore();
 const {user} = storeToRefs(authStore);
@@ -250,6 +291,10 @@ const props = defineProps({
         default: () => ({})
     },
     preventNavigation: {
+        type: Boolean,
+        default: false,
+    },
+    showAttachmentsList: {
         type: Boolean,
         default: false,
     }
@@ -273,6 +318,32 @@ const showOwnerNotLiveBadge = computed(
 const showOwnerCancelButton = computed(
   () => isListingOwner.value && props.shipment?.status === 'active' && !isProductDetailRoute.value
 );
+const showKdvLabel = computed(() => shouldShowKdvLabel(props.shipment));
+const isPartLoad = computed(() => isShipmentPartLoad(props.shipment));
+
+const attachmentItems = computed(() => {
+    const list = props.shipment?.attachments;
+    return Array.isArray(list) ? list : [];
+});
+
+const visibleAttachmentItems = computed(() => attachmentItems.value.slice(0, 3));
+
+const hasMoreAttachments = computed(() => attachmentItems.value.length > 3);
+
+const extraAttachmentCount = computed(() => Math.max(0, attachmentItems.value.length - 3));
+
+function formatAttachmentDate(value) {
+    if (!value) return '—';
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return String(value);
+    return parsed.toLocaleDateString('tr-TR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+    });
+}
 
 // UserSection.vue ile aynı: resim yoksa ui-avatars.com API'sinden avatar
 const fromPlaceText = computed(() => {

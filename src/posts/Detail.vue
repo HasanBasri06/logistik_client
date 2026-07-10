@@ -145,7 +145,10 @@
                                 <span class="ml-1 sm:ml-2 text-base sm:text-lg font-semibold text-gray-900">{{ duration }}</span>
                             </div>
                         </div>
-                        <span class="text-sm text-primary font-semibold shrink-0">{{ shipment?.price }}</span>
+                        <div class="flex flex-col items-end sm:flex-row sm:items-center gap-0.5 sm:gap-2 shrink-0">
+                            <span class="text-sm text-primary font-semibold">{{ shipment?.price }}</span>
+                            <span v-if="showKdvLabel" class="text-xs font-semibold text-primary">+KDV</span>
+                        </div>
                     </div>
                 </div>
 
@@ -219,8 +222,9 @@
                                             {{ listing.vehicle }}
                                         </span>
                                     </div>
-                                    <div class="mt-2 flex items-end justify-between gap-2">
+                                    <div class="mt-2 flex flex-col items-start gap-0.5">
                                         <p class="text-sm font-semibold text-primary truncate">{{ listing.price || 'Fiyat belirtilmemiş' }}</p>
+                                        <p v-if="shouldShowKdvLabel(listing)" class="text-xs font-semibold text-primary">+KDV</p>
                                     </div>
                                 </div>
                                 <span class="text-[11px] sm:text-xs font-semibold text-primary shrink-0 self-end sm:self-center group-hover:translate-x-0.5 transition-transform">İlana git</span>
@@ -665,6 +669,7 @@ import {
 } from '@/lib/message-helpers';
 import TeklifVerModal from '@/components/TeklifVerModal.vue';
 import { MESSAGE_MAX_LENGTH } from '@/lib/message-limits';
+import { shouldShowKdvLabel } from '@/lib/shipment-kdv';
 import { useHead } from '@vueuse/head';
 import { storeToRefs } from 'pinia';
 
@@ -710,6 +715,7 @@ const isCargoOwnerViewer = computed(() => !is_me.value && authStore.user?.type =
 
 const post = ref(null);
 const shipment = ref(null);
+const showKdvLabel = computed(() => shouldShowKdvLabel(shipment.value));
 const shipmentLoadError = ref(null);
 const shipmentLoading = ref(true);
 

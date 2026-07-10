@@ -3,6 +3,7 @@ import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import api from '@/api';
+import { vehicleImageUrl } from '@/lib/catalog-assets';
 import StoreDownloadBars from '@/components/StoreDownloadBars.vue';
 
 const router = useRouter();
@@ -107,11 +108,7 @@ const carsLoading = ref(false);
 const selectedCar = ref(null);
 const showCarDropdown = ref(false);
 
-const getCarImageUrl = (image) => {
-    if (!image) return '';
-    if (image.startsWith('http')) return image;
-    return new URL(`../assets/images/vehicles/${image}`, import.meta.url).href;
-};
+const getCarImageUrl = (image) => vehicleImageUrl(image);
 
 const toggleCarDropdown = async () => {
     showCarDropdown.value = !showCarDropdown.value;

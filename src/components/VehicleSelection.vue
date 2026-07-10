@@ -180,6 +180,7 @@
 <script setup>
 import { computed, onMounted, ref, nextTick, watch } from "vue";
 import api from "@/api";
+import { vehicleImageUrl } from "@/lib/catalog-assets";
 import { usePostStore } from "@/stores/post";
 import { Carousel, Slide } from "vue3-carousel";
 import "vue3-carousel/carousel.css";
@@ -333,11 +334,7 @@ const getCars = async () => {
   }
 };
 
-const getCarImageUrl = (image) => {
-  if (!image) return "";
-  if (image.startsWith("http")) return image;
-  return new URL(`../assets/images/vehicles/${image}`, import.meta.url).href;
-};
+const getCarImageUrl = (image) => vehicleImageUrl(image);
 
 const getDisplayImage = (car) => {
   if (!car || selectedCar.value?.id !== car.id) {

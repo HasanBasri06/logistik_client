@@ -89,6 +89,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue';
 import api from '@/api';
+import { vehicleImageUrl } from '@/lib/catalog-assets';
 
 const props = defineProps({
     carId: {
@@ -139,9 +140,7 @@ function groupKey(group, groupName) {
 }
 
 function getCarImageUrl(image) {
-    if (!image) return '';
-    if (image.startsWith('http')) return image;
-    return new URL(`../../assets/images/vehicles/${image}`, import.meta.url).href;
+    return vehicleImageUrl(image);
 }
 
 const displayImage = computed(() => {

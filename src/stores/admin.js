@@ -115,6 +115,63 @@ export const useAdminStore = defineStore('admin', () => {
         }
     }
 
+    const fetchSearchAnalysis = async ({ search = '', page = 1, perPage = 15 } = {}) => {
+        try {
+            const response = await api.get('/admin/search-analysis', {
+                params: {
+                    ...(search ? { search } : {}),
+                    page,
+                    per_page: perPage,
+                },
+            })
+            const content = response.data?.content ?? {}
+            const records = content.records ?? []
+            return {
+                success: true,
+                records,
+                currentPage: content.current_page ?? page,
+                lastPage: content.last_page ?? 1,
+                perPage: content.per_page ?? perPage,
+                total: content.total ?? records.length,
+                summary: {
+                    mostSearchedCity: content.summary?.most_searched_city ?? null,
+                    mostZeroResultSearch: content.summary?.most_zero_result_search ?? null,
+                },
+            }
+        } catch (error) {
+            return {
+                success: false,
+                records: [],
+                currentPage: 1,
+                lastPage: 1,
+                perPage,
+                total: 0,
+                error: error.response?.data?.message || error.message,
+            }
+        }
+    }
+
+    const fetchShipmentAnalytics = async () => {
+        try {
+            const response = await api.get('/admin/shipments/analytics')
+            const content = response.data?.content ?? {}
+            return {
+                success: true,
+                mostLoadingCity: content.most_loading_city ?? null,
+                mostUnloadingCity: content.most_unloading_city ?? null,
+                emptyLoadingCities: content.empty_loading_cities ?? [],
+                emptyLoadingCitiesCount: content.empty_loading_cities_count ?? 0,
+                emptyUnloadingCities: content.empty_unloading_cities ?? [],
+                emptyUnloadingCitiesCount: content.empty_unloading_cities_count ?? 0,
+            }
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.message || error.message,
+            }
+        }
+    }
+
     const fetchAllShipments = async ({ search = '', page = 1, perPage = 15 } = {}) => {
         try {
             const response = await api.get('/admin/shipments', {
@@ -155,6 +212,19 @@ export const useAdminStore = defineStore('admin', () => {
             return {
                 success: false,
                 error: error.response?.data?.message || error.message,
+            }
+        }
+    }
+
+    const sendSms = async (userId, message, password) => {
+        try {
+            const response = await api.post('/admin/sms', { user_id: userId, message, password })
+            return { success: true, data: response.data }
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.message || error.message,
+                errorDetails: error.response?.data?.errors || error.response?.data?.error || null,
             }
         }
     }
@@ -319,6 +389,200 @@ export const useAdminStore = defineStore('admin', () => {
         }
     }
 
+    const fetchAdminCars = async (search = '') => {
+        try {
+            const response = await api.get('/admin/cars', {
+                params: search ? { search } : {},
+            })
+            return {
+                success: true,
+                cars: response.data?.content?.cars ?? [],
+            }
+        } catch (error) {
+            return {
+                success: false,
+                cars: [],
+                error: error.response?.data?.message || error.message,
+            }
+        }
+    }
+
+    const updateAdminCar = async (carId, payload) => {
+        try {
+            if (payload instanceof FormData) {
+                payload.append('_method', 'PUT')
+                const response = await api.post(`/admin/cars/${carId}`, payload, {
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                })
+                return { success: true, data: response.data }
+            }
+            const response = await api.put(`/admin/cars/${carId}`, payload)
+            return { success: true, data: response.data }
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.message || error.message,
+                errorDetails: error.response?.data?.errors || null,
+            }
+        }
+    }
+
+    const createAdminCar = async (formData) => {
+        try {
+            const response = await api.post('/admin/cars', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            })
+            return { success: true, data: response.data }
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.message || error.message,
+                errorDetails: error.response?.data?.errors || null,
+            }
+        }
+    }
+
+    const fetchAdminCities = async (search = '') => {
+        try {
+            const response = await api.get('/admin/cities', {
+                params: search ? { search } : {},
+            })
+            return {
+                success: true,
+                cities: response.data?.content?.cities ?? [],
+            }
+        } catch (error) {
+            return {
+                success: false,
+                cities: [],
+                error: error.response?.data?.message || error.message,
+            }
+        }
+    }
+
+    const updateAdminCity = async (cityId, payload) => {
+        try {
+            const response = await api.put(`/admin/cities/${cityId}`, payload)
+            return { success: true, data: response.data }
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.message || error.message,
+                errorDetails: error.response?.data?.errors || null,
+            }
+        }
+    }
+
+    const fetchAdminCityDistricts = async (cityId) => {
+        try {
+            const response = await api.get(`/admin/cities/${cityId}/districts`)
+            const content = response.data?.content ?? {}
+            return {
+                success: true,
+                city: content.city ?? null,
+                districts: content.districts ?? [],
+            }
+        } catch (error) {
+            return {
+                success: false,
+                city: null,
+                districts: [],
+                error: error.response?.data?.message || error.message,
+            }
+        }
+    }
+
+    const createAdminDistrict = async (cityId, name) => {
+        try {
+            const response = await api.post(`/admin/cities/${cityId}/districts`, { name })
+            return { success: true, data: response.data }
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.message || error.message,
+                errorDetails: error.response?.data?.errors || null,
+            }
+        }
+    }
+
+    const updateAdminDistrict = async (districtId, name) => {
+        try {
+            const response = await api.put(`/admin/districts/${districtId}`, { name })
+            return { success: true, data: response.data }
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.message || error.message,
+                errorDetails: error.response?.data?.errors || null,
+            }
+        }
+    }
+
+    const deleteAdminDistrict = async (districtId) => {
+        try {
+            const response = await api.delete(`/admin/districts/${districtId}`)
+            return { success: true, data: response.data }
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.message || error.message,
+            }
+        }
+    }
+
+    const fetchAdminPostTypes = async (search = '') => {
+        try {
+            const response = await api.get('/admin/post-types', {
+                params: search ? { search } : {},
+            })
+            return {
+                success: true,
+                postTypes: response.data?.content?.post_types ?? [],
+            }
+        } catch (error) {
+            return {
+                success: false,
+                postTypes: [],
+                error: error.response?.data?.message || error.message,
+            }
+        }
+    }
+
+    const updateAdminPostType = async (postTypeId, payload) => {
+        try {
+            if (payload instanceof FormData) {
+                payload.append('_method', 'PUT')
+                const response = await api.post(`/admin/post-types/${postTypeId}`, payload, {
+                    headers: { 'Content-Type': 'multipart/form-data' },
+                })
+                return { success: true, data: response.data }
+            }
+            const response = await api.put(`/admin/post-types/${postTypeId}`, payload)
+            return { success: true, data: response.data }
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.message || error.message,
+                errorDetails: error.response?.data?.errors || null,
+            }
+        }
+    }
+
+    const createAdminPostType = async (formData) => {
+        try {
+            const response = await api.post('/admin/post-types', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            })
+            return { success: true, data: response.data }
+        } catch (error) {
+            return {
+                success: false,
+                error: error.response?.data?.message || error.message,
+                errorDetails: error.response?.data?.errors || null,
+            }
+        }
+    }
+
     return {
         token,
         admin,
@@ -328,8 +592,11 @@ export const useAdminStore = defineStore('admin', () => {
         login,
         checkToken,
         fetchDashboard,
+        sendSms,
         logout,
         createShipment,
+        fetchShipmentAnalytics,
+        fetchSearchAnalysis,
         fetchAllShipments,
         deleteShipment,
         searchUsers,
@@ -341,5 +608,17 @@ export const useAdminStore = defineStore('admin', () => {
         approveUser,
         revokeUserApproval,
         rejectUser,
+        fetchAdminCars,
+        createAdminCar,
+        updateAdminCar,
+        fetchAdminCities,
+        updateAdminCity,
+        fetchAdminCityDistricts,
+        createAdminDistrict,
+        updateAdminDistrict,
+        deleteAdminDistrict,
+        fetchAdminPostTypes,
+        createAdminPostType,
+        updateAdminPostType,
     }
 })

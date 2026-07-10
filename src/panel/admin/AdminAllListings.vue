@@ -5,6 +5,106 @@
             Tüm ilanları görüntüleyin ve yönetin.
         </p>
 
+        <section class="mt-8">
+            <h2 class="text-base font-semibold text-gray-900">Analiz</h2>
+
+            <div v-if="analyticsLoading" class="mt-4 flex items-center gap-2 text-sm text-gray-500">
+                <i class="pi pi-spin pi-spinner" />
+                Analiz yükleniyor...
+            </div>
+
+            <div
+                v-else-if="analyticsError"
+                class="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600"
+            >
+                {{ analyticsError }}
+            </div>
+
+            <div v-else class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                    <div class="flex items-center gap-4">
+                        <span class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-green-50 text-green-600">
+                            <i class="pi pi-arrow-up text-xl" />
+                        </span>
+                        <div class="min-w-0">
+                            <p class="text-sm text-gray-500">En Fazla Yük Yüklenecek Şehir</p>
+                            <p class="mt-1 truncate text-xl font-bold text-gray-900">
+                                {{ cityStatLabel(analytics.mostLoadingCity) }}
+                            </p>
+                            <p v-if="analytics.mostLoadingCity" class="mt-0.5 text-xs text-gray-400">
+                                {{ analytics.mostLoadingCity.count }} ilan
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                    <div class="flex items-center gap-4">
+                        <span class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                            <i class="pi pi-arrow-down text-xl" />
+                        </span>
+                        <div class="min-w-0">
+                            <p class="text-sm text-gray-500">En Fazla Boşaltılacak Şehir</p>
+                            <p class="mt-1 truncate text-xl font-bold text-gray-900">
+                                {{ cityStatLabel(analytics.mostUnloadingCity) }}
+                            </p>
+                            <p v-if="analytics.mostUnloadingCity" class="mt-0.5 text-xs text-gray-400">
+                                {{ analytics.mostUnloadingCity.count }} ilan
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <button
+                    type="button"
+                    class="rounded-2xl border border-gray-200 bg-white p-5 text-left shadow-sm transition-colors hover:border-amber-300 cursor-pointer"
+                    @click="openEmptyCitiesModal('loading')"
+                >
+                    <div class="flex items-center gap-4">
+                        <span class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600">
+                            <i class="pi pi-arrow-up text-xl" />
+                        </span>
+                        <div class="min-w-0">
+                            <p class="text-sm text-gray-500">
+                                En Az Yük Yüklenecek Şehir
+                                <span class="ml-1 font-semibold text-amber-600">{{ analytics.emptyLoadingCitiesCount }}</span>
+                            </p>
+                            <p class="mt-1 text-xl font-bold text-gray-900">
+                                Boşta ilan olan şehir
+                            </p>
+                            <p class="mt-0.5 text-xs text-gray-400">
+                                Tıklayarak şehirleri görün
+                            </p>
+                        </div>
+                    </div>
+                </button>
+
+                <button
+                    type="button"
+                    class="rounded-2xl border border-gray-200 bg-white p-5 text-left shadow-sm transition-colors hover:border-purple-300 cursor-pointer"
+                    @click="openEmptyCitiesModal('unloading')"
+                >
+                    <div class="flex items-center gap-4">
+                        <span class="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-purple-50 text-purple-600">
+                            <i class="pi pi-arrow-down text-xl" />
+                        </span>
+                        <div class="min-w-0">
+                            <p class="text-sm text-gray-500">
+                                En Az Boşaltılacak Şehir
+                                <span class="ml-1 font-semibold text-purple-600">{{ analytics.emptyUnloadingCitiesCount }}</span>
+                            </p>
+                            <p class="mt-1 text-xl font-bold text-gray-900">
+                                Boşta ilan olan şehir
+                            </p>
+                            <p class="mt-0.5 text-xs text-gray-400">
+                                Tıklayarak şehirleri görün
+                            </p>
+                        </div>
+                    </div>
+                </button>
+            </div>
+        </section>
+
         <div class="mt-6">
             <input
                 v-model="searchQuery"
@@ -123,6 +223,51 @@
 
         <Teleport to="body">
             <div
+                v-if="emptyCitiesModal"
+                class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/45 p-4"
+                @click.self="closeEmptyCitiesModal"
+            >
+                <div class="w-full max-w-lg rounded-2xl border border-gray-200 bg-white p-5 shadow-2xl sm:p-6">
+                    <h3 class="text-lg font-semibold text-gray-900">
+                        {{ emptyCitiesModal === 'loading' ? 'Yükleme İlanı Olmayan Şehirler' : 'Boşaltma İlanı Olmayan Şehirler' }}
+                    </h3>
+                    <p class="mt-1 text-sm text-gray-500">
+                        Bu şehirlerde ilgili türde hiç ilan bulunmuyor.
+                    </p>
+
+                    <div class="mt-4 max-h-80 overflow-y-auto">
+                        <p
+                            v-if="!emptyCitiesModalList.length"
+                            class="py-6 text-center text-sm text-gray-500"
+                        >
+                            Tüm şehirlerde ilan mevcut.
+                        </p>
+                        <ul v-else class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                            <li
+                                v-for="city in emptyCitiesModalList"
+                                :key="city"
+                                class="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2 text-sm text-gray-700"
+                            >
+                                {{ city }}
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="mt-5 flex justify-end">
+                        <button
+                            type="button"
+                            class="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50"
+                            @click="closeEmptyCitiesModal"
+                        >
+                            Kapat
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </Teleport>
+
+        <Teleport to="body">
+            <div
                 v-if="deleteModal"
                 class="fixed inset-0 z-[10000] flex items-center justify-center bg-black/55 p-4"
                 @click.self="closeDeleteModal"
@@ -169,6 +314,16 @@ const PER_PAGE = 15;
 const shipments = ref([]);
 const loading = ref(false);
 const error = ref('');
+const analyticsLoading = ref(false);
+const analyticsError = ref('');
+const analytics = ref({
+    mostLoadingCity: null,
+    mostUnloadingCity: null,
+    emptyLoadingCities: [],
+    emptyLoadingCitiesCount: 0,
+    emptyUnloadingCities: [],
+    emptyUnloadingCitiesCount: 0,
+});
 const searchQuery = ref('');
 const currentPage = ref(1);
 const lastPage = ref(1);
@@ -178,6 +333,17 @@ let searchTimer = null;
 const deleteModal = ref(null);
 const deleteSubmitting = ref(false);
 const deleteTargetId = ref(null);
+const emptyCitiesModal = ref(null);
+
+const emptyCitiesModalList = computed(() => {
+    if (emptyCitiesModal.value === 'loading') {
+        return analytics.value.emptyLoadingCities;
+    }
+    if (emptyCitiesModal.value === 'unloading') {
+        return analytics.value.emptyUnloadingCities;
+    }
+    return [];
+});
 
 const visiblePages = computed(() => {
     const pages = [];
@@ -188,6 +354,18 @@ const visiblePages = computed(() => {
     }
     return pages;
 });
+
+function cityStatLabel(stat) {
+    return stat?.city || '—';
+}
+
+function openEmptyCitiesModal(type) {
+    emptyCitiesModal.value = type;
+}
+
+function closeEmptyCitiesModal() {
+    emptyCitiesModal.value = null;
+}
 
 function routeLabel(item) {
     const from = [item.from_city, item.from_district].filter(Boolean).join(' / ') || '—';
@@ -256,9 +434,33 @@ async function submitDelete() {
         toast.success(result.data?.message || 'İlan silindi.', { duration: 5000 });
         deleteModal.value = null;
         fetchShipments(currentPage.value);
+        fetchAnalytics();
     } finally {
         deleteSubmitting.value = false;
         deleteTargetId.value = null;
+    }
+}
+
+async function fetchAnalytics() {
+    analyticsLoading.value = true;
+    analyticsError.value = '';
+
+    try {
+        const result = await adminStore.fetchShipmentAnalytics();
+        if (!result.success) {
+            analyticsError.value = result.error || 'Analiz verileri yüklenemedi.';
+            return;
+        }
+        analytics.value = {
+            mostLoadingCity: result.mostLoadingCity,
+            mostUnloadingCity: result.mostUnloadingCity,
+            emptyLoadingCities: result.emptyLoadingCities,
+            emptyLoadingCitiesCount: result.emptyLoadingCitiesCount,
+            emptyUnloadingCities: result.emptyUnloadingCities,
+            emptyUnloadingCitiesCount: result.emptyUnloadingCitiesCount,
+        };
+    } finally {
+        analyticsLoading.value = false;
     }
 }
 
@@ -308,6 +510,7 @@ function onSearchInput() {
 }
 
 onMounted(() => {
+    fetchAnalytics();
     fetchShipments();
 });
 </script>

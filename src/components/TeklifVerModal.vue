@@ -284,6 +284,7 @@
 import { Carousel, Slide } from 'vue3-carousel';
 import 'vue3-carousel/carousel.css';
 import api from '@/api';
+import { vehicleImageUrl } from '@/lib/catalog-assets';
 import { createUserCar } from '@/lib/userCarApi';
 import { useAuthStore } from '@/stores/auth';
 import { useMessageStore } from '@/stores/message';
@@ -372,13 +373,7 @@ const teklifAracIlanUyumlu = computed(() => {
 });
 
 function toVehicleImageUrl(img) {
-    if (!img || typeof img !== 'string') return '';
-    if (img.startsWith('http')) return img;
-    try {
-        return new URL(`../assets/images/vehicles/${img}`, import.meta.url).href;
-    } catch {
-        return '';
-    }
+    return vehicleImageUrl(img);
 }
 
 function getTeklifCarImageUrl(car) {

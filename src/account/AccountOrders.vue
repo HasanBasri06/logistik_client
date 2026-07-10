@@ -40,8 +40,9 @@
                         :key="item.id ?? idx"
                         :shipment="item.shipment ?? item.shipment_order ?? {}"
                         :slug="item.shipment?.slug ?? item.shipment_order?.slug ?? item.slug ?? String(item.id ?? idx)"
-                        :prevent-navigation="selectedOrderStatus === 'accepted'"
-                        @card-click="openOrderActionModal(item)"
+                        :prevent-navigation="selectedOrderStatus === 'accepted' || selectedOrderStatus === 'done'"
+                        :show-attachments-list="selectedOrderStatus === 'done'"
+                        @card-click="onOrderCardClick(item)"
                     />
                 </template>
             </div>
@@ -146,12 +147,20 @@
                 </div>
             </Transition>
         </Teleport>
+
+        <ShipmentAttachmentsModal
+            v-model:open="attachmentsModalOpen"
+            :shipment-id="attachmentsShipmentId"
+            :route-label="attachmentsRouteLabel"
+            @uploaded="getOrders"
+        />
     </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import Product from '@/components/Product.vue';
+import ShipmentAttachmentsModal from '@/components/ShipmentAttachmentsModal.vue';
 import api from '@/api';
 
 const loadingGifUrl = new URL('../assets/gifs/loading_gif.gif', import.meta.url).href;
@@ -165,6 +174,8 @@ const cancelConfirmModalOpen = ref(false);
 const finishSubmitting = ref(false);
 const cancelSubmitting = ref(false);
 const selectedOrder = ref(null);
+const attachmentsModalOpen = ref(false);
+const attachmentsShipment = ref(null);
 /** Sekme sayıları — API `status_counts` (getOrders ile güncellenir) */
 const statusCounts = ref({
     accepted: 0,
@@ -226,6 +237,29 @@ function openOrderActionModal(item) {
     selectedOrder.value = item;
     orderActionModalOpen.value = true;
 }
+
+function onOrderCardClick(item) {
+    if (selectedOrderStatus.value === 'accepted') {
+        openOrderActionModal(item);
+        return;
+    }
+    if (selectedOrderStatus.value === 'done') {
+        const shipment = item.shipment ?? item.shipment_order ?? item;
+        attachmentsShipment.value = shipment;
+        attachmentsModalOpen.value = true;
+    }
+}
+
+const attachmentsShipmentId = computed(() => attachmentsShipment.value?.id ?? null);
+
+const attachmentsRouteLabel = computed(() => {
+    const s = attachmentsShipment.value;
+    if (!s) return '';
+    const from = [s.f_where_city, s.f_where_district].filter(Boolean).join(' / ');
+    const to = [s.t_where_city, s.t_where_district].filter(Boolean).join(' / ');
+    if (from && to) return `${from} → ${to}`;
+    return from || to || '';
+});
 
 function closeOrderActionModal() {
     orderActionModalOpen.value = false;

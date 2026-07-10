@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue';
 import Content from './Content.vue';
 import api from '@/api';
+import { vehicleImageUrl } from '@/lib/catalog-assets';
 
 const cars = ref([]);
 const loading = ref(true);
@@ -20,11 +21,7 @@ const scrollBy = (direction) => {
     scrollContainer.value.scrollBy({ left: direction * (284 * 2), behavior: 'smooth' });
 };
 
-const getCarImageUrl = (image) => {
-    if (!image) return '';
-    if (image.startsWith('http')) return image;
-    return new URL(`../assets/images/vehicles/${image}`, import.meta.url).href;
-};
+const getCarImageUrl = (image) => vehicleImageUrl(image);
 
 const getCars = async () => {
     loading.value = true;

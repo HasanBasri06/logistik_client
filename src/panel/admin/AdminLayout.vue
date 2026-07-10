@@ -112,10 +112,21 @@
                                 </div>
                             </div>
                         </template>
+
+                        <button
+                            type="button"
+                            class="mt-1 flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 hover:text-gray-900"
+                            @click="openSmsModal"
+                        >
+                            <i class="pi pi-comment text-base" />
+                            SMS Gönder
+                        </button>
                     </nav>
                 </aside>
             </Transition>
         </Teleport>
+
+        <AdminSmsModal v-model:open="smsModalOpen" />
     </div>
 </template>
 
@@ -123,6 +134,7 @@
 import { ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAdminStore } from '@/stores/admin';
+import AdminSmsModal from '@/panel/admin/AdminSmsModal.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -145,12 +157,28 @@ const navItems = [
         children: [
             { label: 'İlan Ekle', to: '/panel/admin/beun/ilan-ekle', icon: 'pi pi-plus-circle' },
             { label: 'Tüm İlanlarım', to: '/panel/admin/beun/ilanlar', icon: 'pi pi-list' },
+            { label: 'Arama Analizleri', to: '/panel/admin/beun/arama-analizleri', icon: 'pi pi-search' },
+        ],
+    },
+    {
+        label: 'Ayarlar',
+        icon: 'pi pi-cog',
+        children: [
+            { label: 'Araçlar', to: '/panel/admin/beun/ayarlar/araclar', icon: 'pi pi-truck' },
+            { label: 'Şehirler', to: '/panel/admin/beun/ayarlar/sehirler', icon: 'pi pi-map' },
+            { label: 'Yük Tipleri', to: '/panel/admin/beun/ayarlar/yuk-tipleri', icon: 'pi pi-box' },
         ],
     },
 ];
 
 const drawerOpen = ref(false);
 const openGroups = ref([]);
+const smsModalOpen = ref(false);
+
+function openSmsModal() {
+    drawerOpen.value = false;
+    smsModalOpen.value = true;
+}
 
 function openDrawer() {
     drawerOpen.value = true;
