@@ -74,7 +74,14 @@
                             </span>
                         </td>
                         <td class="px-3 py-3 text-right">
-                            
+                            <button
+                                type="button"
+                                class="inline-flex h-9 items-center gap-1.5 rounded-lg border border-gray-200 px-3 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+                                @click="toggleMenu(user, $event)"
+                            >
+                                Detay
+                                <i class="pi pi-chevron-down text-xs" />
+                            </button>
                         </td>
                     </tr>
                 </tbody>
@@ -500,7 +507,7 @@ async function fetchUsers(page = currentPage.value) {
             search: searchQuery.value.trim(),
             page,
             perPage: PER_PAGE,
-            isAnalysis: false
+            isAnalysis: true
         });
         if (!result.success) {
             error.value = result.error || 'Kullanıcılar yüklenemedi.';

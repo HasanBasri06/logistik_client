@@ -284,13 +284,14 @@ export const useAdminStore = defineStore('admin', () => {
         }
     }
 
-    const fetchAllUsers = async ({ search = '', page = 1, perPage = 15 } = {}) => {
+    const fetchAllUsers = async ({ search = '', page = 1, perPage = 15, isAnalysis = false } = {}) => {
         try {
             const response = await api.get('/admin/users/all', {
                 params: {
                     ...(search ? { search } : {}),
                     page,
                     per_page: perPage,
+                    isAnalysis: isAnalysis
                 },
             })
             const content = response.data?.content ?? {}

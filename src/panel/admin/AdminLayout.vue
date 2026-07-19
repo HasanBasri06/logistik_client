@@ -148,6 +148,7 @@ const navItems = [
         icon: 'pi pi-users',
         children: [
             { label: 'Onay Bekleyen Kullanıcılar', to: '/panel/admin/beun/evraklar', icon: 'pi pi-clock' },
+            { label: 'Hesap İşlemleri', to: '/panel/admin/beun/kullanici-merkezi', icon: 'pi pi-id-card' },
             { label: 'Kullanıcılarımız', to: '/panel/admin/beun/kullanicilar', icon: 'pi pi-id-card' },
         ],
     },

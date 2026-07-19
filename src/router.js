@@ -23,6 +23,7 @@ import CargoOwnerAddressesPage from "./pages/CargoOwnerAddressesPage.vue";
 import CargoOwnerChangePasswordPage from "./pages/CargoOwnerChangePasswordPage.vue";
 import CargoOwnerSettingsPage from "./pages/CargoOwnerSettingsPage.vue";
 import CargoOwnerVerifyAccountPage from "./pages/CargoOwnerVerifyAccountPage.vue";
+import CallCustomersPage from "./pages/CallCustomersPage.vue";
 import PostDetail from "./posts/Detail.vue";
 import ProductDetailPage from "./pages/ProductDetailPage.vue";
 import NotFound from "./pages/NotFound.vue";
@@ -49,6 +50,7 @@ import AdminSearchAnalysisPage from "./panel/admin/AdminSearchAnalysis.vue";
 import AdminSettingsCarsPage from "./panel/admin/AdminSettingsCars.vue";
 import AdminSettingsCitiesPage from "./panel/admin/AdminSettingsCities.vue";
 import AdminSettingsPostTypesPage from "./panel/admin/AdminSettingsPostTypes.vue";
+import AdminUserAccountCenter from "./panel/admin/AdminUserAccountCenter.vue";
 
 const routes = [
     {
@@ -438,6 +440,14 @@ const routes = [
                 },
             },
             {
+                path: 'aramalar',
+                component: CallCustomersPage,
+                meta: {
+                    title: 'Tüm Aramalar',
+                    requiresAdminAuth: true,
+                },
+            },
+            {
                 path: 'arama-analizleri',
                 component: AdminSearchAnalysisPage,
                 meta: {
@@ -450,6 +460,14 @@ const routes = [
                 component: AdminUserDocumentsPage,
                 meta: {
                     title: 'Kullanıcı Evrakları',
+                    requiresAdminAuth: true,
+                },
+            },
+            {
+                path: 'kullanici-merkezi',
+                component: AdminUserAccountCenter,
+                meta: {
+                    title: 'Kullanıcı Hesap Merkezi',
                     requiresAdminAuth: true,
                 },
             },
