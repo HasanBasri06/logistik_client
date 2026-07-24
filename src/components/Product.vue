@@ -13,11 +13,11 @@
       <template v-if="isPartLoad">
         <span class="text-white text-xs font-semibold text-left">Kalkış Tarihi</span>
         <span class="text-white text-xs font-semibold text-center">Parça Yük</span>
-        <span class="text-white text-xs font-semibold text-right">{{ departureDateText }}</span>
+        <span class="text-white text-xs font-semibold text-right">{{ shipment.departure_date_text }}</span>
       </template>
       <template v-else>
         <span class="text-white text-xs font-semibold">Kalkış Tarihi</span>
-        <span class="text-white text-xs font-semibold">{{ departureDateText }}</span>
+        <span class="text-white text-xs font-semibold">{{ shipment.departure_date_text }}</span>
       </template>
     </div>
 
