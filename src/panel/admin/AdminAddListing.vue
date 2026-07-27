@@ -142,6 +142,20 @@
                 <span v-if="errors.callAccess" class="text-xs text-red-500">{{ errors.callAccess }}</span>
             </div>
 
+            <div class="flex flex-col gap-2">
+                <label class="text-sm font-medium text-gray-700" for="isPart">Parça Yük</label>
+                <select
+                    id="isPart"
+                    v-model="form.isPart"
+                    :class="inputClass('isPart')"
+                >
+                    <option value="">Seçiniz</option>
+                    <option value="1">Evet</option>
+                    <option value="0">Hayır</option>
+                </select>
+                <span v-if="errors.isPart" class="text-xs text-red-500">{{ errors.isPart }}</span>
+            </div>
+
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
                 <div class="flex flex-col gap-2">
                     <label class="text-sm font-medium text-gray-700" for="departureTime">Kalkış Saati</label>
@@ -218,10 +232,11 @@ function createInitialFormState() {
         toDistrict: '',
         weight: '',
         price: '',
-        callAccess: '',
+        callAccess: 1,
         departureTime: '',
         timeArrival: '',
         departureDate: '',
+        isPart: 0
     };
 }
 
@@ -241,6 +256,7 @@ function createInitialErrors() {
         departureTime: '',
         timeArrival: '',
         departureDate: '',
+        isPart: '',
     };
 }
 
@@ -302,6 +318,10 @@ const listingSchema = yup.object({
     departureTime: yup.string().nullable().optional(),
     timeArrival: yup.string().nullable().optional(),
     departureDate: yup.string().nullable().optional(),
+    isPart: yup.string()
+        .nullable()
+        .optional()
+        .oneOf(['', '0', '1'], 'Parça yük Evet ya da Hayır olmalı'),
 });
 
 function inputClass(field) {
@@ -413,6 +433,7 @@ async function handleSubmit() {
                 postTypeId: form.value.postTypeId === '' ? null : Number(form.value.postTypeId),
                 weight: form.value.weight === '' ? null : Number(form.value.weight),
                 price: form.value.price === '' ? null : Number(form.value.price),
+                isPart: form.value.isPart === '' ? null : Number(form.value.isPart)
             },
             { abortEarly: false },
         );
@@ -442,6 +463,7 @@ async function handleSubmit() {
             departure_time: form.value.departureTime || null,
             time_arrival: form.value.timeArrival || null,
             departure_date: form.value.departureDate || null,
+            isPart: form.value.isPart || 0
         });
 
         if (result.success) {
