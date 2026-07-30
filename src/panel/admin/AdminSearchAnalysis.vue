@@ -125,7 +125,7 @@
                         class="border-b border-gray-100 transition-colors hover:bg-gray-50"
                     >
                         <td class="px-3 py-3 text-gray-900">
-                            <div class="font-medium">#{{ record.id }} {{ record.caller_name }}</div>
+                            <div class="font-medium"><span class="text-orange-500">#{{ record.calling_user_id }}</span> {{ record.caller_name }}</div>
                             <div class="text-xs text-gray-400">{{ record.caller_phone || '—' }}</div>
                         </td>
                         <td class="px-3 py-3 text-gray-600">{{ record.f_where_city || '—' }}</td>
