@@ -415,7 +415,7 @@
                 v-if="shipment?.call_access == 1"
                 type="button"
                 @click="openCallModal"
-                class="group flex-1 h-16 py-3 px-4 rounded-2xl border border-primary/30 bg-gradient-to-r from-primary via-[#2f7f88] to-[#266a72] text-white font-semibold text-sm flex items-center justify-between gap-3 shadow-[0_10px_24px_rgba(57,131,140,0.28)] active:scale-[0.99] transition-all"
+                class="group flex-1 h-16 py-3 px-4 rounded-2xl border border-primary/30 bg-gradient-to-r from-primary via-[#2f7f88] to-[#266a72] text-white font-semibold text-sm flex items-center justify-between gap-3 shadow-[0_10px_24px_rgba(0,160,174,0.28)] active:scale-[0.99] transition-all"
             >
                 <span class="flex items-center gap-2.5 min-w-0">
                     <span class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/20 ring-1 ring-white/30">
@@ -670,6 +670,7 @@ import {
 import TeklifVerModal from '@/components/TeklifVerModal.vue';
 import { MESSAGE_MAX_LENGTH } from '@/lib/message-limits';
 import { shouldShowKdvLabel } from '@/lib/shipment-kdv';
+import { shipmentVehiclesLabel } from '@/lib/shipment-vehicles';
 import { useHead } from '@vueuse/head';
 import { storeToRefs } from 'pinia';
 
@@ -779,15 +780,7 @@ const creatorScoreText = computed(() => {
 });
 
 // İlan bilgileri (tablo: shipment'tan)
-const ilanAracTipi = computed(() => {
-    const s = shipment.value;
-    if (!s) return '—';
-    const name = s.car?.name ?? '';
-    const detail = s.get_car_detail?.value ?? s.car?.details?.[0]?.value ?? '';
-    const d = String(detail).trim();
-    if (!name && !d) return '—';
-    return d ? `${name} / ${d.charAt(0).toUpperCase() + d.slice(1)}` : name;
-});
+const ilanAracTipi = computed(() => shipmentVehiclesLabel(shipment.value) || '—');
 const ilanKapasite = computed(() => {
     const cap = shipment.value?.capacity_ton ?? shipment.value?.capacity ?? 20;
     const n = typeof cap === 'number' ? cap : parseInt(cap, 10);
@@ -966,7 +959,7 @@ const initializeMap = () => {
             map: map.value,
             suppressMarkers: false,
             polylineOptions: {
-                strokeColor: '#39838C',
+                strokeColor: '#00A0AE',
                 strokeWeight: 5
             }
         });

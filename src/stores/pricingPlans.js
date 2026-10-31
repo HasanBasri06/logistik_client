@@ -14,7 +14,7 @@ function formatRate(value) {
 }
 
 export const usePricingPlansStore = defineStore('pricingPlans', () => {
-    const baseMonthlyPrice = 299;
+    const baseMonthlyPrice = 399;
 
     const rawPlans = [
         {
@@ -24,34 +24,34 @@ export const usePricingPlansStore = defineStore('pricingPlans', () => {
             discountPercent: 0,
             description: 'Kısa süreli kullanım için ideal başlangıç paketi.',
             badge: null,
-            price: 299,
+            price: 399,
         },
         {
             id: 'quarterly',
             months: 3,
             name: '3 Aylık',
-            totalPriceFixed: 750,
+            totalPriceFixed: 999,
             description: 'Düzenli kullanım için dengeli fiyat ve süre avantajı.',
             badge: 'Önerilen',
-            price: 750,
+            price: 999,
         },
         {
             id: 'semiannual',
             months: 6,
             name: '6 Aylık',
-            totalPriceFixed: 1320,
+            totalPriceFixed: 1749,
             description: 'Orta vadeli planlama yapanlar için ekonomik seçenek.',
             badge: null,
-            price: 1320,
+            price: 1749,
         },
         {
             id: 'annual',
             months: 12,
             name: '12 Aylık',
-            totalPriceFixed: 2400,
+            totalPriceFixed: 3199,
             description: 'Uzun vadede en düşük aylık maliyet sağlayan paket.',
             badge: 'Popüler',
-            price: 2400,
+            price: 3199,
         },
     ];
 

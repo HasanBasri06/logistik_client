@@ -1,11 +1,10 @@
 @import "tailwindcss";
-@font-face {
-    font-family: Inter;
-    src: url('./assets/fonts/Inter-VariableFont.ttf');
-}
 @theme {
-    --font-display: "Inter";
-    --color-primary: #39838C;
+    --font-display: "Google Sans Flex", system-ui, sans-serif;
+    --color-primary: #00A0AE;
+    --color-primary-dark: #00808C;
+    --color-secondary: #FF4F6D;
+    --color-secondary-dark: #E63556;
 }
 
 @layer components {
@@ -46,9 +45,9 @@
  * aksi halde kütüphanenin koyu (#50596c) varsayılanı bu kuralları ezer.
  */
 body .v-tour .v-step {
-    font-family: var(--font-display), Inter, system-ui, sans-serif;
+    font-family: var(--font-display);
     --tour-primary: var(--color-primary);
-    --tour-primary-dark: #2d6a72;
+    --tour-primary-dark: var(--color-primary-dark);
     --tour-surface: #ffffff;
     --tour-border: #e5e7eb;
     background: var(--tour-surface) !important;
@@ -57,7 +56,7 @@ body .v-tour .v-step {
     border-radius: 16px;
     border: 1px solid var(--tour-border) !important;
     box-shadow:
-        0 0 0 1px rgba(57, 131, 140, 0.06),
+        0 0 0 1px rgba(0, 160, 174, 0.06),
         0 4px 6px -1px rgba(15, 23, 42, 0.06),
         0 16px 32px -8px rgba(15, 23, 42, 0.12);
     padding: 0 !important;
@@ -159,19 +158,19 @@ body .v-tour .v-step .v-step__button:last-child {
     background: var(--tour-primary) !important;
     color: #ffffff !important;
     border-color: transparent !important;
-    box-shadow: 0 1px 2px rgba(57, 131, 140, 0.25);
+    box-shadow: 0 1px 2px rgba(0, 160, 174, 0.25);
 }
 
 body .v-tour .v-step .v-step__button:last-child:hover {
     background: var(--tour-primary-dark) !important;
     color: #ffffff !important;
     border-color: transparent !important;
-    box-shadow: 0 4px 12px rgba(57, 131, 140, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 160, 174, 0.3);
 }
 
 body .v-tour .v-step .v-step__button:last-child:focus-visible {
     outline: 2px solid #ffffff;
-    box-shadow: 0 0 0 3px rgba(57, 131, 140, 0.45);
+    box-shadow: 0 0 0 3px rgba(0, 160, 174, 0.45);
 }
 
 body .v-tour .v-step .v-step__arrow,
@@ -195,7 +194,7 @@ body .v-tour__target--highlighted {
     box-shadow:
         0 0 0 2px #fff,
         0 0 0 4px var(--color-primary),
-        0 12px 28px -6px rgba(57, 131, 140, 0.35) !important;
+        0 12px 28px -6px rgba(0, 160, 174, 0.35) !important;
     z-index: 10040 !important;
 }
 

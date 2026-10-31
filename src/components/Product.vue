@@ -1,13 +1,13 @@
 <template>
   <div
-    class="w-full min-h-fit rounded-2xl bg-white border border-gray-200 overflow-hidden cursor-pointer transition-all duration-300 shadow-sm hover:border-primary hover:shadow-[0_4px_12px_rgba(57,131,140,0.15)] hover:-translate-y-0.5"
+    class="w-full min-h-fit rounded-2xl bg-white border border-gray-200 overflow-hidden cursor-pointer transition-all duration-300 shadow-sm hover:border-primary hover:shadow-[0_4px_12px_rgba(0,160,174,0.15)] hover:-translate-y-0.5"
     @click="handleClick($event, shipment)"
   >
     <!-- Kalkış tarihi / parça yük — mobil ilan kartı ile aynı üst şerit -->
     <div
       class="w-full h-[25px] px-4 flex shrink-0 relative items-center"
       :class="isPartLoad
-        ? 'bg-orange-500 grid grid-cols-3'
+        ? 'bg-secondary grid grid-cols-3'
         : 'bg-primary flex-row justify-between'"
     >
       <template v-if="isPartLoad">
@@ -133,7 +133,7 @@
         </div>
       </div>
       <div class="hidden sm:flex items-center min-w-0 shrink-0">
-        <span class="text-sm font-medium text-gray-600 truncate">{{ shipment.car?.name }}{{ carDetailValue }}</span>
+        <VehicleStack :vehicles="vehicles" />
       </div>
 
       <!-- Mobil: grid-cols-2 detay listesi (sağ sütun yazıları align-end) -->
@@ -146,7 +146,9 @@
           <span class="inline-flex px-2.5 py-1 rounded-full bg-gray-100 text-gray-700 text-sm font-medium">{{ shipment.post_type?.value }}</span>
         </div>
         <p class="text-sm text-gray-500 min-w-0">{{ requestText }}</p>
-        <p class="text-sm font-medium text-gray-700 truncate min-w-0 text-end">{{ shipment.car?.name }}{{ carDetailValue }}</p>
+        <div class="min-w-0 flex justify-end">
+          <VehicleStack :vehicles="vehicles" />
+        </div>
         <template v-if="showOwnerNotLiveBadge">
           <div class="col-span-2 flex justify-end">
             <span
@@ -275,6 +277,8 @@ import { storeToRefs } from 'pinia';
 import api from '@/api';
 import { shouldShowKdvLabel } from '@/lib/shipment-kdv';
 import { isShipmentPartLoad } from '@/lib/shipment-part-load';
+import { shipmentVehicles } from '@/lib/shipment-vehicles';
+import VehicleStack from '@/components/VehicleStack.vue';
 
 const authStore = useAuthStore();
 const {user} = storeToRefs(authStore);
@@ -397,7 +401,7 @@ const creatorAvatarUrl = computed(() => {
   if (c?.image) return c.image;
   if (c?.avatar) return c.avatar;
   const name = c?.full_name || '?';
-  return 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name) + '&background=39838C&color=fff';
+  return 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name) + '&background=00A0AE&color=fff';
 });
 
 const handleClick = (e, shipment) => {
@@ -448,12 +452,8 @@ function formatWeight(weight) {
   return num.toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + ' kg';
 }
 
-const carDetailValue = computed(() => {
-  const val = props.shipment?.get_car_detail?.value ?? props.shipment?.car?.details?.[0]?.value ?? '';
-  const str = String(val).trim();
-  if (!str) return '';
-  return '/ ' + str.charAt(0).toUpperCase() + str.slice(1);
-});
+/** İlanın tüm araçları (birden fazla seçilebilir) */
+const vehicles = computed(() => shipmentVehicles(props.shipment));
 
 const cancelModalOpen = ref(false);
 const cancelReason = ref('');

@@ -62,7 +62,7 @@
                                 <div class="flex items-start justify-between w-full gap-2 pt-6 sm:pt-7">
                                     <div class="pr-1 sm:pr-6 min-w-0">
                                         <div class="text-sm sm:text-base font-bold leading-tight text-gray-900 wrap-break-word">{{ plan.name }}</div>
-                                        <div class="text-xs sm:text-sm font-semibold text-gray-700 mt-1 wrap-break-word">{{ plan.totalPrice }}</div>
+                                        <div class="text-xs sm:text-sm font-bold text-gray-900 mt-1 wrap-break-word">{{ plan.totalPrice }}</div>
                                     </div>
                                     <i v-if="selectedPlan?.id === plan.id" class="pi pi-check-circle text-primary text-xl"></i>
                                 </div>

@@ -73,6 +73,8 @@
   </Teleport>
   <!-- Premium'a geç modalı (payment_confirm === 0 iken ilan oluşturmaya tıklanınca) -->
   <PremiumModal />
+  <!-- İlan oluşturma sihirbazı (her açılışta sıfırdan başlar) -->
+  <CreatePostModal v-if="postStore.createModalOpen" />
 </template>
 
 <script setup>
@@ -82,6 +84,7 @@ import { storeToRefs } from 'pinia';
 import { GitCompare, Info, MapPin, Navigation, Settings, ShieldCheck } from 'lucide-vue-next';
 import Layout from './Layout.vue';
 import PremiumModal from './components/PremiumModal.vue';
+import CreatePostModal from './components/CreatePostModal.vue';
 import {
   applyStayOnWebFromQuery,
   appleItunesAppMetaContent,
@@ -91,9 +94,11 @@ import {
 import { useHead } from '@vueuse/head';
 import { useLocationStore } from './stores/location';
 import { useAuthStore } from './stores/auth';
+import { usePostStore } from './stores/post';
 
 const route = useRoute();
 const authStore = useAuthStore();
+const postStore = usePostStore();
 const locationStore = useLocationStore();
 const { locationDeniedModalOpen, locationErrorCode } = storeToRefs(locationStore);
 const { retryLocationAfterSettings } = locationStore;

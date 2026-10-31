@@ -1,18 +1,69 @@
 <template>
-  <Header />
-
-  <div class="min-h-[calc(100vh-64px)]">
-    <Content class="p-0!">
-      <div class="flex flex-col md:flex-row gap-3 w-full h-auto">
-        <CargoOwner />
-
+  <Teleport to="body">
+    <Transition name="create-post" appear>
+      <div
+        v-if="createModalOpen"
+        class="fixed inset-0 z-90 flex items-stretch md:items-center justify-center md:p-6"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="create-post-title"
+      >
+        <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" />
         <div
-          class="flex-1 md:mt-3 rounded-md flex flex-col gap-4 pb-32 md:pb-28 min-w-0"
+          class="create-post-panel relative w-full md:max-w-5xl h-full md:h-[92vh] bg-gray-50 md:rounded-2xl shadow-2xl flex flex-col overflow-hidden transition-[max-width] duration-300 ease-out"
+          :class="{ 'lg:max-w-7xl': showCart }"
         >
-          <!-- 1. Ekran: Araç Seçimi -->
-          <VehicleSelection v-if="page === 1" ref="vehicleSelectionRef" />
+          <!-- Başlık + ilerleme -->
+          <div class="shrink-0 bg-white border-b border-gray-200 px-4 sm:px-6 pt-4 pb-4">
+            <div class="flex items-start justify-between gap-3">
+              <div class="min-w-0">
+                <h2 id="create-post-title" class="text-lg sm:text-xl font-bold text-gray-900">İlan Oluştur</h2>
+                <p class="text-xs sm:text-sm text-gray-500 mt-0.5">
+                  Adım {{ page }} / {{ limit }} · {{ steps[page - 1]?.title }}
+                </p>
+              </div>
+              <button
+                type="button"
+                class="p-2 -mr-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+                aria-label="Kapat"
+                @click="requestClose"
+              >
+                <i class="pi pi-times" style="font-size: 18px;"></i>
+              </button>
+            </div>
+            <ol class="mt-4 grid grid-cols-3 gap-2 sm:gap-3">
+              <li v-for="(step, i) in steps" :key="step.title" class="min-w-0">
+                <div class="h-1.5 rounded-full bg-gray-200 overflow-hidden">
+                  <div
+                    class="h-full rounded-full transition-all duration-500 ease-out"
+                    :class="i + 1 < page ? 'bg-primary' : 'bg-secondary'"
+                    :style="{ width: i + 1 <= page ? '100%' : '0%' }"
+                  />
+                </div>
+                <div
+                  class="mt-2 flex items-center gap-2 text-xs sm:text-sm"
+                  :class="i + 1 === page ? 'text-gray-900 font-semibold' : i + 1 < page ? 'text-primary font-medium' : 'text-gray-400'"
+                >
+                  <span
+                    class="w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-bold shrink-0"
+                    :class="i + 1 < page ? 'bg-primary text-white' : i + 1 === page ? 'bg-secondary text-white' : 'bg-gray-200 text-gray-500'"
+                  >
+                    <i v-if="i + 1 < page" class="pi pi-check" style="font-size: 10px;"></i>
+                    <template v-else>{{ i + 1 }}</template>
+                  </span>
+                  <span class="truncate">{{ step.title }}</span>
+                </div>
+              </li>
+            </ol>
+          </div>
 
-          <!-- 2. Ekran: İlan Tipi Seçimi -->
+          <!-- Adım içeriği -->
+          <div class="flex-1 min-h-0 flex">
+          <div ref="stepBodyRef" class="flex-1 min-w-0 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6">
+            <div class="flex flex-col gap-4 min-w-0">
+          <!-- 1. Ekran: Araç Seçimi (çoklu) -->
+          <VehicleSelection v-if="page === 1" />
+
           <div v-else-if="page === 2" class="w-full bg-white border border-gray-200 rounded-xl shadow-sm p-4 sm:p-6">
             <h3 class="text-lg font-semibold text-gray-800 mb-2">Yük Tipi</h3>
             <h3 class="text-md font-medium text-gray-500 mb-4">Taşıtmak istediğiniz yükün tipini belirtiniz.</h3>
@@ -480,9 +531,10 @@
                           <div class="flex flex-col gap-0.5">
                             <span class="text-base font-semibold text-gray-800">Sabit Fiyat</span>
                             <span class="text-sm text-gray-500">Düşünmeden fiyat ver</span>
+                            <span v-if="selectedCars.length > 1" class="text-xs text-gray-400">Seçilen araçlar arasındaki en yüksek fiyat</span>
                           </div>
                           <div class="flex flex-col items-end gap-0.5">
-                            <span class="text-lg font-bold text-primary">{{ routeInfo.distance > 30 ? formatPrice(calculateRoutePrice()) : postStore.selectedCar.price }} ₺</span>
+                            <span class="text-lg font-bold text-primary">{{ formatPrice(fixedPrice) }} ₺</span>
                             <!-- <span class="text-sm text-gray-400 line-through">24.000 ₺</span>-->
                           </div>
                         </div>
@@ -529,17 +581,29 @@
               </div>
             </div>
           </div>
+            </div>
+          </div>
 
-          <!-- Pagination: Sol Sonraki / Sağ Önceki -->
-          <div
-            class="fixed bottom-0 left-0 right-0 w-full overflow-hidden flex justify-between items-center gap-2 px-4 sm:px-6 lg:px-10 bg-white/95 backdrop-blur border-t border-gray-200 py-4 z-20"
-          >
+          <!-- Sepet: varyantlı araç seçildiğinde modal genişler ve sağda açılır (geniş ekran) -->
+          <Transition name="cart-panel">
+            <aside
+              v-if="showCart"
+              class="hidden lg:flex w-96 shrink-0 border-l border-gray-200 flex-col min-h-0"
+              aria-label="Seçilen araçlar"
+            >
+              <VehicleCart class="flex-1" />
+            </aside>
+          </Transition>
+          </div>
+
+          <!-- Alt bar: Önceki / Sonraki -->
+          <div class="shrink-0 flex justify-between items-center gap-2 px-4 sm:px-6 bg-white border-t border-gray-200 py-3 sm:py-4">
             <button
               type="button"
-              @click="() => usePostStore().prevPage()"
+              @click="page === 1 ? requestClose() : postStore.prevPage()"
               class="flex-1 sm:flex-none px-4 sm:px-5 py-2 rounded-lg border-2 cursor-pointer border-primary text-primary font-medium hover:bg-primary hover:text-white transition-all text-sm sm:text-base"
             >
-              ← Önceki
+              {{ page === 1 ? 'Vazgeç' : '← Önceki' }}
             </button>
             <button
               @click="handlePublishOrNext"
@@ -554,20 +618,56 @@
               <span v-else>{{ page === limit ? 'Yayınla' : 'Sonraki →' }}</span>
             </button>
           </div>
-         
+
+          <!-- Kapatma onayı (tarayıcı confirm yerine) -->
+          <Transition name="confirm-close">
+            <div
+              v-if="confirmCloseOpen"
+              class="absolute inset-0 z-10 flex items-center justify-center p-4 bg-gray-900/40 backdrop-blur-[2px]"
+              role="alertdialog"
+              aria-modal="true"
+              aria-labelledby="confirm-close-title"
+              aria-describedby="confirm-close-desc"
+              @click.self="confirmCloseOpen = false"
+            >
+              <div class="confirm-close-card w-full max-w-sm rounded-2xl bg-white shadow-2xl p-6 text-center">
+                <span class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary/10 text-secondary">
+                  <i class="pi pi-exclamation-triangle" style="font-size: 24px;"></i>
+                </span>
+                <h3 id="confirm-close-title" class="text-lg font-bold text-gray-900">İlan kaydedilmeyecek</h3>
+                <p id="confirm-close-desc" class="mt-2 text-sm text-gray-500 leading-relaxed">
+                  Girdiğiniz bilgiler silinecek. Kapatmak istediğinize emin misiniz?
+                </p>
+                <div class="mt-6 flex flex-col-reverse sm:flex-row gap-2">
+                  <button
+                    ref="confirmStayRef"
+                    type="button"
+                    class="flex-1 h-11 rounded-xl border-2 border-primary text-primary text-sm font-semibold hover:bg-primary/5 transition-colors"
+                    @click="confirmCloseOpen = false"
+                  >
+                    Devam et
+                  </button>
+                  <button
+                    type="button"
+                    class="flex-1 h-11 rounded-xl bg-secondary text-white text-sm font-semibold hover:bg-secondary-dark transition-colors"
+                    @click="postStore.closeCreateModal()"
+                  >
+                    Evet, kapat
+                  </button>
+                </div>
+              </div>
+            </div>
+          </Transition>
         </div>
       </div>
-    </Content>
-
-  </div>
+    </Transition>
+  </Teleport>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, nextTick } from "vue";
-import Header from "@/components/Header.vue";
-import Content from "@/components/Content.vue";
-import CargoOwner from "@/components/CargoOwner.vue";
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
 import VehicleSelection from "@/components/VehicleSelection.vue";
+import VehicleCart from "@/components/VehicleCart.vue";
 import { DatePicker } from "primevue";
 import api from "@/api";
 import { postTypeImageUrl } from "@/lib/catalog-assets";
@@ -584,7 +684,19 @@ const postStore = usePostStore();
 const shipmentsStore = useShipmentsStore();
 const authStore = useAuthStore();
 const locationStore = useLocationStore();
-const { page, limit } = storeToRefs(postStore);
+const { page, limit, createModalOpen, selectedCars } = storeToRefs(postStore);
+
+const steps = [
+  { title: 'Araçlar' },
+  { title: 'Yük Bilgisi' },
+  { title: 'Rota ve Fiyat' },
+];
+const stepBodyRef = ref(null);
+
+/** Seçili araçlardan en az birinin varyantı varsa sağdaki sepet paneli açılır */
+const showCart = computed(() =>
+  page.value === 1 && selectedCars.value.some((s) => s.car.details?.length)
+);
 const { user: authUser, canPublishListing } = storeToRefs(authStore);
 const yukGpsPrefillAttempted = ref(false);
 
@@ -603,7 +715,6 @@ const selectedAddressId = computed(() => {
   );
   return addr?.id ?? null;
 });
-const vehicleSelectionRef = ref(null);
 /** Yüklenecek yer: sadece şehir ve ilçe isimleri */
 const yuklenecekYer = ref({ city: '', district: '' });
 /** PrimeVue timeOnly: Date (saat/dakika), formda HH:mm olarak gönderilir */
@@ -1020,12 +1131,17 @@ function getPostTypeImageUrl(image) {
   return postTypeImageUrl(image);
 }
 
-function calculateRoutePrice() {
-  const car = postStore.selectedCar;
-  if (!car?.cost_per_km || !routeInfo.value?.distance) return 0;
-  const dist = parseFloat(String(routeInfo.value.distance).replace(',', '.')) || 0;
-  return car.cost_per_km * dist;
+/** Tek araç için sabit fiyat: 30 km üstünde km başı ücret, altında aracın başlangıç fiyatı */
+function carFixedPrice(car) {
+  const dist = parseFloat(String(routeInfo.value?.distance ?? '').replace(',', '.')) || 0;
+  if (dist > 30 && car?.cost_per_km) return car.cost_per_km * dist;
+  return Number(car?.price) || 0;
 }
+
+/** Birden fazla araç seçildiyse hepsinin kabul edebileceği fiyat: en yüksek olanı */
+const fixedPrice = computed(() =>
+  selectedCars.value.reduce((max, s) => Math.max(max, carFixedPrice(s.car)), 0)
+);
 
 function formatPrice(value) {
   if (value == null || isNaN(value)) return '0';
@@ -1095,7 +1211,7 @@ watch(
 
 const canGoNext = computed(() => {
   if (page.value === 1) {
-    return !!postStore.selectedCar;
+    return selectedCars.value.length > 0;
   }
   if (page.value === 2) {
     const w = String(weightValue.value ?? '').trim();
@@ -1140,14 +1256,26 @@ const publishActionButtonClass = computed(() => {
   return 'cursor-pointer rounded-lg border-2 border-primary text-primary font-medium hover:bg-primary hover:text-white px-4 sm:px-5 py-2';
 });
 
+/** Varyant listesini API'nin beklediği "id1,id2" / "ad1,ad2" biçimine çevirir */
+function joinDetails(details) {
+  if (!details?.length) return {};
+  return {
+    id: details.map((d) => d.id).join(','),
+    name: details.map((d) => d.name).join(','),
+  };
+}
+
 function getShipmentFormData() {
-  const car = postStore.selectedCar;
-  const dist = routeInfo.value?.distance ? parseFloat(String(routeInfo.value.distance).replace(',', '.')) : 0;
-  const price = car?.cost_per_km && dist ? car.cost_per_km * dist : car?.price ?? 0;
+  const first = selectedCars.value[0];
   return {
     user: authUser.value ? { ...authUser.value } : null,
-    selectedCar: car,
-    selectedDetailValues: { ...postStore.selectedDetailValues },
+    /** Tüm seçili araçlar; ilk eleman ilanın ana aracıdır */
+    selectedCars: selectedCars.value.map((s) => {
+      const d = joinDetails(s.details);
+      return { id: s.car.id, name: s.car.name, detail_id: d.id, detail_name: d.name };
+    }),
+    selectedCar: first?.car ?? null,
+    selectedDetailValues: joinDetails(first?.details),
     selectedPostType: postStore.selectedPostType,
     /** Ağırlık: değer + birim (kg/ton) */
     weight: parseWeightToRaw(weightValue.value) || undefined,
@@ -1164,7 +1292,7 @@ function getShipmentFormData() {
     shipment_date: departureDateEnabled.value ? formatDateToYYYYMMDD(shipment_date.value) ?? undefined : undefined,
     routeInfo: routeInfo.value,
     selectedPriceType: selectedPriceType.value,
-    calculatedPrice: price,
+    calculatedPrice: fixedPrice.value,
     call_verify: canContactByCall.value,
     explanation: explanation.value.trim() || undefined,
   };
@@ -1178,15 +1306,97 @@ async function handlePublishOrNext() {
     }
     publishLoading.value = true;
     const formData = getShipmentFormData();
-    await shipmentsStore.logShipmentFormData(formData);
+    const ok = await shipmentsStore.logShipmentFormData(formData);
     publishLoading.value = false;
+    if (ok) postStore.closeCreateModal();
   } else {
     postStore.nextPage();
   }
 }
 
+const confirmCloseOpen = ref(false);
+const confirmStayRef = ref(null);
+
+/** Seçim yapıldıysa yanlışlıkla kapatmaya karşı onay iste */
+async function requestClose() {
+  if (publishLoading.value) return;
+  const hasProgress = selectedCars.value.length > 0 || page.value > 1;
+  if (!hasProgress) {
+    postStore.closeCreateModal();
+    return;
+  }
+  confirmCloseOpen.value = true;
+  await nextTick();
+  confirmStayRef.value?.focus();
+}
+
+function onKeydown(event) {
+  if (event.key !== 'Escape' || addressesModalOpen.value) return;
+  if (confirmCloseOpen.value) confirmCloseOpen.value = false;
+  else requestClose();
+}
+
+watch(page, async () => {
+  await nextTick();
+  stepBodyRef.value?.scrollTo({ top: 0 });
+});
+
+let previousBodyOverflow = '';
 onMounted(() => {
   postStore.resetPage();
+  previousBodyOverflow = document.body.style.overflow;
+  document.body.style.overflow = 'hidden';
+  window.addEventListener('keydown', onKeydown);
+});
+
+onBeforeUnmount(() => {
+  document.body.style.overflow = previousBodyOverflow;
+  window.removeEventListener('keydown', onKeydown);
 });
 
 </script>
+
+<style scoped>
+.create-post-enter-active,
+.create-post-leave-active {
+  transition: opacity 0.2s ease;
+}
+.create-post-enter-active .create-post-panel,
+.create-post-leave-active .create-post-panel {
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+.create-post-enter-from,
+.create-post-leave-to {
+  opacity: 0;
+}
+.confirm-close-enter-active,
+.confirm-close-leave-active {
+  transition: opacity 0.2s ease;
+}
+.confirm-close-enter-active .confirm-close-card,
+.confirm-close-leave-active .confirm-close-card {
+  transition: transform 0.2s ease;
+}
+.confirm-close-enter-from,
+.confirm-close-leave-to {
+  opacity: 0;
+}
+.confirm-close-enter-from .confirm-close-card,
+.confirm-close-leave-to .confirm-close-card {
+  transform: scale(0.95);
+}
+.cart-panel-enter-active,
+.cart-panel-leave-active {
+  transition: opacity 0.25s ease, transform 0.3s ease;
+}
+.cart-panel-enter-from,
+.cart-panel-leave-to {
+  opacity: 0;
+  transform: translateX(24px);
+}
+.create-post-enter-from .create-post-panel,
+.create-post-leave-to .create-post-panel {
+  transform: translateY(16px) scale(0.98);
+  opacity: 0;
+}
+</style>

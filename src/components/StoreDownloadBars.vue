@@ -140,8 +140,8 @@ const useBadges = computed(() => props.variant === 'brand');
 }
 
 .store-bar--light:hover {
-    border-color: rgba(57, 131, 140, 0.45);
-    background-color: rgba(57, 131, 140, 0.06);
+    border-color: rgba(0, 160, 174, 0.45);
+    background-color: rgba(0, 160, 174, 0.06);
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 

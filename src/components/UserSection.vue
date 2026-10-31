@@ -32,7 +32,7 @@ const useStatusValue = ref(null);
 const userImage = ref(null);
 
 function buildFallbackAvatar(name) {
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name || '?')}&background=39838C&color=fff`;
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name || '?')}&background=00A0AE&color=fff`;
 }
 
 function syncUserImage() {

@@ -324,15 +324,15 @@ function stopHeroStatsAnimation() {
 
             <div class="flex flex-wrap justify-center gap-6 md:gap-10">
                 <div class="flex flex-col gap-2 text-center">
-                    <h3 class="text-2xl md:text-4xl font-bold tabular-nums">{{ statPercent }}%</h3>
+                    <h3 class="text-2xl md:text-4xl font-bold tabular-nums text-secondary">{{ statPercent }}%</h3>
                     <p class="text-xs md:text-sm text-gray-600">Daha ucuz</p>
                 </div>
                 <div class="flex flex-col gap-2 text-center">
-                    <h3 class="text-2xl md:text-4xl font-bold tabular-nums">{{ statMultiplier.toFixed(1) }}X</h3>
+                    <h3 class="text-2xl md:text-4xl font-bold tabular-nums text-secondary">{{ statMultiplier.toFixed(1) }}X</h3>
                     <p class="text-xs md:text-sm text-gray-600">Fazla sonuç alma</p>
                 </div>
                 <div class="flex flex-col gap-2 text-center">
-                    <h3 class="text-2xl md:text-4xl font-bold tabular-nums">{{ statReviews }}+</h3>
+                    <h3 class="text-2xl md:text-4xl font-bold tabular-nums text-secondary">{{ statReviews }}+</h3>
                     <p class="text-xs md:text-sm text-gray-600">Pozitif yorum</p>
                 </div>
             </div>

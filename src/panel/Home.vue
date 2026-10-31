@@ -1,6 +1,13 @@
 <template>
     <div class="h-screen overflow-hidden flex flex-col">
         <Header />
+        <!-- Yük sahibine panelde ilan listelenmez: yalnızca şu anki işler -->
+        <div v-if="isCargoOwner" class="flex-1 min-h-0 overflow-y-auto bg-gray-50">
+            <Content class="py-5 sm:py-8">
+                <ActiveRoutesCarousel />
+            </Content>
+        </div>
+        <template v-else>
         <!-- Arama Alanı (responsive) -->
         <div class="w-full bg-white border-b border-gray-200 py-2 sm:py-2 flex flex-col items-center shrink-0 relative " ref="searchBarRef">
             <div class="w-full flex flex-col max-w-[1200px] mx-auto px-3 sm:px-4 relative">
@@ -920,6 +927,7 @@
             :callbacks="panelTourCallbacks"
             :options="panelTourOptions"
         />
+        </template>
 
     </div>
     </template>
@@ -932,6 +940,7 @@ import { storeToRefs } from 'pinia';
 import Content from '@/components/Content.vue';
 import Header from '@/components/Header.vue';
 import Product from '@/components/Product.vue';
+import ActiveRoutesCarousel from '@/components/ActiveRoutesCarousel.vue';
 import { DatePicker } from 'primevue';
 import { ArrowLeftRight, ChevronDown, MapPin } from 'lucide-vue-next';
 import api from '@/api';
@@ -1754,6 +1763,8 @@ onMounted(async () => {
     document.addEventListener('click', handleClickOutside);
     window.addEventListener('resize', updateTourBreakpoint);
     updateTourBreakpoint();
+    // Yük sahibine panelde ilan gösterilmiyor; liste, konum ve tur gerekmez
+    if (isCargoOwner.value) return;
     const initialPage = parseInt(route.query.page) || 1;
     shipmentsStore.fetchShipments({ initialPage });
     fetchCities().then(setDefaultLocations);

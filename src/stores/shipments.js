@@ -156,9 +156,11 @@ export const useShipmentsStore = defineStore('shipments', () => {
             } else {
                 router.push('/panel')
             }
+            return true
         } catch (error) {
             console.log(error)
-            toast.error('İlan oluşturulurken bir hata oluştu', { duration: 5000 })
+            toast.error(error?.response?.data?.message ?? 'İlan oluşturulurken bir hata oluştu', { duration: 5000 })
+            return false
         }
     }
 

@@ -1,6 +1,7 @@
 import { createMemoryHistory, createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "./stores/auth";
 import { useAdminStore } from "./stores/admin";
+import { usePostStore } from "./stores/post";
 import Home from "./Home.vue";
 import Layout from "./Layout.vue";
 import HomePanel from "./panel/Home.vue";
@@ -27,7 +28,6 @@ import CallCustomersPage from "./pages/CallCustomersPage.vue";
 import PostDetail from "./posts/Detail.vue";
 import ProductDetailPage from "./pages/ProductDetailPage.vue";
 import NotFound from "./pages/NotFound.vue";
-import CreatePostPage from "./pages/CreatePostPage.vue";
 import BlogPage from "./pages/BlogPage.vue";
 import BlogDetailPage from "./pages/BlogDetailPage.vue";
 import MesafeliSatisSozlesmesiPage from "./pages/MesafeliSatisSozlesmesiPage.vue";
@@ -271,8 +271,9 @@ const routes = [
         }
     },
         {
+        // Sayfa değil: guard ilan oluşturma modalını açar (bkz. beforeEach)
         path: '/cargo-owner/posts/create',
-        component: CreatePostPage,
+        component: CargoOwnerPostsPage,
         meta: {
             layout: Layout,
             title: 'İlan Oluştur',
@@ -620,6 +621,13 @@ router.beforeEach(async (to, from, next) => {
     ) {
         authStore.showPremiumModal = true
         next('/panel')
+        return
+    }
+
+    // İlan oluşturma ayrı sayfa değil, modal: bulunulan sayfada aç; doğrudan girişte İlanlarım'a yönlendir
+    if (to.path === '/cargo-owner/posts/create') {
+        usePostStore().openCreateModal()
+        next(from.matched.length ? false : '/cargo-owner/posts')
         return
     }
 

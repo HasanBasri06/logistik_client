@@ -146,16 +146,33 @@
                 >
                     <div class="flex flex-col gap-4">
                         <div class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden p-5">
-                            <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Araç</p>
-                            <div class="flex flex-col items-center gap-3">
+                            <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">
+                                {{ vehicles.length > 1 ? `Araçlar (${vehicles.length})` : 'Araç' }}
+                            </p>
+                            <div v-if="vehicles.length > 1" class="grid grid-cols-2 gap-2">
+                                <div
+                                    v-for="v in vehicles"
+                                    :key="v.id"
+                                    class="flex flex-col items-center gap-1.5 rounded-xl border border-gray-100 bg-gray-50/60 p-2.5"
+                                >
+                                    <img
+                                        v-if="v.image"
+                                        :src="v.image"
+                                        :alt="v.label"
+                                        class="w-full h-14 object-contain"
+                                    />
+                                    <span class="text-xs font-semibold text-gray-900 text-center leading-snug">{{ v.label }}</span>
+                                </div>
+                            </div>
+                            <div v-else class="flex flex-col items-center gap-3">
                                 <img
-                                    v-if="vehicleImageUrl"
-                                    :src="vehicleImageUrl"
+                                    v-if="vehicles[0]?.image"
+                                    :src="vehicles[0].image"
                                     :alt="vehicleLabel || 'Araç'"
                                     class="w-full max-w-36 h-24 object-contain rounded-xl"
                                 />
                                 <span v-if="vehicleLabel" class="text-sm font-semibold text-gray-900 text-center">{{ vehicleLabel }}</span>
-                                <span v-else-if="!vehicleImageUrl" class="text-sm text-gray-400">—</span>
+                                <span v-else class="text-sm text-gray-400">—</span>
                             </div>
                         </div>
 
@@ -433,7 +450,7 @@ import {
 import { useLocationStore } from '@/stores/location';
 import { storeToRefs } from 'pinia';
 import { MESSAGE_MAX_LENGTH } from '@/lib/message-limits';
-import { vehicleImageUrl as catalogVehicleImageUrl } from '@/lib/catalog-assets';
+import { shipmentVehicles } from '@/lib/shipment-vehicles';
 
 const route = useRoute();
 const router = useRouter();
@@ -575,13 +592,9 @@ const routeTo = computed(() => {
     const parts = [s.t_where_city, s.t_where_district].filter(Boolean);
     return parts.length ? parts.join(' / ') : '—';
 });
-const vehicleLabel = computed(() => {
-    const s = shipment.value;
-    const car = s?.car;
-    const detail = s?.get_car_detail ?? s?.getCarDetail;
-    if (!car?.name) return detail?.value ?? null;
-    return detail?.value ? `${car.name} / ${detail.value}` : car.name;
-});
+/** İlanın tüm araçları (birden fazla seçilebilir) */
+const vehicles = computed(() => shipmentVehicles(shipment.value));
+const vehicleLabel = computed(() => vehicles.value.map((v) => v.label).join(', ') || null);
 const weightDisplay = computed(() => {
     const w = shipment.value?.weight;
     return w ? String(w).trim() : null;
@@ -610,15 +623,6 @@ const explanationText = computed(() => {
     return ex != null && String(ex).trim() ? String(ex).trim() : '';
 });
 
-function getCarImageUrl(image) {
-    return catalogVehicleImageUrl(image);
-}
-const vehicleImageUrl = computed(() => {
-    const car = shipment.value?.car;
-    const detail = shipment.value?.get_car_detail ?? shipment.value?.getCarDetail;
-    const image = detail?.image ?? car?.image;
-    return getCarImageUrl(image) || '';
-});
 
 const closeUsersList = ref([]);
 const closeUsersLoading = ref(false);
