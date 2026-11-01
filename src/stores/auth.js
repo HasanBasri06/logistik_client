@@ -159,6 +159,61 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
+    /**
+     * Google ile giriş (`POST /auth/google`). Hesap varsa oturum açar; yoksa
+     * `needRegistration` döner ve telefon + hesap tipi istenir (`googleRegister`).
+     */
+    const googleLogin = async (idToken) => {
+        try {
+            localStorage.removeItem('token')
+            localStorage.removeItem('user')
+            delete api.defaults.headers.common['Authorization']
+
+            const response = await api.post('/auth/google', { id_token: idToken })
+            const content = response.data?.content ?? {}
+            if (content.need_registration) {
+                return {
+                    success: false,
+                    needRegistration: true,
+                    profile: { firstName: content.first_name ?? '', lastName: content.last_name ?? '', email: content.email ?? '' },
+                }
+            }
+            if (content.token) {
+                setToken(content.token)
+                setUser({ type: content.type })
+                api.defaults.headers.common['Authorization'] = `Bearer ${content.token}`
+                return { success: true }
+            }
+            throw new Error('Token bulunamadı')
+        } catch (error) {
+            const content = error.response?.data?.content
+            const message = error.response?.data?.message || error.message
+            if (content?.account_inactive) return { success: false, accountInactive: true, error: message }
+            if (error.response?.status === 403 && content?.need_otp) {
+                return { success: false, needOtp: true, email: content.email ?? content.phone, error: message }
+            }
+            return { success: false, error: message }
+        }
+    }
+
+    /** Google ile yeni kayıt: telefon + hesap tipi → SMS doğrulama (`need_otp`) */
+    const googleRegister = async (idToken, phone, type) => {
+        try {
+            const response = await api.post('/auth/google/register', { id_token: idToken, phone, type })
+            const content = response.data?.content ?? {}
+            if (content.need_otp) return { success: true, needOtp: true, email: content.email ?? content.phone ?? phone }
+            throw new Error('Beklenmeyen yanıt')
+        } catch (error) {
+            const body = error.response?.data
+            return {
+                success: false,
+                expired: error.response?.status === 401,
+                error: body?.message || error.message,
+                phoneError: body?.errors?.phone?.[0] ?? body?.error?.phone?.[0] ?? '',
+            }
+        }
+    }
+
     /** Giriş/kayıt OTP ekranı: yanlış telefonu günceller, yeni SMS gönderir (token gerekmez). */
     const changePhonePending = async (currentPhone, newPhone) => {
         try {
@@ -191,12 +246,9 @@ export const useAuthStore = defineStore('auth', () => {
         return u.payment_confirm !== 0 && u.payment_confirm !== false
     })
 
+    /** Eski adıyla korunuyor: giriş artık ayrı sayfa (`/giris`) */
     const openLoginModal = () => {
-        if (isAuthenticated.value) {
-            router.push('/panel')
-            return
-        }
-        requestShowLoginModal.value = true
+        router.push(isAuthenticated.value ? '/panel' : '/giris')
     }
 
     const logout = () => {
@@ -278,6 +330,8 @@ export const useAuthStore = defineStore('auth', () => {
         verifyOtp,
         resendOtp,
         changePhonePending,
+        googleLogin,
+        googleRegister,
         logout,
         checkToken,
         refreshUser

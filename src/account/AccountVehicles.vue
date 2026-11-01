@@ -279,6 +279,62 @@
                     </div>
                 </div>
                 
+                <!-- Yük kapasitesi (zorunlu) -->
+                <div class="px-6 pt-5">
+                    <div class="mb-1 flex items-center gap-1.5">
+                        <span class="text-sm font-medium text-gray-700">Yük kapasitesi <span class="text-red-500">*</span></span>
+                        <span class="group relative inline-flex">
+                            <button
+                                type="button"
+                                class="flex h-5 w-5 items-center justify-center rounded-full text-gray-400 hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                                aria-label="Bu bilgiyi neden istiyoruz?"
+                                aria-describedby="capacity-tooltip"
+                            >
+                                <i class="pi pi-question-circle" style="font-size: 15px;"></i>
+                            </button>
+                            <span
+                                id="capacity-tooltip"
+                                role="tooltip"
+                                class="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 w-64 -translate-x-1/2 rounded-lg bg-gray-900 px-3 py-2 text-xs leading-relaxed text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100 group-focus-within:opacity-100"
+                            >
+                                Aracınızın ne kadar yük taşıyabileceğini bilmek, size uygun ilanları göstermemizi ve parça yüklerde doğru eşleştirmeyi yapmamızı sağlar.
+                            </span>
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <div :class="['flex items-center rounded-lg border pr-3 focus-within:ring-2 focus-within:ring-primary/50 focus-within:border-primary', capacityError ? 'border-red-400 bg-red-50/50' : 'border-gray-300']">
+                                <input
+                                    v-model="capacityKg"
+                                    type="text"
+                                    inputmode="numeric"
+                                    placeholder="24000"
+                                    aria-label="Taşıma kapasitesi (kg)"
+                                    class="w-full min-w-0 bg-transparent px-4 py-2 focus:outline-none"
+                                    @input="capacityKg = $event.target.value.replace(/\D/g, '').slice(0, 5)"
+                                />
+                                <span class="text-sm font-semibold text-gray-500">kg</span>
+                            </div>
+                            <p v-if="capacityError" class="mt-1 text-xs text-red-500">{{ capacityError }}</p>
+                        </div>
+                        <div>
+                            <div :class="['flex items-center rounded-lg border pr-3 focus-within:ring-2 focus-within:ring-primary/50 focus-within:border-primary', volumeError ? 'border-red-400 bg-red-50/50' : 'border-gray-300']">
+                                <input
+                                    v-model="volumeM3"
+                                    type="text"
+                                    inputmode="decimal"
+                                    placeholder="90"
+                                    aria-label="Yük hacmi (m³)"
+                                    class="w-full min-w-0 bg-transparent px-4 py-2 focus:outline-none"
+                                    @input="volumeM3 = $event.target.value.replace(/[^\d.,]/g, '').slice(0, 6)"
+                                />
+                                <span class="text-sm font-semibold text-gray-500">m³</span>
+                            </div>
+                            <p v-if="volumeError" class="mt-1 text-xs text-red-500">{{ volumeError }}</p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Modal Footer - Plaka (sol) | İptal + Ekle (sağ) -->
                 <div class="flex justify-between items-center gap-4 p-6 border-t border-gray-200">
                     <div class="flex-1 min-w-0 max-w-xs">
@@ -489,6 +545,11 @@ const selectedCar = ref(null);
 const selectedDetailId = ref(null);
 const plaka = ref('');
 const plakaError = ref('');
+/** Aracın taşıyabileceği yük (kg) ve hacmi (m³) — zorunlu */
+const capacityKg = ref('');
+const volumeM3 = ref('');
+const capacityError = ref('');
+const volumeError = ref('');
 
 const vehicleImage1File = ref(null);
 const vehicleImage2File = ref(null);
@@ -641,6 +702,10 @@ const closeAddVehicleModal = () => {
     selectedDetailId.value = null;
     plaka.value = '';
     plakaError.value = '';
+    capacityKg.value = '';
+    volumeM3.value = '';
+    capacityError.value = '';
+    volumeError.value = '';
     carouselPage.value = 0;
     clearVehicleImage(1);
     clearVehicleImage(2);
@@ -649,11 +714,12 @@ const closeAddVehicleModal = () => {
 async function saveVehicle() {
     const car = selectedCar.value;
     if (!car?.id) return;
-    if (!plaka.value?.trim()) {
-        plakaError.value = 'Plaka zorunludur.';
-        return;
-    }
-    plakaError.value = '';
+    plakaError.value = plaka.value?.trim() ? '' : 'Plaka zorunludur.';
+    const kg = parseInt(String(capacityKg.value).replace(/\D/g, ''), 10);
+    capacityError.value = Number.isFinite(kg) && kg >= 1 && kg <= 60000 ? '' : '1–60.000 kg arasında girin.';
+    const m3 = parseFloat(String(volumeM3.value).replace(',', '.'));
+    volumeError.value = Number.isFinite(m3) && m3 >= 0.1 && m3 <= 200 ? '' : '0,1–200 m³ arasında girin.';
+    if (plakaError.value || capacityError.value || volumeError.value) return;
     addVehicleLoading.value = true;
     try {
         await createUserCar(
@@ -661,14 +727,21 @@ async function saveVehicle() {
                 car_id: car.id,
                 car_detail_id: selectedDetailId.value || null,
                 plaka: plaka.value.trim(),
+                capacity_kg: kg,
+                volume_m3: Math.round(m3 * 100) / 100,
             },
             [vehicleImage1File.value, vehicleImage2File.value]
         );
         closeAddVehicleModal();
         await fetchMyCars();
     } catch (err) {
-        const msg = err.response?.data?.message || err.response?.data?.error?.plaka?.[0] || 'Araç eklenirken hata oluştu.';
-        plakaError.value = typeof msg === 'string' ? msg : 'Plaka zorunludur.';
+        const fieldErrors = err.response?.data?.errors ?? err.response?.data?.error ?? {};
+        if (fieldErrors.capacity_kg?.[0]) capacityError.value = fieldErrors.capacity_kg[0];
+        if (fieldErrors.volume_m3?.[0]) volumeError.value = fieldErrors.volume_m3[0];
+        if (!capacityError.value && !volumeError.value) {
+            const msg = fieldErrors.plaka?.[0] || err.response?.data?.message || 'Araç eklenirken hata oluştu.';
+            plakaError.value = typeof msg === 'string' ? msg : 'Plaka zorunludur.';
+        }
         console.error(err);
     } finally {
         addVehicleLoading.value = false;

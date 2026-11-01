@@ -10,9 +10,31 @@
                         v-if="!loading && !error && shipment && authStore.isAuthenticated"
                         class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden"
                     >
-                        <div class="px-5 py-4 border-b border-gray-100 bg-gray-50/80">
-                            <h2 class="text-base font-semibold text-gray-900">Yakındaki Sürücüler</h2>
-                            <p class="text-xs text-gray-500 mt-0.5">Konum paylaştığınızda size yakın sürücüler listelenir.</p>
+                        <div class="px-5 py-4 border-b border-gray-100 bg-gray-50/80 flex items-center justify-between gap-3">
+                            <div class="min-w-0">
+                                <h2 class="text-base font-semibold text-gray-900">Yakındaki Sürücüler</h2>
+                                <p class="text-xs text-gray-500 mt-0.5">Konum paylaştığınızda size yakın sürücüler listelenir.</p>
+                            </div>
+                            <div v-if="driverPageCount > 1" class="flex shrink-0 items-center gap-2">
+                                <button
+                                    type="button"
+                                    class="flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 transition-colors hover:border-primary hover:text-primary disabled:opacity-40 disabled:pointer-events-none"
+                                    :disabled="driverPage === 0"
+                                    aria-label="Önceki sürücüler"
+                                    @click="scrollDrivers(-1)"
+                                >
+                                    <i class="pi pi-chevron-left" style="font-size: 12px;"></i>
+                                </button>
+                                <button
+                                    type="button"
+                                    class="flex h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 transition-colors hover:border-primary hover:text-primary disabled:opacity-40 disabled:pointer-events-none"
+                                    :disabled="driverPage >= driverPageCount - 1"
+                                    aria-label="Sonraki sürücüler"
+                                    @click="scrollDrivers(1)"
+                                >
+                                    <i class="pi pi-chevron-right" style="font-size: 12px;"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="p-5">
                             <template v-if="closeUsersLoading">
@@ -24,11 +46,23 @@
                             <template v-else-if="closeUsersList.length === 0">
                                 <p class="text-sm text-gray-500">Henüz yakın sürücü bilgisi yok.</p>
                             </template>
-                            <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div
+                                v-else
+                                ref="driverTrackRef"
+                                class="driver-track flex gap-3 overflow-x-auto snap-x snap-mandatory scroll-smooth select-none"
+                                :class="driverDragging ? 'cursor-grabbing snap-none! scroll-auto!' : 'cursor-grab'"
+                                @scroll.passive="onDriverScroll"
+                                @pointerdown="onDriverPointerDown"
+                                @pointermove="onDriverPointerMove"
+                                @pointerup="onDriverPointerUp"
+                                @pointercancel="onDriverPointerUp"
+                                @pointerleave="onDriverPointerUp"
+                                @click.capture="onDriverClickCapture"
+                            >
                                 <div
                                     v-for="u in closeUsersList"
                                     :key="u.id"
-                                    class="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/50 p-4 hover:border-primary/30 hover:bg-primary/5 transition-colors"
+                                    class="snap-start shrink-0 w-full sm:w-[calc((100%-0.75rem)/2)] flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/50 p-4 hover:border-primary/30 hover:bg-primary/5 transition-colors"
                                 >
                                     <span
                                         class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/15 text-sm font-semibold text-primary"
@@ -62,6 +96,17 @@
                                         <i class="pi pi-comments text-base"></i>
                                     </button>
                                 </div>
+                            </div>
+                            <div v-if="!closeUsersLoading && driverPageCount > 1" class="mt-4 flex justify-center gap-1.5">
+                                <button
+                                    v-for="i in driverPageCount"
+                                    :key="i"
+                                    type="button"
+                                    class="h-2 rounded-full transition-all"
+                                    :class="i - 1 === driverPage ? 'w-6 bg-primary' : 'w-2 bg-gray-300 hover:bg-gray-400'"
+                                    :aria-label="`${i}. sürücü sayfası`"
+                                    @click="scrollDriversTo(i - 1)"
+                                />
                             </div>
                         </div>
                     </section>
@@ -437,7 +482,7 @@
 import Header from '@/components/Header.vue';
 import Content from '@/components/Content.vue';
 import RequestCard from '@/components/RequestCard.vue';
-import { onMounted, ref, computed, watch, nextTick } from 'vue';
+import { onMounted, onBeforeUnmount, ref, computed, watch, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import api from '@/api';
 import { useMessageStore } from '@/stores/message';
@@ -627,6 +672,101 @@ const explanationText = computed(() => {
 const closeUsersList = ref([]);
 const closeUsersLoading = ref(false);
 
+/** Yakındaki sürücüler karuseli: dar ekranda 1, sm+ 2 kart; ok, nokta ve sürükleme ile kayar */
+const driverTrackRef = ref(null);
+const driverPage = ref(0);
+const driverPerView = ref(1);
+const driverDragging = ref(false);
+let driverDrag = null;
+let driverDragMoved = false;
+let driverMedia = null;
+
+const driverPageCount = computed(() =>
+    Math.max(1, closeUsersList.value.length - driverPerView.value + 1)
+);
+
+function driverStep() {
+    const track = driverTrackRef.value;
+    const card = track?.firstElementChild;
+    if (!card) return 0;
+    return card.getBoundingClientRect().width + 12;
+}
+
+function scrollDriversTo(index) {
+    const track = driverTrackRef.value;
+    const step = driverStep();
+    if (!track || !step) return;
+    const target = Math.min(Math.max(index, 0), driverPageCount.value - 1);
+    track.scrollTo({ left: target * step, behavior: 'smooth' });
+}
+
+function scrollDrivers(dir) {
+    scrollDriversTo(driverPage.value + dir);
+}
+
+function onDriverScroll() {
+    const track = driverTrackRef.value;
+    const step = driverStep();
+    if (!track || !step) return;
+    driverPage.value = Math.min(Math.round(track.scrollLeft / step), driverPageCount.value - 1);
+}
+
+function onDriverPointerDown(e) {
+    if (e.pointerType !== 'mouse' || e.button !== 0) return;
+    const track = driverTrackRef.value;
+    if (!track) return;
+    driverDrag = { x: e.clientX, left: track.scrollLeft, id: e.pointerId };
+    driverDragMoved = false;
+}
+
+function onDriverPointerMove(e) {
+    if (!driverDrag) return;
+    const dx = e.clientX - driverDrag.x;
+    if (!driverDragMoved && Math.abs(dx) < 5) return;
+    if (!driverDragMoved) {
+        driverDragMoved = true;
+        driverDragging.value = true;
+        driverTrackRef.value?.setPointerCapture?.(driverDrag.id);
+    }
+    driverTrackRef.value.scrollLeft = driverDrag.left - dx;
+}
+
+function onDriverPointerUp() {
+    if (!driverDrag) return;
+    driverDrag = null;
+    if (!driverDragging.value) return;
+    driverDragging.value = false;
+    nextTick(() => scrollDriversTo(driverPage.value));
+}
+
+/** Sürükleme sonrası bırakılan kartın butonuna tıklanmış sayılmasın */
+function onDriverClickCapture(e) {
+    if (!driverDragMoved) return;
+    driverDragMoved = false;
+    e.stopPropagation();
+    e.preventDefault();
+}
+
+function updateDriverPerView() {
+    driverPerView.value = driverMedia?.matches ? 2 : 1;
+    nextTick(onDriverScroll);
+}
+
+onMounted(() => {
+    driverMedia = window.matchMedia('(min-width: 640px)');
+    updateDriverPerView();
+    driverMedia.addEventListener('change', updateDriverPerView);
+});
+
+onBeforeUnmount(() => {
+    driverMedia?.removeEventListener('change', updateDriverPerView);
+});
+
+watch(closeUsersList, () => {
+    driverPage.value = 0;
+    nextTick(() => driverTrackRef.value?.scrollTo({ left: 0 }));
+});
+
 async function geocodeCityDistrict(city, district) {
     if (!city && !district) return null;
     const q = [city, district, 'Türkiye'].filter(Boolean).join(', ');
@@ -797,3 +937,12 @@ watch(slug, async () => {
     if (authStore.isAuthenticated) fetchCloseUsers();
 });
 </script>
+
+<style scoped>
+.driver-track {
+    scrollbar-width: none;
+}
+.driver-track::-webkit-scrollbar {
+    display: none;
+}
+</style>

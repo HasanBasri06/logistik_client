@@ -57,6 +57,18 @@
                         <span>Tüm Araçlarım</span>
                     </router-link>
                 </li>
+                <li>
+                    <router-link
+                        to="/vehicle-owner/load-alarms"
+                        :class="[
+                            'h-8 flex items-center px-3 rounded-md cursor-pointer',
+                            $route.path.startsWith('/vehicle-owner/load-alarms') ? 'bg-primary/10 font-medium' : 'text-gray-800'
+                        ]"
+                    >
+                        <i class="pi pi-bell mr-2 text-primary" style="font-size: 14px;"></i>
+                        <span>Yük Alarmı</span>
+                    </router-link>
+                </li>
             </ul>
         </div>
         <div class="w-full h-auto pb-3 rounded-md border border-gray-200 text-gray-800 bg-white">

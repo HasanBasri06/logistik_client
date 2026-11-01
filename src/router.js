@@ -13,6 +13,8 @@ import AccountOrdersPage from "./pages/AccountOrdersPage.vue";
 import AccountReviewsPage from "./pages/AccountReviewsPage.vue";
 import AccountMessagesPage from "./pages/AccountMessagesPage.vue";
 import AccountVehiclesPage from "./pages/AccountVehiclesPage.vue";
+import LoadAlarmsPage from "./pages/LoadAlarmsPage.vue";
+import LoadAlarmCreatePage from "./pages/LoadAlarmCreatePage.vue";
 import AccountChangePasswordPage from "./pages/AccountChangePasswordPage.vue";
 import VehicleOwnerSettingsPage from "./pages/VehicleOwnerSettingsPage.vue";
 import AccountVerifyPage from "./pages/AccountVerifyPage.vue";
@@ -38,6 +40,10 @@ import IptalVeIadeKosullariPage from "./pages/IptalVeIadeKosullariPage.vue";
 import PaytrPaymentOkPage from "./pages/PaytrPaymentOkPage.vue";
 import PaytrPaymentFailPage from "./pages/PaytrPaymentFailPage.vue";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage.vue";
+import LoginPage from "./pages/auth/LoginPage.vue";
+import RegisterPage from "./pages/auth/RegisterPage.vue";
+import VerifyPhonePage from "./pages/auth/VerifyPhonePage.vue";
+import RegisterGooglePage from "./pages/auth/RegisterGooglePage.vue";
 import BeunAdminPage from "./panel/admin/Beun.vue";
 import AdminLayout from "./panel/admin/AdminLayout.vue";
 import BeunAdminMainPage from "./panel/admin/BeunMain.vue";
@@ -187,6 +193,26 @@ const routes = [
         meta: {
             layout: Layout,
             title: 'Tüm Araçlarım',
+            requiresAuth: true,
+            authorization: 'vehicle_owner'
+        }
+    },
+    {
+        path: '/vehicle-owner/load-alarms',
+        component: LoadAlarmsPage,
+        meta: {
+            layout: Layout,
+            title: 'Yük Alarmı',
+            requiresAuth: true,
+            authorization: 'vehicle_owner'
+        }
+    },
+    {
+        path: '/vehicle-owner/load-alarms/create',
+        component: LoadAlarmCreatePage,
+        meta: {
+            layout: Layout,
+            title: 'Yeni Yük Alarmı',
             requiresAuth: true,
             authorization: 'vehicle_owner'
         }
@@ -393,6 +419,26 @@ const routes = [
         }
     },
     {
+        path: '/giris',
+        component: LoginPage,
+        meta: { title: 'Giriş Yap', requiresAuth: false }
+    },
+    {
+        path: '/kayit-ol',
+        component: RegisterPage,
+        meta: { title: 'Kayıt Ol', requiresAuth: false }
+    },
+    {
+        path: '/telefon-dogrula',
+        component: VerifyPhonePage,
+        meta: { title: 'Telefon Doğrulama', requiresAuth: false }
+    },
+    {
+        path: '/kayit-tamamla',
+        component: RegisterGooglePage,
+        meta: { title: 'Kaydı Tamamla', requiresAuth: false }
+    },
+    {
         path: '/panel/admin/beun',
         component: BeunAdminPage,
         meta: {
@@ -593,7 +639,7 @@ router.beforeEach(async (to, from, next) => {
     }
     
     // Eğer kullanıcı authenticated ise giriş/kayıt sayfalarına gitmesin → /panel
-    const guestOnlyPaths = ['/', '/sifremi-unuttum']
+    const guestOnlyPaths = ['/', '/sifremi-unuttum', '/giris', '/kayit-ol', '/telefon-dogrula', '/kayit-tamamla']
     if (userToken && guestOnlyPaths.includes(to.path)) {
         const isValid = await authStore.checkToken()
         if (isValid) {

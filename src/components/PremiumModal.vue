@@ -37,16 +37,20 @@
                         </div>
 
                         <!-- Step 1: Plan selection -->
-                        <div v-if="step === 1" class="grid grid-cols-2 auto-rows-fr gap-2 sm:gap-3 items-stretch">
-                            <button
+                        <div v-if="step === 1" class="grid grid-cols-2 gap-2 sm:gap-3 items-stretch">
+                            <div
                                 v-for="plan in plans"
                                 :key="plan.id"
-                                type="button"
-                                class="relative min-h-[168px] sm:h-[225px] flex flex-col items-start justify-between p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border-2 transition-all text-left shadow-sm"
+                                role="button"
+                                tabindex="0"
+                                :aria-pressed="selectedPlan?.id === plan.id"
+                                class="relative min-h-[168px] sm:min-h-[225px] flex flex-col items-start justify-between p-2.5 sm:p-4 rounded-xl sm:rounded-2xl border-2 transition-all text-left shadow-sm cursor-pointer"
                                 :class="selectedPlan?.id === plan.id
                                     ? 'border-primary bg-primary/10 ring-2 ring-primary/20'
                                     : 'border-gray-200 bg-white hover:border-primary/40 hover:bg-primary/5 hover:shadow-md'"
                                 @click="selectPlan(plan)"
+                                @keydown.enter.prevent="selectPlan(plan)"
+                                @keydown.space.prevent="selectPlan(plan)"
                             >
                                 <div
                                     v-if="plan.badge"
@@ -76,7 +80,8 @@
                                         İndirim: {{ plan.discountAmount }} ({{ plan.discountRate }})
                                     </div>
                                 </div>
-                            </button>
+                                <PackageFeaturesDropdown compact class="mt-2" />
+                            </div>
                         </div>
 
                         <!-- Step 2: Payment UI -->
@@ -233,6 +238,7 @@ import { computed, ref } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { storeToRefs } from 'pinia';
 import { usePricingPlansStore } from '@/stores/pricingPlans';
+import PackageFeaturesDropdown from '@/components/PackageFeaturesDropdown.vue';
 import api from '@/api';
 import { toast } from 'vue-sonner';
 

@@ -1,244 +1,123 @@
 <template>
-    <div class="flex flex-col min-h-screen bg-gray-50/50">
-        <Header />
-        <Content class="flex-1 py-10 md:py-14">
-            <div class="max-w-lg mx-auto px-1">
-                <div class="rounded-2xl border border-gray-200 bg-white p-6 md:p-8 shadow-sm">
-                    <div class="text-center mb-8">
-                        <span class="text-xs font-bold uppercase tracking-wider text-primary">Şifremi Unuttum</span>
-                        <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mt-2">Şifre Sıfırlama</h1>
-                        <p class="text-sm text-gray-500 mt-2">{{ stepSubtitle }}</p>
-                    </div>
+    <AuthShell
+        :title="stepTitle"
+        :description="stepSubtitle"
+        :back="currentStep === 2"
+        @back="goBack"
+    >
+        <!-- Adım göstergesi -->
+        <div class="mb-6 flex items-center justify-center gap-2" aria-hidden="true">
+            <span
+                v-for="n in 3"
+                :key="n"
+                class="h-1.5 rounded-full transition-all"
+                :class="currentStep === n ? 'w-8 bg-secondary' : currentStep > n ? 'w-5 bg-primary' : 'w-5 bg-slate-200'"
+            ></span>
+        </div>
 
-                    <div class="flex items-center justify-center gap-2 mb-8">
-                        <div
-                            v-for="n in 3"
-                            :key="n"
-                            class="flex items-center gap-2"
-                        >
-                            <div
-                                :class="[
-                                    'flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold transition-colors',
-                                    currentStep === n
-                                        ? 'bg-primary text-white'
-                                        : currentStep > n
-                                            ? 'bg-primary/15 text-primary'
-                                            : 'bg-gray-100 text-gray-400'
-                                ]"
-                            >
-                                <i v-if="currentStep > n" class="pi pi-check text-xs"></i>
-                                <span v-else>{{ n }}</span>
-                            </div>
-                            <div
-                                v-if="n < 3"
-                                :class="[
-                                    'h-0.5 w-10 sm:w-14 rounded-full transition-colors',
-                                    currentStep > n ? 'bg-primary/40' : 'bg-gray-200'
-                                ]"
-                            ></div>
-                        </div>
-                    </div>
+        <!-- Adım 1: Telefon -->
+        <form v-if="currentStep === 1" class="flex flex-col gap-4" novalidate @submit.prevent="submitPhoneStep">
+            <AuthInput
+                v-model="phoneInput"
+                label="Telefon Numarası"
+                icon="pi pi-phone"
+                prefix="+90"
+                type="tel"
+                inputmode="tel"
+                autocomplete="tel-national"
+                placeholder="5XX XXX XX XX"
+                maxlength="13"
+                :format="formatTrPhoneInput"
+                :disabled="loading"
+                :error="phoneError"
+            />
+            <button
+                type="submit"
+                class="flex h-[52px] items-center justify-center rounded-[14px] bg-primary text-base font-bold text-white transition-colors hover:bg-primary-dark disabled:opacity-60"
+                :disabled="loading"
+            >
+                <i v-if="loading" class="pi pi-spin pi-spinner"></i>
+                <span v-else>Kod Gönder</span>
+            </button>
+        </form>
 
-                    <!-- Adım 1: Telefon -->
-                    <form v-if="currentStep === 1" @submit.prevent="submitPhoneStep" class="flex flex-col gap-5">
-                        <div class="flex flex-col gap-2">
-                            <label class="text-sm font-semibold text-gray-700">Telefon Numarası</label>
-                            <div class="relative">
-                                <InputMask
-                                    type="tel"
-                                    mask="999 999 99 99"
-                                    placeholder="5XX XXX XX XX"
-                                    v-model="phoneInput"
-                                    :class="[
-                                        'w-full h-12 px-4 !pl-12 text-left border-2 rounded-lg placeholder:!text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all',
-                                        phoneError ? 'border-red-400 focus:border-red-500' : 'border-gray-200 focus:border-primary'
-                                    ]"
-                                    :disabled="loading"
-                                    :pt="{ pcInputText: { root: { inputmode: 'text', enterkeyhint: 'done' } } }"
-                                />
-                                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                                    <i class="pi pi-phone text-base"></i>
-                                </span>
-                            </div>
-                            <span v-if="phoneError" class="text-xs text-red-500">{{ phoneError }}</span>
-                            <p class="text-xs text-gray-500">Kayıtlı telefon numaranıza SMS ile doğrulama kodu gönderilecektir.</p>
-                        </div>
-
-                        <button
-                            type="submit"
-                            :disabled="loading"
-                            :class="[
-                                'w-full h-12 rounded-xl font-semibold text-white shadow-lg transition-all',
-                                loading ? 'bg-gray-300 cursor-not-allowed' : 'bg-primary hover:bg-primary/90 hover:shadow-xl'
-                            ]"
-                        >
-                            <span v-if="loading" class="inline-flex items-center gap-2">
-                                <i class="pi pi-spin pi-spinner"></i>
-                                Kod gönderiliyor...
-                            </span>
-                            <span v-else>İleri</span>
-                        </button>
-                    </form>
-
-                    <!-- Adım 2: SMS doğrulama -->
-                    <form v-else-if="currentStep === 2" @submit.prevent="submitOtpStep" class="flex flex-col gap-5">
-                        
-                        <p v-if="phoneMasked" class="text-xs text-gray-500 text-center">
-                            Kod <strong>{{ phoneMasked }}</strong> numarasına iletildi.
-                        </p>
-
-                        <div class="flex flex-col gap-2">
-                            <label class="text-sm font-semibold text-gray-700">Doğrulama Kodu</label>
-                            <OtpAutofillInput
-                                v-model="otpCode"
-                                :disabled="loading"
-                                :invalid="!!otpError"
-                            />
-                            <span v-if="otpError" class="text-xs text-red-500 text-center">{{ otpError }}</span>
-                        </div>
-
-                        <div class="flex justify-center">
-                            <button
-                                type="button"
-                                class="text-sm font-medium text-primary hover:underline disabled:opacity-50"
-                                :disabled="resendLoading"
-                                @click="resendCode"
-                            >
-                                <span v-if="resendLoading" class="inline-flex items-center gap-1">
-                                    <i class="pi pi-spin pi-spinner text-xs"></i>
-                                    Gönderiliyor...
-                                </span>
-                                <span v-else>Kodu tekrar gönder</span>
-                            </button>
-                        </div>
-
-                        <div class="flex flex-col-reverse sm:flex-row gap-3">
-                            <button
-                                type="button"
-                                class="flex-1 h-12 rounded-xl font-semibold text-gray-700 border-2 border-gray-200 hover:bg-gray-50 transition-colors"
-                                :disabled="loading"
-                                @click="goBack"
-                            >
-                                Geri
-                            </button>
-                            <button
-                                type="submit"
-                                :disabled="loading || String(otpCode || '').length !== 6"
-                                :class="[
-                                    'flex-1 h-12 rounded-xl font-semibold text-white shadow-lg transition-all',
-                                    loading || String(otpCode || '').length !== 6
-                                        ? 'bg-gray-300 cursor-not-allowed'
-                                        : 'bg-primary hover:bg-primary/90'
-                                ]"
-                            >
-                                <span v-if="loading" class="inline-flex items-center gap-2">
-                                    <i class="pi pi-spin pi-spinner"></i>
-                                    Doğrulanıyor...
-                                </span>
-                                <span v-else>İleri</span>
-                            </button>
-                        </div>
-                    </form>
-
-                    <!-- Adım 3: Yeni şifre -->
-                    <form v-else @submit.prevent="submitPasswordStep" class="flex flex-col gap-5">
-                        <div class="flex flex-col gap-2">
-                            <label class="text-sm font-semibold text-gray-700">Yeni Şifre</label>
-                            <div class="relative">
-                                <input
-                                    :type="showNew ? 'text' : 'password'"
-                                    v-model="passwordForm.newPassword"
-                                    :class="[
-                                        'w-full h-12 px-4 pl-12 pr-12 rounded-lg border-2 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all',
-                                        passwordErrors.newPassword ? 'border-red-400' : 'border-gray-200 focus:border-primary'
-                                    ]"
-                                    placeholder="En az 6 karakter"
-                                    :disabled="loading"
-                                />
-                                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                                    <i class="pi pi-key text-base"></i>
-                                </span>
-                                <button
-                                    type="button"
-                                    class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                    @click="showNew = !showNew"
-                                >
-                                    <i :class="showNew ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
-                                </button>
-                            </div>
-                            <span v-if="passwordErrors.newPassword" class="text-xs text-red-500">{{ passwordErrors.newPassword }}</span>
-                        </div>
-
-                        <div class="flex flex-col gap-2">
-                            <label class="text-sm font-semibold text-gray-700">Yeni Şifre (Tekrar)</label>
-                            <div class="relative">
-                                <input
-                                    :type="showConfirm ? 'text' : 'password'"
-                                    v-model="passwordForm.confirmPassword"
-                                    :class="[
-                                        'w-full h-12 px-4 pl-12 pr-12 rounded-lg border-2 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all',
-                                        passwordErrors.confirmPassword ? 'border-red-400' : 'border-gray-200 focus:border-primary'
-                                    ]"
-                                    placeholder="Yeni şifrenizi tekrar girin"
-                                    :disabled="loading"
-                                />
-                                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-                                    <i class="pi pi-key text-base"></i>
-                                </span>
-                                <button
-                                    type="button"
-                                    class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                    @click="showConfirm = !showConfirm"
-                                >
-                                    <i :class="showConfirm ? 'pi pi-eye-slash' : 'pi pi-eye'"></i>
-                                </button>
-                            </div>
-                            <span v-if="passwordErrors.confirmPassword" class="text-xs text-red-500">{{ passwordErrors.confirmPassword }}</span>
-                        </div>
-
-                        <button
-                            type="submit"
-                            :disabled="loading"
-                            :class="[
-                                'w-full h-12 rounded-xl font-semibold text-white shadow-lg transition-all',
-                                loading ? 'bg-gray-300 cursor-not-allowed' : 'bg-primary hover:bg-primary/90'
-                            ]"
-                        >
-                            <span v-if="loading" class="inline-flex items-center gap-2">
-                                <i class="pi pi-spin pi-spinner"></i>
-                                Güncelleniyor...
-                            </span>
-                            <span v-else>Güncelle</span>
-                        </button>
-                    </form>
-
-                    <div class="mt-6 text-center">
-                        <button
-                            type="button"
-                            class="text-sm font-medium text-primary hover:underline"
-                            @click="goToLogin"
-                        >
-                            Giriş ekranına dön
-                        </button>
-                    </div>
-                </div>
+        <!-- Adım 2: SMS doğrulama -->
+        <form v-else-if="currentStep === 2" class="flex flex-col gap-4" novalidate @submit.prevent="submitOtpStep">
+            <div class="flex flex-col gap-2">
+                <span class="text-[13px] font-semibold text-slate-700">Doğrulama Kodu</span>
+                <OtpAutofillInput v-model="otpCode" :disabled="loading" :invalid="!!otpError" />
+                <span v-if="otpError" class="text-center text-xs font-medium text-red-600">{{ otpError }}</span>
             </div>
-        </Content>
-        <Footer />
-    </div>
+            <div class="flex justify-center">
+                <button
+                    type="button"
+                    class="text-sm font-semibold text-primary hover:underline disabled:opacity-50"
+                    :disabled="resendLoading"
+                    @click="resendCode"
+                >
+                    <i v-if="resendLoading" class="pi pi-spin pi-spinner text-xs"></i>
+                    <span v-else>Kodu tekrar gönder</span>
+                </button>
+            </div>
+            <button
+                type="submit"
+                class="flex h-[52px] items-center justify-center rounded-[14px] bg-primary text-base font-bold text-white transition-colors hover:bg-primary-dark disabled:opacity-60"
+                :disabled="loading || String(otpCode || '').length !== 6"
+            >
+                <i v-if="loading" class="pi pi-spin pi-spinner"></i>
+                <span v-else>İleri</span>
+            </button>
+        </form>
+
+        <!-- Adım 3: Yeni şifre -->
+        <form v-else class="flex flex-col gap-4" novalidate @submit.prevent="submitPasswordStep">
+            <AuthInput
+                v-model="passwordForm.newPassword"
+                label="Yeni Şifre"
+                icon="pi pi-lock"
+                placeholder="En az 6 karakter"
+                autocomplete="new-password"
+                password-toggle
+                :disabled="loading"
+                :error="passwordErrors.newPassword"
+            />
+            <AuthInput
+                v-model="passwordForm.confirmPassword"
+                label="Yeni Şifre Tekrar"
+                icon="pi pi-shield"
+                placeholder="Yeni şifrenizi tekrar girin"
+                autocomplete="new-password"
+                password-toggle
+                :disabled="loading"
+                :error="passwordErrors.confirmPassword"
+            />
+            <button
+                type="submit"
+                class="flex h-[52px] items-center justify-center rounded-[14px] bg-primary text-base font-bold text-white transition-colors hover:bg-primary-dark disabled:opacity-60"
+                :disabled="loading"
+            >
+                <i v-if="loading" class="pi pi-spin pi-spinner"></i>
+                <span v-else>Şifreyi Güncelle</span>
+            </button>
+        </form>
+
+        <p class="mt-5 text-center text-sm text-slate-500">
+            Şifreni hatırladın mı?
+            <RouterLink to="/giris" class="font-bold text-primary hover:underline">Giriş Yap</RouterLink>
+        </p>
+    </AuthShell>
 </template>
 
 <script setup>
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import * as yup from 'yup';
-import { InputMask } from 'primevue';
 import OtpAutofillInput from '@/components/OtpAutofillInput.vue';
 import { toast } from 'vue-sonner';
 import api from '@/api';
-import Header from '@/components/Header.vue';
-import Footer from '@/components/Footer.vue';
-import Content from '@/components/Content.vue';
+import AuthShell from '@/components/auth/AuthShell.vue';
+import AuthInput from '@/components/auth/AuthInput.vue';
+import { formatTrPhoneInput } from '@/lib/auth-ui';
 import { useAuthStore } from '@/stores/auth';
 
 const router = useRouter();
@@ -254,8 +133,6 @@ const phoneError = ref('');
 const otpError = ref('');
 const loading = ref(false);
 const resendLoading = ref(false);
-const showNew = ref(false);
-const showConfirm = ref(false);
 
 const passwordForm = ref({
     newPassword: '',
@@ -295,10 +172,20 @@ const passwordSchema = yup.object({
         .required('Şifre tekrar zorunludur.'),
 });
 
+const stepTitle = computed(() => {
+    if (currentStep.value === 1) return 'Şifremi Unuttum';
+    if (currentStep.value === 2) return 'Doğrulama Kodu';
+    return 'Yeni Şifre';
+});
+
 const stepSubtitle = computed(() => {
-    if (currentStep.value === 1) return 'Telefon numaranızı girin, size SMS ile kod gönderelim.';
-    if (currentStep.value === 2) return 'Telefonunuza gelen doğrulama kodunu girin.';
-    return 'Yeni şifrenizi belirleyin.';
+    if (currentStep.value === 1) return 'Kayıtlı telefon numaranı gir, şifreni yenilemen için SMS ile doğrulama kodu gönderelim.';
+    if (currentStep.value === 2) {
+        return phoneMasked.value
+            ? `${phoneMasked.value} numarasına gönderilen 6 haneli kodu gir.`
+            : 'Telefonuna gelen 6 haneli kodu gir.';
+    }
+    return 'Yeni şifreni belirle ve onayla. En az 6 karakter olmalı.';
 });
 
 function formatPhoneDisplay(phone) {
@@ -434,7 +321,7 @@ async function submitPasswordStep() {
         authStore.setUser(null);
         delete api.defaults.headers.common['Authorization'];
         toast.success('Şifreniz başarılı bir şekilde güncellendi.');
-        router.push('/');
+        router.push('/giris');
     } catch (err) {
         const msg = apiErrorMessage(err, 'Şifre güncellenemedi.');
         toast.error('Hata', { description: msg });
@@ -458,11 +345,6 @@ function goBack() {
         otpError.value = '';
         verifiedCode.value = '';
     }
-}
-
-function goToLogin() {
-    authStore.requestShowLoginModal = true;
-    router.push('/');
 }
 
 onMounted(() => {

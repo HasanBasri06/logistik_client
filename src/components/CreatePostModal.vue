@@ -182,9 +182,9 @@
             <h3 class="text-lg font-semibold text-gray-800 mb-4">İlan Detayları</h3>
             <div class="flex flex-col gap-4 w-full">
               <!-- Yüklenecek Yer: Şehir + İlçe + Adreslerim -->
-              <div class="w-full rounded-xl border border-amber-100 bg-amber-50/40 p-3 sm:p-4">
+              <div class="w-full rounded-xl border border-gray-200 bg-white p-3 sm:p-4">
                 <div class="flex items-start gap-3 w-full">
-                  <div class="w-8 h-8 rounded-full bg-amber-100 text-amber-700  items-center justify-center shrink-0 mt-0.5 hidden md:flex">
+                  <div class="w-8 h-8 rounded-full bg-primary/10 text-primary items-center justify-center shrink-0 mt-0.5 hidden md:flex">
                     <i class="pi pi-arrow-up-right" style="font-size: 13px;"></i>
                   </div>
                   <div class="w-full">
@@ -193,7 +193,7 @@
                     <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_auto] gap-2 items-center">
                       <select
                         v-model="yuklenecekYer.city"
-                        class="h-12 px-4 rounded-xl border border-white bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
+                        class="h-12 px-4 rounded-xl border border-gray-200 bg-gray-50/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
                         @change="onYuklenecekCityChange"
                       >
                         <option value="">Şehir seçin</option>
@@ -201,7 +201,7 @@
                       </select>
                       <select
                         v-model="yuklenecekYer.district"
-                        class="h-12 px-4 rounded-xl border border-white bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm disabled:opacity-60"
+                        class="h-12 px-4 rounded-xl border border-gray-200 bg-gray-50/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm disabled:opacity-60"
                         :disabled="!yuklenecekYer.city || yuklenecekDistrictsLoading"
                       >
                         <option value="">İlçe seçin</option>
@@ -220,9 +220,9 @@
                 </div>
               </div>
               <!-- Boşaltılacak Yer: Şehir + İlçe + Adreslerim -->
-              <div class="w-full rounded-xl border border-green-100 bg-green-50/40 p-3 sm:p-4">
+              <div class="w-full rounded-xl border border-gray-200 bg-white p-3 sm:p-4">
                 <div class="flex items-start gap-3 w-full">
-                  <div class="w-8 h-8 rounded-full bg-green-100 text-green-700 md:flex items-center justify-center shrink-0 mt-0.5 hidden">
+                  <div class="w-8 h-8 rounded-full bg-secondary/10 text-secondary md:flex items-center justify-center shrink-0 mt-0.5 hidden">
                     <i class="pi pi-arrow-down-left" style="font-size: 13px;"></i>
                   </div>
                   <div class="w-full">
@@ -231,7 +231,7 @@
                     <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_auto] gap-2 items-center">
                       <select
                         v-model="bosaltilanYer.city"
-                        class="h-12 px-4 rounded-xl border border-white bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
+                        class="h-12 px-4 rounded-xl border border-gray-200 bg-gray-50/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
                         @change="onBosaltilanCityChange"
                       >
                         <option value="">Şehir seçin</option>
@@ -239,7 +239,7 @@
                       </select>
                       <select
                         v-model="bosaltilanYer.district"
-                        class="h-12 px-4 rounded-xl border border-white bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm disabled:opacity-60"
+                        class="h-12 px-4 rounded-xl border border-gray-200 bg-gray-50/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm disabled:opacity-60"
                         :disabled="!bosaltilanYer.city || bosaltilanDistrictsLoading"
                       >
                         <option value="">İlçe seçin</option>
@@ -321,15 +321,15 @@
 
               <!-- Kalkış / Varış saati + Arama ile iletişime geçilebilir (md+ yan yana) -->
               <div class="flex flex-col md:flex-row gap-4 w-full items-stretch">
-              <div class="w-full flex-1 min-w-0 rounded-xl border border-blue-100 bg-blue-50/40 p-4 sm:p-5">
+              <div class="w-full flex-1 min-w-0 rounded-xl border border-gray-200 bg-white p-4 sm:p-5">
                 <div class="flex items-start gap-3 w-full">
-                  <div class="w-9 h-9 rounded-full bg-blue-100 text-blue-700 items-center justify-center shrink-0 mt-0.5 hidden md:flex">
+                  <div class="w-9 h-9 rounded-full bg-primary/10 text-primary items-center justify-center shrink-0 mt-0.5 hidden md:flex">
                     <i class="pi pi-clock" style="font-size: 15px;"></i>
                   </div>
                   <div class="w-full min-w-0">
                     <label class="block text-base font-semibold text-gray-800 mb-1">Kalkış ve Varış Saati</label>
                     <p class="text-sm text-gray-500 mb-3">Saatleri seçin, isterseniz kalkış tarihi de ekleyin.</p>
-                    <div class="flex items-center justify-between w-full mb-3 rounded-xl border border-white bg-white px-3 py-2.5 shadow-sm gap-3">
+                    <div class="flex items-center justify-between w-full mb-3 rounded-xl border border-gray-200 bg-gray-50/60 px-3 py-2.5 gap-3">
                       <div class="flex flex-col gap-0.5 min-w-0">
                         <span class="text-base font-medium text-gray-800">Kalkış tarihi belirt</span>
                         <span class="text-sm text-gray-500">
@@ -350,7 +350,7 @@
                   </div>
                     <div class="flex-1 flex flex-col md:flex-row gap-2">
                       <DatePicker
-                        class="w-full flex-1 h-12 px-4 py-3 rounded-xl border border-white bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-base"
+                        class="w-full flex-1 h-12 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-base"
                         v-model="departure_time"
                         time-only
                         hour-format="24"
@@ -366,7 +366,7 @@
                         fluid
                       />
                       <DatePicker
-                        class="w-full flex-1 h-12 px-4 py-3 rounded-xl border border-white bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-base"
+                        class="w-full flex-1 h-12 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-base"
                         v-model="time_arrival"
                         time-only
                         hour-format="24"
@@ -383,7 +383,7 @@
                       />
                       <DatePicker
                         v-if="departureDateEnabled"
-                        class="w-full flex-1 h-12 px-4 py-3 rounded-xl border border-white bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-base"
+                        class="w-full flex-1 h-12 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-base"
                         v-model="shipment_date"
                         date-format="dd.mm.yy"
                         placeholder="Tarih seçin"
@@ -443,11 +443,11 @@
 
               <div class="w-full flex-1 min-w-0 flex md:max-w-none">
                 <div
-                  class="rounded-2xl border border-red-200 bg-linear-to-br from-white to-red-50/70 px-5 py-4 sm:px-6 sm:py-5 w-full flex flex-col justify-center min-h-[132px]"
+                  class="rounded-xl border border-gray-200 bg-white px-5 py-4 sm:px-6 sm:py-5 w-full flex flex-col justify-center min-h-[132px]"
                 >
                   <div class="flex items-center justify-between gap-4">
                     <div class="flex items-start gap-3 min-w-0">
-                      <span class="w-10 h-10 rounded-xl bg-red-100 text-red-700 flex items-center justify-center shrink-0 mt-0.5">
+                      <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
                         <i class="pi pi-phone text-[1.05rem]"></i>
                       </span>
                       <div class="flex flex-col gap-1 min-w-0">
@@ -474,7 +474,7 @@
               </div>
 
               <!-- İlan açıklaması (isteğe bağlı) -->
-              <div class="w-full rounded-xl border border-slate-200 bg-slate-50/50 p-4 sm:p-5 mt-4">
+              <div class="w-full rounded-xl border border-gray-200 bg-white p-4 sm:p-5 mt-4">
                 <label class="block text-base font-semibold text-gray-800 mb-0.5">İlan Açıklaması</label>
                 <p class="text-sm text-gray-500 mb-3">Taşıyıcılara iletmek istediğiniz ek notlar (isteğe bağlı)</p>
                 <textarea
@@ -493,9 +493,9 @@
                 ref="routeStatusRef"
                 class="mt-4 pt-4 border-t border-gray-100 text-sm gap-4"
               >
-                <div class="w-full rounded-2xl border border-indigo-100 bg-linear-to-br from-white to-indigo-50/50 p-4 sm:p-5 shadow-sm">
+                <div class="w-full rounded-xl border border-gray-200 bg-white p-4 sm:p-5">
                   <div class="flex items-center gap-2 mb-4">
-                    <span class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0">
+                    <span class="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
                       <i class="pi pi-map text-xs"></i>
                     </span>
                     <div class="flex flex-col">
@@ -505,11 +505,11 @@
                   </div>
 
                   <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-5">
-                    <div class="rounded-xl border border-gray-100 bg-white px-3 py-2.5">
+                    <div class="rounded-xl border border-gray-100 bg-gray-50 px-3 py-2.5">
                       <div class="text-[11px] text-gray-500">Mesafe</div>
                       <div class="text-base font-semibold text-gray-800">{{ routeInfo.distance }} km</div>
                     </div>
-                    <div class="rounded-xl border border-gray-100 bg-white px-3 py-2.5">
+                    <div class="rounded-xl border border-gray-100 bg-gray-50 px-3 py-2.5">
                       <div class="text-[11px] text-gray-500">Tahmini süre</div>
                       <div class="text-base font-semibold text-gray-800">{{ routeInfo.duration }}</div>
                     </div>
@@ -517,7 +517,7 @@
 
                   <div class="flex items-start gap-2 flex-col w-full">
                     <h2 class="text-base font-semibold text-gray-800 mb-1">Fiyat Seçimi</h2>
-                    <p class="text-xs text-gray-500 mb-2">Sabit fiyat seçebilir veya teklif toplayabilirsiniz.</p>
+                    <p class="text-xs text-gray-500 mb-2">Sabit fiyat seçebilir, teklif toplayabilir veya fiyatı kendiniz belirleyebilirsiniz.</p>
                     <div class="flex flex-col md:flex-wrap md:flex-row gap-3 w-full">
                       <button
                         type="button"
@@ -562,6 +562,51 @@
                           Seçildi
                         </div>
                       </button>
+                      <!-- Mobil `create-post-wizard` «Kendi fiyatım» ile aynı -->
+                      <div
+                        role="button"
+                        tabindex="0"
+                        :aria-pressed="selectedPriceType === 'ozel'"
+                        class="w-full text-left border rounded-xl p-4 transition-all duration-200 cursor-pointer"
+                        :class="selectedPriceType === 'ozel'
+                          ? 'border-primary bg-primary/10 ring-2 ring-primary/20 shadow-sm'
+                          : 'border-gray-200 bg-white hover:border-primary/40 hover:bg-primary/5'"
+                        @click="selectCustomPrice"
+                        @keydown.enter.self.prevent="selectCustomPrice"
+                        @keydown.space.self.prevent="selectCustomPrice"
+                      >
+                        <div class="flex flex-col gap-0.5">
+                          <span class="text-base font-semibold text-gray-800">Kendi fiyatım</span>
+                          <span class="text-sm text-gray-500">Taşıma ücretini siz belirleyin</span>
+                        </div>
+                        <div v-if="selectedPriceType === 'ozel'" class="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                          <div class="flex items-center gap-1.5 text-primary text-sm font-medium">
+                            <i class="pi pi-check-circle text-base"></i>
+                            Seçildi
+                          </div>
+                          <label class="flex items-center gap-3" @click.stop>
+                            <span class="text-sm font-medium text-gray-700">Ücret</span>
+                            <span class="relative">
+                              <input
+                                ref="customPriceInputRef"
+                                :value="customPriceValue"
+                                type="text"
+                                inputmode="decimal"
+                                placeholder="15.000,00"
+                                class="w-44 h-11 rounded-xl border border-gray-200 bg-white pl-3 pr-8 text-right text-base font-semibold text-gray-900 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                @input="onCustomPriceInput"
+                              />
+                              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">₺</span>
+                            </span>
+                          </label>
+                        </div>
+                        <p
+                          v-if="selectedPriceType === 'ozel' && customPriceValue && !customPriceValid"
+                          class="mt-2 text-xs text-red-600"
+                        >
+                          Geçerli bir tutar girin.
+                        </p>
+                      </div>
                     </div>
                   </div>
 
@@ -754,6 +799,49 @@ const routeInfo = ref(null); // { distance: '123 km', duration: '2 saat 15 dk' }
 const routeLoading = ref(false);
 const routeStatusRef = ref(null);
 const selectedPriceType = ref('sabit');
+/** «Kendi fiyatım» tutarı — TR biçiminde (15.000,50) */
+const customPriceValue = ref('');
+const customPriceInputRef = ref(null);
+
+/** "15.000,50" → 15000.5; geçersizse null (mobil `parsePriceInput`) */
+function parsePriceInput(str) {
+  const s = String(str ?? '').replace(/\s/g, '').replace(/\./g, '').replace(',', '.');
+  if (!s) return null;
+  const n = parseFloat(s);
+  if (!Number.isFinite(n) || n < 0) return null;
+  return n;
+}
+
+/** Yazarken TR para biçimi: binlik `.`, ondalık `,` (mobil `formatCustomPriceAsTyping`) */
+function formatCustomPriceAsTyping(input) {
+  const cleaned = String(input ?? '').replace(/[^\d,]/g, '');
+  if (!cleaned) return '';
+  const commaPos = cleaned.indexOf(',');
+  let intPart = commaPos === -1 ? cleaned : cleaned.slice(0, commaPos);
+  const decPart = commaPos === -1 ? undefined : cleaned.slice(commaPos + 1).replace(/,/g, '').slice(0, 2);
+  const trailingComma = commaPos !== -1 && commaPos === cleaned.length - 1;
+  intPart = intPart.replace(/^0+(?=\d)/, '');
+  const intFormatted = intPart === '' ? '' : parseInt(intPart, 10).toLocaleString('tr-TR', { maximumFractionDigits: 0 });
+  if (trailingComma) return `${intFormatted},`;
+  if (decPart !== undefined) return `${intFormatted},${decPart}`;
+  return intFormatted;
+}
+
+const customPrice = computed(() => parsePriceInput(customPriceValue.value));
+const customPriceValid = computed(() => customPrice.value !== null && customPrice.value > 0);
+
+function onCustomPriceInput(e) {
+  const formatted = formatCustomPriceAsTyping(e.target.value);
+  customPriceValue.value = formatted;
+  // Biçimlenen değer yazılandan farklıysa input'u da güncelle (v-model yerine bilinçli)
+  if (e.target.value !== formatted) e.target.value = formatted;
+}
+
+function selectCustomPrice() {
+  if (selectedPriceType.value === 'ozel') return;
+  selectedPriceType.value = 'ozel';
+  nextTick(() => customPriceInputRef.value?.focus());
+}
 const canContactByCall = ref(true);
 const explanation = ref('');
 
@@ -1228,7 +1316,8 @@ const canGoNext = computed(() => {
       bosaltilanYer.value?.city?.trim() &&
       bosaltilanYer.value?.district?.trim() &&
       !routeLoading.value &&
-      !!routeInfo.value
+      !!routeInfo.value &&
+      (selectedPriceType.value !== 'ozel' || customPriceValid.value)
     );
   }
   return true;
@@ -1292,7 +1381,7 @@ function getShipmentFormData() {
     shipment_date: departureDateEnabled.value ? formatDateToYYYYMMDD(shipment_date.value) ?? undefined : undefined,
     routeInfo: routeInfo.value,
     selectedPriceType: selectedPriceType.value,
-    calculatedPrice: fixedPrice.value,
+    calculatedPrice: selectedPriceType.value === 'ozel' ? (customPrice.value ?? 0) : fixedPrice.value,
     call_verify: canContactByCall.value,
     explanation: explanation.value.trim() || undefined,
   };

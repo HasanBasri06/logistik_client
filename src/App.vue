@@ -95,10 +95,13 @@ import { useHead } from '@vueuse/head';
 import { useLocationStore } from './stores/location';
 import { useAuthStore } from './stores/auth';
 import { usePostStore } from './stores/post';
+import { useJobAssignedRedirect } from './composables/useJobAssignedRedirect';
 
 const route = useRoute();
 const authStore = useAuthStore();
 const postStore = usePostStore();
+// Araç sahibi: iş kendisine verildiğinde (Hemen Al) hangi sayfadaysa panele / aktif iş ekranına geçer
+useJobAssignedRedirect();
 const locationStore = useLocationStore();
 const { locationDeniedModalOpen, locationErrorCode } = storeToRefs(locationStore);
 const { retryLocationAfterSettings } = locationStore;

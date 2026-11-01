@@ -75,7 +75,9 @@
                         </div>
                         <p class="mt-4 text-sm leading-relaxed text-gray-600 min-h-[42px]">{{ plan.description }}</p>
 
-                        <div class="mt-5 h-px w-full bg-gray-100"></div>
+                        <PackageFeaturesDropdown class="mt-3" />
+
+                        <div class="mt-3 mb-5 h-px w-full bg-gray-100"></div>
                         <button
                             type="button"
                             @click="authStore.openLoginModal()"
@@ -96,6 +98,7 @@ import Header from '@/components/Header.vue';
 import Content from '@/components/Content.vue';
 import Footer from '@/components/Footer.vue';
 import Pattern from '@/assets/images/pattern.jpg';
+import PackageFeaturesDropdown from '@/components/PackageFeaturesDropdown.vue';
 import { useAuthStore } from '@/stores/auth';
 import { usePricingPlansStore } from '@/stores/pricingPlans';
 import { storeToRefs } from 'pinia';

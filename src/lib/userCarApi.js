@@ -8,6 +8,9 @@ export async function createUserCar(payload, vehicleImages = [null, null]) {
         car_id: payload.car_id,
         car_detail_id: payload.car_detail_id ?? null,
         plaka: String(payload.plaka ?? '').trim(),
+        // Aracın taşıyabileceği yük (kg) ve hacmi (m³) — sunucuda zorunlu
+        capacity_kg: payload.capacity_kg,
+        volume_m3: payload.volume_m3,
     };
     const hasImages = vehicleImages.some(Boolean);
     if (hasImages) {

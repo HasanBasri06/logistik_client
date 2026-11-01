@@ -135,11 +135,22 @@
           </div>
 
           <!-- Anlık ilerleme (şimdilik temsili değer) -->
-          <div>
-            <div class="flex items-center justify-between text-xs font-medium text-gray-500 mb-2">
-              <span class="truncate">{{ r.fromCity }}</span>
-              <span class="shrink-0 px-2 text-secondary font-bold">%{{ r.progress }}</span>
-              <span class="truncate text-right">{{ r.toCity }}</span>
+          <!-- Sağ boşluk: en sağdaki varış şehri sağa yukarı yazıldığında kartın dışına taşmasın -->
+          <div class="pr-14">
+            <!-- Şehirler: nereden (en sol) → ara iller (eşit aralık) → nereye (en sağ); isim çizginin üstünden sağa yukarı -->
+            <div class="relative h-12" :aria-label="`${r.fromCity} → ${r.toCity}`">
+              <span
+                v-for="label in routeLabels(r)"
+                :key="label.key"
+                class="absolute bottom-1 origin-bottom-left -rotate-35 whitespace-nowrap text-[10px] leading-none"
+                :class="[
+                  label.end ? 'font-extrabold text-gray-900' : 'font-semibold',
+                  !label.end && (label.pos <= r.progress ? 'text-primary' : 'text-gray-400'),
+                ]"
+                :style="{ left: `${label.pos}%` }"
+              >
+                {{ label.name }}
+              </span>
             </div>
             <div class="relative h-2.5 rounded-full bg-gray-100">
               <div
@@ -147,12 +158,24 @@
                 :style="{ width: `${r.progress}%` }"
               />
               <span
+                v-for="stop in r.stops"
+                :key="`tick-${stop.name}`"
+                class="absolute -top-1.5 -bottom-1.5 w-0.5 -translate-x-1/2 rounded-full"
+                :class="stop.pos <= r.progress ? 'bg-primary' : 'bg-gray-300'"
+                :style="{ left: `${stop.pos}%` }"
+                :title="stop.name"
+              />
+              <!-- Başlangıç / bitiş: çubuğun tam sol ve sağ kenarında çizgi -->
+              <span class="absolute -top-2 -bottom-2 left-0 w-0.5 rounded-full bg-gray-900" aria-hidden="true" />
+              <span class="absolute -top-2 -bottom-2 right-0 w-0.5 rounded-full bg-gray-900" aria-hidden="true" />
+              <span
                 class="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-white border-2 border-secondary text-secondary flex items-center justify-center shadow"
                 :style="{ left: `${r.progress}%` }"
               >
                 <Truck class="w-3.5 h-3.5" />
               </span>
             </div>
+            <p class="mt-3 text-center text-xs font-bold text-secondary">%{{ r.progress }}</p>
           </div>
         </article>
       </div>
@@ -170,12 +193,40 @@
         />
       </div>
     </template>
+
+    <!-- Kısayol kartları: aktif iş / aktif ilan / yorumlar -->
+    <div v-if="stats" class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
+      <RouterLink
+        v-for="card in statCards"
+        :key="card.key"
+        :to="card.to"
+        class="group flex items-center gap-3 rounded-2xl border border-gray-200 bg-white p-4 transition-colors hover:border-primary/40 hover:bg-primary/5"
+      >
+        <span
+          class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
+          :class="card.accent === 'secondary' ? 'bg-secondary/10 text-secondary' : 'bg-primary/10 text-primary'"
+        >
+          <component :is="card.icon" class="w-5 h-5" />
+        </span>
+        <div class="min-w-0 flex-1">
+          <p class="text-xs font-medium text-gray-500">{{ card.label }}</p>
+          <p class="mt-0.5 flex items-baseline gap-2">
+            <span class="text-2xl font-bold text-gray-900 tabular-nums">{{ card.value }}</span>
+            <span v-if="card.extra" class="inline-flex items-center gap-1 text-sm font-semibold text-gray-700">
+              <Star class="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+              {{ card.extra }}
+            </span>
+          </p>
+        </div>
+        <ArrowRight class="w-4 h-4 shrink-0 text-gray-300 transition-colors group-hover:text-primary" />
+      </RouterLink>
+    </div>
   </section>
 </template>
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
-import { ArrowRight, ChevronLeft, ChevronRight, CloudOff, Plus, Route, Truck } from 'lucide-vue-next';
+import { ArrowRight, ChevronLeft, ChevronRight, CloudOff, MessageSquareText, Package, Plus, Route, Star, Truck } from 'lucide-vue-next';
 import api from '@/api';
 import { usePostStore } from '@/stores/post';
 
@@ -184,6 +235,27 @@ const postStore = usePostStore();
 const routes = ref([]);
 const loading = ref(true);
 const loadError = ref(false);
+/** `/shipments/active-routes` → `stats`: { active_jobs, active_listings, reviews_count, reviews_avg } */
+const stats = ref(null);
+
+const statCards = computed(() => {
+  const s = stats.value;
+  if (!s) return [];
+  const avg = Number(s.reviews_avg) || 0;
+  return [
+    { key: 'jobs', label: 'Toplam Aktif İş', value: s.active_jobs ?? 0, icon: Truck, to: '/cargo-owner/posts' },
+    { key: 'listings', label: 'Toplam Aktif İlan', value: s.active_listings ?? 0, icon: Package, to: '/cargo-owner/posts' },
+    {
+      key: 'reviews',
+      label: 'Toplam Yorum',
+      value: s.reviews_count ?? 0,
+      extra: s.reviews_count ? avg.toLocaleString('tr-TR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) : null,
+      icon: MessageSquareText,
+      to: '/cargo-owner/reviews',
+      accent: 'secondary',
+    },
+  ];
+});
 const activeIndex = ref(0);
 const trackRef = ref(null);
 /** Kartlar arası boşluk (gap-4) */
@@ -281,6 +353,21 @@ function onPointerUp(e) {
 
 onBeforeUnmount(() => desktopQuery.removeEventListener('change', onBreakpointChange));
 
+/** Ara iller → çubuk üzerindeki konum (%): n il için çubuk n+1 eşit parçaya bölünür */
+function routeStops(names) {
+  const list = Array.isArray(names) ? names.filter(Boolean) : [];
+  return list.map((name, i) => ({ name, pos: Math.round(((i + 1) / (list.length + 1)) * 1000) / 10 }));
+}
+
+/** Çubuğun üstündeki eğik yazılar: başlangıç (0%), ara iller, varış (100%) */
+function routeLabels(r) {
+  return [
+    { key: 'from', name: r.fromCity, pos: 0, end: true },
+    ...r.stops.map((s) => ({ key: `stop-${s.name}`, name: s.name, pos: s.pos, end: false })),
+    { key: 'to', name: r.toCity, pos: 100, end: true },
+  ].filter((l) => l.name);
+}
+
 async function loadRoutes() {
   loading.value = true;
   try {
@@ -290,7 +377,9 @@ async function loadRoutes() {
       fromCity: String(r.from ?? '').split(' / ')[0],
       toCity: String(r.to ?? '').split(' / ')[0],
       progress: placeholderProgress(r.slug),
+      stops: routeStops(r.stops),
     }));
+    stats.value = res.data?.content?.stats ?? null;
     loadError.value = false;
   } catch (_) {
     loadError.value = true;

@@ -7,6 +7,11 @@
                 <ActiveRoutesCarousel />
             </Content>
         </div>
+        <!-- Araç sahibinin taşıdığı bir yük varsa panel yalnızca o işi gösterir -->
+        <div v-else-if="activeJobsChecking" class="flex flex-1 items-center justify-center" aria-busy="true">
+            <i class="pi pi-spin pi-spinner text-2xl text-primary"></i>
+        </div>
+        <ActiveJobScreen v-else-if="activeJobs.length" :jobs="activeJobs" @changed="onActiveJobsChanged" />
         <template v-else>
         <!-- Arama Alanı (responsive) -->
         <div class="w-full bg-white border-b border-gray-200 py-2 sm:py-2 flex flex-col items-center shrink-0 relative " ref="searchBarRef">
@@ -941,6 +946,8 @@ import Content from '@/components/Content.vue';
 import Header from '@/components/Header.vue';
 import Product from '@/components/Product.vue';
 import ActiveRoutesCarousel from '@/components/ActiveRoutesCarousel.vue';
+import ActiveJobScreen from '@/components/ActiveJobScreen.vue';
+import { ACTIVE_JOB_ASSIGNED_EVENT } from '@/composables/useJobAssignedRedirect';
 import { DatePicker } from 'primevue';
 import { ArrowLeftRight, ChevronDown, MapPin } from 'lucide-vue-next';
 import api from '@/api';
@@ -1587,6 +1594,40 @@ const { list: shipmentsList, myPostList, otherPostList, loading: shipmentsLoadin
 
 /** Panel ilan başlıkları: yük sahibi → Benim / Diğer sevkiyatlar; araç sahibi → tek başlık Sevkiyatlar */
 const isCargoOwner = computed(() => authStore.user?.type === 'cargo_owner');
+const isVehicleOwner = computed(() => authStore.user?.type === 'vehicle_owner');
+
+/** Araç sahibinin şu an taşıdığı yük(ler) — `/vehicle/active-jobs` */
+const activeJobs = ref([]);
+const activeJobsChecking = ref(isVehicleOwner.value);
+
+async function loadActiveJobs() {
+    if (!isVehicleOwner.value) {
+        activeJobs.value = [];
+        activeJobsChecking.value = false;
+        return;
+    }
+    try {
+        const res = await api.get('/vehicle/active-jobs');
+        activeJobs.value = Array.isArray(res.data?.content?.jobs) ? res.data.content.jobs : [];
+    } catch (_) {
+        // İstek başarısızsa paneli normal hâliyle göster
+        activeJobs.value = [];
+    } finally {
+        activeJobsChecking.value = false;
+    }
+}
+
+/** Panel açıkken iş verildi (Hemen Al): aktif iş ekranına geç */
+function onActiveJobAssigned() {
+    if (!isVehicleOwner.value) return;
+    void loadActiveJobs();
+}
+
+/** İş bitirildi / iptal edildi: başka aktif iş yoksa normal panele dön */
+async function onActiveJobsChanged() {
+    await loadActiveJobs();
+    if (!activeJobs.value.length) initListing();
+}
 const locationStore = useLocationStore();
 const { locationError, locationErrorCode, userCoords, locationRequesting } = storeToRefs(locationStore);
 const { requestUserLocation, shouldAutoRequestLocation } = locationStore;
@@ -1761,10 +1802,19 @@ const handleFilterChange = (modelKey) => {
 
 onMounted(async () => {
     document.addEventListener('click', handleClickOutside);
+    window.addEventListener(ACTIVE_JOB_ASSIGNED_EVENT, onActiveJobAssigned);
     window.addEventListener('resize', updateTourBreakpoint);
     updateTourBreakpoint();
     // Yük sahibine panelde ilan gösterilmiyor; liste, konum ve tur gerekmez
     if (isCargoOwner.value) return;
+    // Aktif işi olan araç sahibine yalnızca o iş gösterilir
+    await loadActiveJobs();
+    if (activeJobs.value.length) return;
+    await initListing();
+});
+
+/** İlan listesi, konum ve panel turu (aktif işi olmayan kullanıcılar) */
+async function initListing() {
     const initialPage = parseInt(route.query.page) || 1;
     shipmentsStore.fetchShipments({ initialPage });
     fetchCities().then(setDefaultLocations);
@@ -1794,10 +1844,11 @@ onMounted(async () => {
             }
         }
     } catch (_) {}
-});
+}
 
 onBeforeUnmount(() => {
     document.removeEventListener('click', handleClickOutside);
+    window.removeEventListener(ACTIVE_JOB_ASSIGNED_EVENT, onActiveJobAssigned);
     window.removeEventListener('resize', updateTourBreakpoint);
     clearTimeout(locationSearchDebounceTimer);
     clearTimeout(fromCitySearchDebounceTimer);
