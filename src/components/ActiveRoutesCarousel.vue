@@ -228,10 +228,13 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { ArrowRight, ChevronLeft, ChevronRight, CloudOff, MessageSquareText, Package, Plus, Route, Star, Truck } from 'lucide-vue-next';
 import api from '@/api';
+import { getEcho } from '@/echo';
+import { useAuthStore } from '@/stores/auth';
 import { usePostStore } from '@/stores/post';
 
 const postStore = usePostStore();
 
+const authStore = useAuthStore();
 const routes = ref([]);
 const loading = ref(true);
 const loadError = ref(false);
@@ -290,14 +293,9 @@ function initials(name) {
   return parts.slice(0, 2).map((p) => p[0].toUpperCase()).join('') || '?';
 }
 
-/**
- * Anlık konum henüz yok: ilan bazında sabit kalan temsili bir ilerleme (%15–85).
- * Gerçek takip gelince sunucudan gelen değerle değiştirilecek.
- */
-function placeholderProgress(slug) {
-  let hash = 0;
-  for (const ch of String(slug)) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
-  return 15 + (hash % 71);
+/** Araç sahibinin konumuna göre canlı ilerleme (0–100, tam sayı); iş başlamadıysa 0 */
+function clampProgress(value) {
+  return Math.round(Math.max(0, Math.min(100, Number(value ?? 0) || 0)));
 }
 
 /** Bir kartlık kaydırma mesafesi */
@@ -376,7 +374,7 @@ async function loadRoutes() {
       ...r,
       fromCity: String(r.from ?? '').split(' / ')[0],
       toCity: String(r.to ?? '').split(' / ')[0],
-      progress: placeholderProgress(r.slug),
+      progress: clampProgress(r.progress),
       stops: routeStops(r.stops),
     }));
     stats.value = res.data?.content?.stats ?? null;
@@ -388,8 +386,35 @@ async function loadRoutes() {
   }
 }
 
+/**
+ * `job.progress` (user.{id} kanalı): araç sahibi ilerledikçe çubuktaki araç anlık hareket eder.
+ * Kanal yerine Pusher bağlantısına bağlanır; sayfalardaki `stopListening` bu dinleyiciyi silemez.
+ */
+let progressPusher = null;
+function onJobProgress(payload) {
+  const id = Number(payload?.shipment_id);
+  routes.value = routes.value.map((r) =>
+    (id && Number(r.shipment_id) === id) || (payload?.slug && r.slug === payload.slug)
+      ? { ...r, progress: payload?.progress == null ? r.progress : clampProgress(payload.progress), current_city: payload?.current_city ?? r.current_city }
+      : r
+  );
+}
+function bindProgress() {
+  const userId = authStore.user?.id;
+  const echo = getEcho();
+  if (!userId || !echo) return;
+  echo.private(`user.${userId}`);
+  progressPusher = echo.connector?.pusher ?? null;
+  progressPusher?.bind('job.progress', onJobProgress);
+}
+
 onMounted(() => {
   desktopQuery.addEventListener('change', onBreakpointChange);
   loadRoutes();
+  bindProgress();
+});
+onBeforeUnmount(() => {
+  progressPusher?.unbind('job.progress', onJobProgress);
+  progressPusher = null;
 });
 </script>

@@ -27,7 +27,7 @@ export function useJobAssignedRedirect() {
         const myId = Number(authStore.user?.id)
         if (!myId || Number(payload?.buyer_user_id) !== myId) return
 
-        toast.success('İş sana verildi!', { description: 'Aktif işin panelde açılıyor.', duration: 6000 })
+        toast.success('İş sana verildi!', { description: "İşi mobil uygulamada Onaylanan İşler'den başlatabilirsin.", duration: 6000 })
         if (route.path === '/panel') {
             window.dispatchEvent(new CustomEvent(ACTIVE_JOB_ASSIGNED_EVENT, { detail: payload }))
         } else {

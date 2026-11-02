@@ -580,6 +580,7 @@ async function onTeklifVerClick() {
             shipment_id: shipmentId,
             user_id: userId,
             car_type: carType,
+            user_car_id: selectedCar?.userCarId ?? null,
             price,
         });
         teklifMessage.value = '';
@@ -607,7 +608,8 @@ async function fetchTeklifCars() {
             const car = uc?.car ?? uc;
             const carDetail = uc?.carDetail ?? uc?.car_detail;
             if (!car) return null;
-            return { ...car, carDetail };
+            // userCarId: teklifte seçilen kendi aracı (kabul edilince iş bu araca bağlanır)
+            return { ...car, carDetail, userCarId: uc?.car ? uc.id : null };
         }).filter(Boolean);
         teklifActiveCarIndex.value = 0;
         initTeklifDetailDefaultsForAllCars();
