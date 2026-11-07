@@ -15,7 +15,7 @@
             <!-- Yeni araç ekle kartı -->
             <button
                 type="button"
-                @click="openAddVehicleModal"
+                @click="onAddVehicleClick"
                 class="vehicle-card add-card group flex flex-col items-center justify-center min-h-[320px] rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/60 hover:bg-primary/5 hover:border-primary/40 transition-all duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-2"
             >
                 <div class="w-16 h-16 rounded-full bg-primary/10 group-hover:bg-primary/20 flex items-center justify-center mb-4 transition-colors">
@@ -377,6 +377,44 @@
                 </div>
             </div>
         </div>
+
+        <!-- Çoklu Araç Yönetim modu (tek araçlı üye 2. aracı eklemek istediğinde) -->
+        <div
+            v-if="showMultiModal"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+            @click.self="!enablingMulti && (showMultiModal = false)"
+        >
+            <div class="w-full max-w-md rounded-2xl bg-white p-6 text-center shadow-xl">
+                <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
+                    <i class="pi pi-car text-2xl text-primary"></i>
+                </div>
+                <h3 class="mt-3 text-xl font-extrabold text-gray-900">Çok Araç Kontrol Modu</h3>
+                <p class="mt-2 text-sm leading-relaxed text-gray-600">
+                    Birden fazla araç yüklediğinizde sizleri araç yönetim sistemine dahil ederiz. Burada sizler için tüm araçlarınızı yönetebileceğiniz ortak bir panel sunarız; bu panel sayesinde kendi araçlarınızın yönetimini kolaylıkla yapabilirsiniz.
+                </p>
+                <div class="mt-4 flex items-center gap-2 rounded-xl bg-primary/10 p-3 text-left text-sm font-semibold text-gray-700">
+                    <i class="pi pi-tag text-primary"></i>
+                    <span>Her araç yüklemenizde <span class="font-extrabold text-primary">{{ pricePerVehicle }}₺</span> abonelik fiyatına yansır.</span>
+                </div>
+                <button
+                    type="button"
+                    class="mt-5 flex h-12 w-full items-center justify-center rounded-full bg-primary font-bold text-white transition hover:bg-primary/90 disabled:opacity-60"
+                    :disabled="enablingMulti"
+                    @click="confirmMultiMode"
+                >
+                    <i v-if="enablingMulti" class="pi pi-spin pi-spinner mr-2"></i>
+                    Teklifi Kabul Et
+                </button>
+                <button
+                    type="button"
+                    class="mt-3 text-sm font-semibold text-gray-500 hover:text-gray-700"
+                    :disabled="enablingMulti"
+                    @click="showMultiModal = false"
+                >
+                    Vazgeç
+                </button>
+            </div>
+        </div>
     </div>
 </template>
 
@@ -643,6 +681,9 @@ async function fetchMyCars() {
         const res = await api.get('/cars/my');
         const content = res.data?.content ?? res.data;
         myCars.value = Array.isArray(content?.cars) ? content.cars : [];
+        // Eski sunucu alanı göndermezse ekleme serbest
+        canAddCar.value = content?.can_add_car ?? true;
+        pricePerVehicle.value = Number(content?.price_per_vehicle ?? 299);
     } catch (err) {
         console.error(err);
         myCars.value = [];
@@ -686,6 +727,32 @@ const selectVehicleFromSlide = (data) => {
 
 const selectDetail = (d) => {
     selectedDetailId.value = d.id;
+};
+
+/** Tek araçlı üyelikte (is_multi_cargo_owner = no) ikinci araç: önce Çoklu Araç Yönetim modu */
+const canAddCar = ref(true);
+const pricePerVehicle = ref(299);
+const showMultiModal = ref(false);
+const enablingMulti = ref(false);
+
+async function confirmMultiMode() {
+    enablingMulti.value = true;
+    try {
+        await api.post('/auth/multi-vehicle-mode');
+        canAddCar.value = true;
+        showMultiModal.value = false;
+        // Çoklu üyeliğe geçildi: araç ekleme hemen açılır
+        openAddVehicleModal();
+    } catch (err) {
+        console.error(err);
+    } finally {
+        enablingMulti.value = false;
+    }
+}
+
+const onAddVehicleClick = () => {
+    if (canAddCar.value) openAddVehicleModal();
+    else showMultiModal.value = true;
 };
 
 const openAddVehicleModal = () => {

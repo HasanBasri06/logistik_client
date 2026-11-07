@@ -21,6 +21,18 @@
 
     <Transition name="pkg-features">
       <ul v-if="open" class="flex flex-col" :class="compact ? 'gap-1.5 mt-1.5' : 'gap-2 mt-2'">
+        <!-- Seçili paketin bilgileri: dahil araç sayısı ve paket özellikleri -->
+        <li
+          v-for="item in packageItems"
+          :key="'pkg-' + item.text"
+          class="flex items-start rounded-lg border border-primary/30 bg-primary/5"
+          :class="compact ? 'gap-2 p-1.5' : 'gap-2.5 p-2.5'"
+        >
+          <i :class="item.icon" class="text-primary shrink-0 mt-0.5" :style="{ fontSize: compact ? '11px' : '13px' }"></i>
+          <p class="min-w-0 flex-1 font-semibold text-gray-900 leading-snug" :class="compact ? 'text-[11px]' : 'text-[13px]'">
+            {{ item.text }}
+          </p>
+        </li>
         <li
           v-for="f in PACKAGE_FEATURES"
           :key="f.title"
@@ -66,9 +78,24 @@ import { computed, ref } from 'vue';
 import { storeToRefs } from 'pinia';
 import { useAuthStore } from '@/stores/auth';
 
-defineProps({
+const props = defineProps({
   /** Modal içindeki küçük paket kartları için sıkı yerleşim */
   compact: { type: Boolean, default: false },
+  /** Seçili paket (Bireysel / İşletme): dahil araç sayısı ve özellikleri listenin başında gösterilir */
+  pkg: { type: Object, default: null },
+});
+
+const packageItems = computed(() => {
+  const p = props.pkg;
+  if (!p) return [];
+  const limit = Number(p.vehicleLimit || 1);
+  return [
+    {
+      icon: 'pi pi-car',
+      text: `${limit} araç pakete dahil${limit > 1 ? ' · fazlası araç başı aylık ücretli' : ''}`,
+    },
+    ...(p.features || []).map((f) => ({ icon: 'pi pi-check-circle', text: f })),
+  ];
 });
 
 const ROLE_LABELS = {

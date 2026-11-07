@@ -46,7 +46,7 @@ const slogans = [
 
             <div class="relative w-full max-w-4xl mx-auto py-10 md:py-20">
 
-                <img src="../assets/images/close_vehicles.png" alt="Nearby Drivers" class="w-full h-full object-cover">
+                <img src="../assets/images/bi_tik_yakinda.png" alt="Nearby Drivers" class="w-full h-full object-cover">
 
                 
 

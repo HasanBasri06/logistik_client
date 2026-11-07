@@ -36,7 +36,27 @@
                             </button>
                         </div>
 
-                        <!-- Step 1: Plan selection -->
+                        <!-- Step 1: Paket türü (Bireysel / İşletme) + süre seçimi -->
+                        <div v-if="step === 1 && packages.length > 1" class="flex flex-wrap gap-2 mb-3" role="tablist">
+                            <button
+                                v-for="pk in packages"
+                                :key="pk.id"
+                                type="button"
+                                role="tab"
+                                :aria-selected="activePackage?.id === pk.id"
+                                class="rounded-full border px-3 py-1.5 text-sm transition"
+                                :class="activePackage?.id === pk.id
+                                    ? 'border-primary bg-primary/10 font-bold text-primary'
+                                    : 'border-gray-200 bg-white font-medium text-gray-600 hover:border-primary/40'"
+                                @click="selectTier(pk.id)"
+                            >
+                                {{ pk.name }}
+                            </button>
+                        </div>
+                        <div v-if="step === 1 && activePackage" class="mb-3 rounded-xl border border-gray-100 bg-gray-50 p-3 space-y-1.5">
+                            <p class="text-sm font-extrabold text-gray-900">{{ activePackage.name }} paketi</p>
+                            <p v-if="activePackage.description" class="text-xs text-gray-500">{{ activePackage.description }}</p>
+                        </div>
                         <div v-if="step === 1" class="grid grid-cols-2 gap-2 sm:gap-3 items-stretch">
                             <div
                                 v-for="plan in plans"
@@ -80,7 +100,7 @@
                                         İndirim: {{ plan.discountAmount }} ({{ plan.discountRate }})
                                     </div>
                                 </div>
-                                <PackageFeaturesDropdown compact class="mt-2" />
+                                <PackageFeaturesDropdown compact :pkg="activePackage" class="mt-2" />
                             </div>
                         </div>
 
@@ -234,7 +254,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { storeToRefs } from 'pinia';
 import { usePricingPlansStore } from '@/stores/pricingPlans';
@@ -246,7 +266,19 @@ const authStore = useAuthStore();
 const { showPremiumModal } = storeToRefs(authStore);
 
 const show = computed(() => !!showPremiumModal.value);
-const { plans } = storeToRefs(usePricingPlansStore());
+const pricingStore = usePricingPlansStore();
+const { packages } = storeToRefs(pricingStore);
+/** Seçili paket türü (Bireysel / Küçük / Orta / Büyük İşletme) */
+const tierId = ref('individual');
+const activePackage = computed(() => packages.value.find((p) => p.id === tierId.value) || packages.value[0]);
+const plans = computed(() => activePackage.value?.plans || []);
+watch(show, (open) => {
+    if (open) pricingStore.loadPackages(authStore.user?.type || null);
+});
+function selectTier(id) {
+    tierId.value = id;
+    selectedPlan.value = null;
+}
 
 const step = ref(1); // 1: plan seçimi, 2: ödeme bilgileri (UI)
 /** Store’daki tam plan nesnesi (servise gönderilecek) */
@@ -372,6 +404,7 @@ async function submitPayment() {
         const planPayload = p
             ? {
                   id: p.id,
+                  tier: p.tier || 'individual',
                   months: p.months,
                   name: p.name,
                   description: p.description,

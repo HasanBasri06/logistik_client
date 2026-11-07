@@ -38,7 +38,47 @@
                 </div>
             </Content>
 
-            <!-- 4'lü Grid -->
+            <!-- Hesap türü ve paket seçimi -->
+            <Content class="relative pt-10 px-4">
+                <div class="flex flex-col items-center gap-4">
+                    <div class="inline-flex rounded-full border border-gray-200 bg-white p-1 shadow-sm" role="tablist">
+                        <button
+                            v-for="t in accountTypes"
+                            :key="t.value"
+                            type="button"
+                            role="tab"
+                            :aria-selected="accountType === t.value"
+                            class="rounded-full px-5 py-2 text-sm font-semibold transition"
+                            :class="accountType === t.value ? 'bg-primary text-white shadow' : 'text-gray-600 hover:text-primary'"
+                            @click="accountType = t.value"
+                        >
+                            {{ t.label }}
+                        </button>
+                    </div>
+                    <div v-if="packages.length > 1" class="flex flex-wrap justify-center gap-2" role="tablist">
+                        <button
+                            v-for="pk in packages"
+                            :key="pk.id"
+                            type="button"
+                            role="tab"
+                            :aria-selected="activePackage?.id === pk.id"
+                            class="rounded-full border px-4 py-1.5 text-sm transition"
+                            :class="activePackage?.id === pk.id
+                                ? 'border-primary bg-primary/10 font-bold text-primary'
+                                : 'border-gray-200 bg-white font-medium text-gray-600 hover:border-primary/40'"
+                            @click="tierId = pk.id"
+                        >
+                            {{ pk.name }}
+                        </button>
+                    </div>
+                    <div v-if="activePackage" class="max-w-2xl text-center">
+                        <h2 class="text-2xl font-bold text-gray-900">{{ activePackage.name }} paketi</h2>
+                        <p v-if="activePackage.description" class="mt-1 text-sm text-gray-500">{{ activePackage.description }}</p>
+                    </div>
+                </div>
+            </Content>
+
+            <!-- 4'lü Grid: seçili paketin süre seçenekleri -->
             <Content class="relative py-12 px-4 overflow-hidden">
                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
                     <div
@@ -75,7 +115,7 @@
                         </div>
                         <p class="mt-4 text-sm leading-relaxed text-gray-600 min-h-[42px]">{{ plan.description }}</p>
 
-                        <PackageFeaturesDropdown class="mt-3" />
+                        <PackageFeaturesDropdown :pkg="activePackage" class="mt-3" />
 
                         <div class="mt-3 mb-5 h-px w-full bg-gray-100"></div>
                         <button
@@ -102,8 +142,28 @@ import PackageFeaturesDropdown from '@/components/PackageFeaturesDropdown.vue';
 import { useAuthStore } from '@/stores/auth';
 import { usePricingPlansStore } from '@/stores/pricingPlans';
 import { storeToRefs } from 'pinia';
+import { computed, ref, watch } from 'vue';
 
 const authStore = useAuthStore();
 const pricingPlansStore = usePricingPlansStore();
-const { plans } = storeToRefs(pricingPlansStore);
+const { packages } = storeToRefs(pricingPlansStore);
+
+/** Araç sahibi: Bireysel + Küçük / Orta / Büyük İşletme; yük sahibi: Bireysel */
+const accountTypes = [
+    { value: 'vehicle_owner', label: 'Araç Sahibi' },
+    { value: 'cargo_owner', label: 'Yük Sahibi' },
+];
+const accountType = ref(authStore.user?.type === 'cargo_owner' ? 'cargo_owner' : 'vehicle_owner');
+const tierId = ref('individual');
+const activePackage = computed(() => packages.value.find((p) => p.id === tierId.value) || packages.value[0]);
+const plans = computed(() => activePackage.value?.plans || []);
+
+watch(
+    accountType,
+    async (type) => {
+        await pricingPlansStore.loadPackages(type);
+        if (!packages.value.some((p) => p.id === tierId.value)) tierId.value = 'individual';
+    },
+    { immediate: true }
+);
 </script>
