@@ -1,7 +1,14 @@
 <template>
   <section class="w-full" aria-labelledby="active-routes-title">
     <div class="flex items-center justify-between gap-3 mb-3">
-      <h2 id="active-routes-title" class="text-lg font-bold text-gray-900">Şu anki iş güzergahı</h2>
+      <h2 id="active-routes-title" class="text-lg font-bold text-gray-900 flex items-center gap-2">
+        Şu anki iş güzergahı
+        <span
+          v-if="routes.length"
+          class="inline-flex items-center justify-center min-w-6 h-6 px-2 rounded-full bg-primary text-white text-xs font-extrabold"
+          :aria-label="`${routes.length} güzergah`"
+        >{{ routes.length }}</span>
+      </h2>
       <div v-if="pageCount > 1" class="flex items-center gap-2">
         <button
           type="button"
@@ -47,8 +54,9 @@
     <button
       v-else-if="!routes.length"
       type="button"
+      data-tour="home-create-card"
       class="w-full sm:max-w-sm h-56 rounded-2xl border-2 border-dotted border-gray-300 bg-white/60 flex flex-col items-center justify-center gap-3 text-gray-500 hover:border-primary hover:text-primary hover:bg-primary/5 transition-colors cursor-pointer"
-      @click="postStore.openCreateModal()"
+      @click="onCreateCardClick"
     >
       <span class="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center">
         <Plus class="w-6 h-6" />
@@ -134,48 +142,16 @@
             </div>
           </div>
 
-          <!-- Anlık ilerleme (şimdilik temsili değer) -->
-          <!-- Sağ boşluk: en sağdaki varış şehri sağa yukarı yazıldığında kartın dışına taşmasın -->
-          <div class="pr-14">
-            <!-- Şehirler: nereden (en sol) → ara iller (eşit aralık) → nereye (en sağ); isim çizginin üstünden sağa yukarı -->
-            <div class="relative h-12" :aria-label="`${r.fromCity} → ${r.toCity}`">
-              <span
-                v-for="label in routeLabels(r)"
-                :key="label.key"
-                class="absolute bottom-1 origin-bottom-left -rotate-35 whitespace-nowrap text-[10px] leading-none"
-                :class="[
-                  label.end ? 'font-extrabold text-gray-900' : 'font-semibold',
-                  !label.end && (label.pos <= r.progress ? 'text-primary' : 'text-gray-400'),
-                ]"
-                :style="{ left: `${label.pos}%` }"
-              >
-                {{ label.name }}
-              </span>
-            </div>
-            <div class="relative h-2.5 rounded-full bg-gray-100">
-              <div
-                class="absolute inset-y-0 left-0 rounded-full bg-linear-to-r from-primary to-secondary"
-                :style="{ width: `${r.progress}%` }"
-              />
-              <span
-                v-for="stop in r.stops"
-                :key="`tick-${stop.name}`"
-                class="absolute -top-1.5 -bottom-1.5 w-0.5 -translate-x-1/2 rounded-full"
-                :class="stop.pos <= r.progress ? 'bg-primary' : 'bg-gray-300'"
-                :style="{ left: `${stop.pos}%` }"
-                :title="stop.name"
-              />
-              <!-- Başlangıç / bitiş: çubuğun tam sol ve sağ kenarında çizgi -->
-              <span class="absolute -top-2 -bottom-2 left-0 w-0.5 rounded-full bg-gray-900" aria-hidden="true" />
-              <span class="absolute -top-2 -bottom-2 right-0 w-0.5 rounded-full bg-gray-900" aria-hidden="true" />
-              <span
-                class="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-7 h-7 rounded-full bg-white border-2 border-secondary text-secondary flex items-center justify-center shadow"
-                :style="{ left: `${r.progress}%` }"
-              >
-                <Truck class="w-3.5 h-3.5" />
-              </span>
-            </div>
-            <p class="mt-3 text-center text-xs font-bold text-secondary">%{{ r.progress }}</p>
+          <!-- Sağ alt: ilan detayına git -->
+          <div class="mt-auto flex justify-end">
+            <RouterLink
+              :to="`/product/${r.slug}`"
+              class="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
+              @pointerdown.stop
+            >
+              Detay Gör
+              <ArrowRight class="w-4 h-4" />
+            </RouterLink>
           </div>
         </article>
       </div>
@@ -221,6 +197,17 @@
         <ArrowRight class="w-4 h-4 shrink-0 text-gray-300 transition-colors group-hover:text-primary" />
       </RouterLink>
     </div>
+
+    <!-- İlk kez üye olan yük sahibi: hiç aktif işi / ilanı yoksa rehber tur bu kartla başlar -->
+    <CoachMark
+      v-if="showHomeTour"
+      target='[data-tour="home-create-card"]'
+      step-key="home-card"
+      step-label="Hoş geldiniz"
+      title="İlk ilanınızı oluşturun"
+      body="Yükünüzü taşıyacak aracı bulmak için ilk ilanınızı birlikte oluşturalım. Başlamak için vurgulanan karta tıklayın."
+      @skip="skipTour"
+    />
   </section>
 </template>
 
@@ -228,9 +215,15 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { ArrowRight, ChevronLeft, ChevronRight, CloudOff, MessageSquareText, Package, Plus, Route, Star, Truck } from 'lucide-vue-next';
 import api from '@/api';
-import { getEcho } from '@/echo';
 import { useAuthStore } from '@/stores/auth';
 import { usePostStore } from '@/stores/post';
+import CoachMark from '@/components/CoachMark.vue';
+import {
+  createPostTour,
+  isCreatePostTourDone,
+  markCreatePostTourDone,
+  startCreatePostTourWizard,
+} from '@/lib/create-post-tour';
 
 const postStore = usePostStore();
 
@@ -240,6 +233,30 @@ const loading = ref(true);
 const loadError = ref(false);
 /** `/shipments/active-routes` → `stats`: { active_jobs, active_listings, reviews_count, reviews_avg } */
 const stats = ref(null);
+
+/* ---------- İlk ilan rehber turu ---------- */
+const tourDone = computed(() => isCreatePostTourDone(authStore.user?.id));
+
+const showHomeTour = computed(
+  () =>
+    !loading.value &&
+    !loadError.value &&
+    !routes.value.length &&
+    (stats.value?.active_listings ?? 0) === 0 &&
+    authStore.user?.type === 'cargo_owner' &&
+    !tourDone.value &&
+    createPostTour.stage === 'idle' &&
+    !postStore.createModalOpen
+);
+
+function onCreateCardClick() {
+  if (showHomeTour.value) startCreatePostTourWizard();
+  postStore.openCreateModal();
+}
+
+function skipTour() {
+  markCreatePostTourDone(authStore.user?.id);
+}
 
 const statCards = computed(() => {
   const s = stats.value;
@@ -291,11 +308,6 @@ function formatTl(value) {
 function initials(name) {
   const parts = String(name ?? '').trim().split(/\s+/).filter(Boolean);
   return parts.slice(0, 2).map((p) => p[0].toUpperCase()).join('') || '?';
-}
-
-/** Araç sahibinin konumuna göre canlı ilerleme (0–100, tam sayı); iş başlamadıysa 0 */
-function clampProgress(value) {
-  return Math.round(Math.max(0, Math.min(100, Number(value ?? 0) || 0)));
 }
 
 /** Bir kartlık kaydırma mesafesi */
@@ -351,31 +363,12 @@ function onPointerUp(e) {
 
 onBeforeUnmount(() => desktopQuery.removeEventListener('change', onBreakpointChange));
 
-/** Ara iller → çubuk üzerindeki konum (%): n il için çubuk n+1 eşit parçaya bölünür */
-function routeStops(names) {
-  const list = Array.isArray(names) ? names.filter(Boolean) : [];
-  return list.map((name, i) => ({ name, pos: Math.round(((i + 1) / (list.length + 1)) * 1000) / 10 }));
-}
-
-/** Çubuğun üstündeki eğik yazılar: başlangıç (0%), ara iller, varış (100%) */
-function routeLabels(r) {
-  return [
-    { key: 'from', name: r.fromCity, pos: 0, end: true },
-    ...r.stops.map((s) => ({ key: `stop-${s.name}`, name: s.name, pos: s.pos, end: false })),
-    { key: 'to', name: r.toCity, pos: 100, end: true },
-  ].filter((l) => l.name);
-}
-
 async function loadRoutes() {
   loading.value = true;
   try {
     const res = await api.get('/shipments/active-routes');
     routes.value = (res.data?.content?.routes ?? []).map((r) => ({
       ...r,
-      fromCity: String(r.from ?? '').split(' / ')[0],
-      toCity: String(r.to ?? '').split(' / ')[0],
-      progress: clampProgress(r.progress),
-      stops: routeStops(r.stops),
     }));
     stats.value = res.data?.content?.stats ?? null;
     loadError.value = false;
@@ -386,35 +379,8 @@ async function loadRoutes() {
   }
 }
 
-/**
- * `job.progress` (user.{id} kanalı): araç sahibi ilerledikçe çubuktaki araç anlık hareket eder.
- * Kanal yerine Pusher bağlantısına bağlanır; sayfalardaki `stopListening` bu dinleyiciyi silemez.
- */
-let progressPusher = null;
-function onJobProgress(payload) {
-  const id = Number(payload?.shipment_id);
-  routes.value = routes.value.map((r) =>
-    (id && Number(r.shipment_id) === id) || (payload?.slug && r.slug === payload.slug)
-      ? { ...r, progress: payload?.progress == null ? r.progress : clampProgress(payload.progress), current_city: payload?.current_city ?? r.current_city }
-      : r
-  );
-}
-function bindProgress() {
-  const userId = authStore.user?.id;
-  const echo = getEcho();
-  if (!userId || !echo) return;
-  echo.private(`user.${userId}`);
-  progressPusher = echo.connector?.pusher ?? null;
-  progressPusher?.bind('job.progress', onJobProgress);
-}
-
 onMounted(() => {
   desktopQuery.addEventListener('change', onBreakpointChange);
   loadRoutes();
-  bindProgress();
-});
-onBeforeUnmount(() => {
-  progressPusher?.unbind('job.progress', onJobProgress);
-  progressPusher = null;
 });
 </script>

@@ -6,8 +6,9 @@
                 <!-- Sol: Ana içerik -->
                 <div class="flex-1 min-w-0 flex flex-col gap-6 order-2 lg:order-1">
                     <!-- Yakındaki sürücüler (sadece giriş yapmış kullanıcıya gösterilir) -->
+                    <!-- İlan kabul edildiyse (taşıyıcı belli) yakındaki sürücüler gösterilmez -->
                     <section
-                        v-if="!loading && !error && shipment && authStore.isAuthenticated"
+                        v-if="!loading && !error && shipment && authStore.isAuthenticated && !liveLocation"
                         class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden"
                     >
                         <div class="px-5 py-4 border-b border-gray-100 bg-gray-50/80 flex items-center justify-between gap-3">
@@ -149,12 +150,57 @@
 
                     <!-- Teklifler bölümü -->
                     <template v-else-if="shipment">
-                        <section class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-                            <div class="px-5 py-4 border-b border-gray-100 bg-gray-50/80">
-                                <h2 class="text-base font-semibold text-gray-900">
+                        <!-- İlan sahibi için teklifler kartı secondary renkle vurgulanır -->
+                        <section
+                            class="rounded-2xl bg-white overflow-hidden"
+                            :class="isCreator
+                                ? 'border-2 border-secondary shadow-lg shadow-secondary/15 ring-4 ring-secondary/10'
+                                : 'border border-gray-200 shadow-sm'"
+                        >
+                            <div
+                                class="px-5 py-4 border-b"
+                                :class="isCreator
+                                    ? 'border-secondary/20 bg-linear-to-r from-secondary/15 via-secondary/5 to-white'
+                                    : 'border-gray-100 bg-gray-50/80'"
+                            >
+                                <h2 class="text-base font-semibold text-gray-900 flex items-center gap-2">
+                                    <span
+                                        v-if="isCreator"
+                                        class="w-8 h-8 rounded-full bg-secondary text-white flex items-center justify-center shadow-sm shadow-secondary/40"
+                                    >
+                                        <i class="pi pi-tags" style="font-size: 14px;"></i>
+                                    </span>
                                     Teklifler
-                                    <span v-if="requestCount > 0" class="ml-2 text-primary font-bold">({{ requestCount }})</span>
+                                    <span
+                                        v-if="requestCount > 0"
+                                        :class="isCreator
+                                            ? 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-secondary text-white text-sm font-bold'
+                                            : 'ml-2 text-primary font-bold'"
+                                    >
+                                        <span v-if="isCreator" class="relative flex h-2 w-2">
+                                            <span class="absolute inline-flex h-full w-full rounded-full bg-white opacity-75 animate-ping"></span>
+                                            <span class="relative inline-flex h-2 w-2 rounded-full bg-white"></span>
+                                        </span>
+                                        <template v-if="isCreator">{{ requestCount }}</template>
+                                        <template v-else>({{ requestCount }})</template>
+                                    </span>
                                 </h2>
+                            </div>
+                            <!-- Onaylanmış iş: aracın nerede olduğu (canlı) — yalnızca ilan sahibine -->
+                            <div v-if="liveLocation" class="px-5 pt-5">
+                                <LiveVehicleMap
+                                    :from="[shipment.f_where_city, shipment.f_where_district].filter(Boolean).join(' / ')"
+                                    :to="[shipment.t_where_city, shipment.t_where_district].filter(Boolean).join(' / ')"
+                                    :vehicle="liveVehicle"
+                                    :caption="liveCaption"
+                                />
+                                <!-- Haritanın altında: araç, plakası ve yükümün araçta kapladığı yer -->
+                                <JobVehicleCard
+                                    v-if="liveLocation.vehicle"
+                                    class="mt-3"
+                                    :vehicle="liveLocation.vehicle"
+                                    :weight="shipment.weight"
+                                />
                             </div>
                             <div class="p-5">
                                 <template v-if="requestCount === 0">
@@ -221,14 +267,6 @@
                             </div>
                         </div>
 
-                        <div class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden p-5">
-                            <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Güzergah</p>
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <span class="text-base font-bold text-gray-900">{{ routeFrom }}</span>
-                                <i class="pi pi-arrow-right text-primary text-xs"></i>
-                                <span class="text-base font-bold text-gray-900">{{ routeTo }}</span>
-                            </div>
-                        </div>
                         <div class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden p-5">
                             <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Fiyat</p>
                             <div class="flex items-center gap-2 flex-wrap">
@@ -488,6 +526,9 @@ import api from '@/api';
 import { useMessageStore } from '@/stores/message';
 import { useAuthStore } from '@/stores/auth';
 import { usePusherMessages } from '@/composables/usePusherMessages';
+import LiveVehicleMap from '@/components/LiveVehicleMap.vue';
+import JobVehicleCard from '@/components/JobVehicleCard.vue';
+import { getEcho } from '@/echo';
 import {
     conversationEventMatchesThread,
     mapConversationMessageFromEvent,
@@ -620,23 +661,81 @@ const loadShipment = async () => {
 };
 watch(slug, loadShipment);
 
+/**
+ * Onaylanmış işte aracın konumu (yalnızca ilan sahibine gelir): ilk değer ilan detayından,
+ * sonrası `job.progress` socket olayıyla canlı. Kanal yerine Pusher bağlantısına bağlanır
+ * (`usePusherMessages`'ın `stopListening` çağrıları bu dinleyiciyi silmesin).
+ */
+const liveLocation = ref(null);
+watch(
+    () => shipment.value?.live_location,
+    (v) => { liveLocation.value = v ? { ...v } : null; },
+    { immediate: true }
+);
+const liveVehicle = computed(() =>
+    liveLocation.value?.lat != null && liveLocation.value?.lng != null
+        ? { lat: liveLocation.value.lat, lng: liveLocation.value.lng }
+        : null
+);
+const liveCaption = computed(() => {
+    const l = liveLocation.value;
+    if (!l) return '';
+    if (l.delivered) return 'Teslim edildi';
+    if (!l.started_at) return 'Araç henüz yola çıkmadı';
+    if (l.current_city) return `Araç ${l.current_city} civarında`;
+    return liveVehicle.value ? 'Araç yolda' : 'Konum bekleniyor';
+});
+let liveProgressPusher = null;
+function onLiveJobProgress(payload) {
+    if (!liveLocation.value) return;
+    const sameShipment = (shipment.value?.id && Number(payload?.shipment_id) === Number(shipment.value.id))
+        || (payload?.slug && payload.slug === shipment.value?.slug);
+    if (!sameShipment) return;
+    liveLocation.value = {
+        ...liveLocation.value,
+        started_at: liveLocation.value.started_at ?? new Date().toISOString(),
+        lat: payload?.lat ?? liveLocation.value.lat,
+        lng: payload?.lng ?? liveLocation.value.lng,
+        current_city: payload?.current_city ?? liveLocation.value.current_city,
+    };
+}
+watch(
+    () => authStore.user?.id,
+    (uid) => {
+        liveProgressPusher?.unbind('job.progress', onLiveJobProgress);
+        liveProgressPusher = null;
+        const echo = uid ? getEcho() : null;
+        if (!echo) return;
+        echo.private(`user.${uid}`);
+        liveProgressPusher = echo.connector?.pusher ?? null;
+        liveProgressPusher?.bind('job.progress', onLiveJobProgress);
+    },
+    { immediate: true }
+);
+onBeforeUnmount(() => {
+    liveProgressPusher?.unbind('job.progress', onLiveJobProgress);
+    liveProgressPusher = null;
+});
+
+/** Socket ile yeni teklif gelince teklif listesini sessizce (yükleniyor göstergesi olmadan) yeniler */
+async function refreshRequestsSilently() {
+    const slugVal = slug.value;
+    if (!slugVal) return;
+    try {
+        const res = await api.get(`/shipments/${slugVal}/requests`);
+        const data = res.data?.content ?? res.data;
+        const fresh = data?.shipment ?? data ?? null;
+        if (fresh && slug.value === slugVal) shipment.value = fresh;
+    } catch (_) {
+        /* bir sonraki olayda / sayfa yenilenince tekrar denenir */
+    }
+}
+
 const requestCount = computed(() => shipment.value?.requests?.length ?? 0);
 
 /** Teklif / yakın taşıyıcı mesajları yalnızca ilan yayında (active) iken */
 const isShipmentActive = computed(() => shipment.value?.status === 'active');
 
-const routeFrom = computed(() => {
-    const s = shipment.value;
-    if (!s) return '—';
-    const parts = [s.f_where_city, s.f_where_district].filter(Boolean);
-    return parts.length ? parts.join(' / ') : '—';
-});
-const routeTo = computed(() => {
-    const s = shipment.value;
-    if (!s) return '—';
-    const parts = [s.t_where_city, s.t_where_district].filter(Boolean);
-    return parts.length ? parts.join(' / ') : '—';
-});
 /** İlanın tüm araçları (birden fazla seçilebilir) */
 const vehicles = computed(() => shipmentVehicles(shipment.value));
 const vehicleLabel = computed(() => vehicles.value.map((v) => v.label).join(', ') || null);
@@ -899,8 +998,10 @@ usePusherMessages(computed(() => authStore.user?.id), {
         scrollPanelToBottom();
     },
     onOfferSent(e) {
-        if (!showMessagePanel.value || selectedReceiver.value?.id == null) return;
         if (e.shipment_slug != null && shipment.value?.slug && e.shipment_slug !== shipment.value.slug) return;
+        // Bu ilana gelen teklif: "Teklifler" listesi anında güncellenir
+        void refreshRequestsSilently();
+        if (!showMessagePanel.value || selectedReceiver.value?.id == null) return;
         void (async () => {
             const shipmentId = shipment.value?.id ?? null;
             const { success, data } = await messageStore.getBySenderAndReceiver(

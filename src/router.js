@@ -10,6 +10,7 @@ import Pricing from "./Pricing.vue";
 import AboutPage from "./pages/AboutPage.vue";
 import Account from "./Account.vue";
 import AccountOrdersPage from "./pages/AccountOrdersPage.vue";
+import AccountFleetJobsPage from "./pages/AccountFleetJobsPage.vue";
 import AccountReviewsPage from "./pages/AccountReviewsPage.vue";
 import AccountMessagesPage from "./pages/AccountMessagesPage.vue";
 import AccountVehiclesPage from "./pages/AccountVehiclesPage.vue";
@@ -145,6 +146,17 @@ const routes = [
             layout: Layout,
             title: 'İptal ve İade Koşulları',
             requiresAuth: false
+        }
+    },
+    {
+        // İşlerin Durumu: «{count} iş ── Tümünü Gör» (Tüm İşlerim üstünde)
+        path: '/vehicle-owner/fleet',
+        component: AccountFleetJobsPage,
+        meta: {
+            layout: Layout,
+            title: 'İşlerin Durumu',
+            requiresAuth: true,
+            authorization: 'vehicle_owner'
         }
     },
     {

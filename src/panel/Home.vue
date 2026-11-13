@@ -308,6 +308,17 @@
             </div>
         </div>
 
+        <!-- «{count} iş ── Tümünü Gör»: onaylanan işler varsa İşlerin Durumu'na (mobil «İşlerim» ile aynı) -->
+        <div v-if="isVehicleOwner && approvedJobsCount > 0" class="w-full bg-white border-b border-gray-200 shrink-0">
+            <div class="max-w-[1200px] mx-auto px-3 sm:px-4 py-2.5 flex items-center gap-3">
+                <span class="text-sm font-bold text-gray-900 shrink-0">{{ approvedJobsCount }} iş</span>
+                <span class="flex-1 h-px bg-gray-200"></span>
+                <RouterLink to="/vehicle-owner/fleet" class="text-sm font-semibold text-primary hover:underline shrink-0">
+                    Tümünü Gör
+                </RouterLink>
+            </div>
+        </div>
+
         <!-- Mobil: Filtreleme full modal (Nereden → Nereye) -->
         <Teleport to="body">
             <Transition name="modal">
@@ -1600,7 +1611,24 @@ const isVehicleOwner = computed(() => authStore.user?.type === 'vehicle_owner');
 const activeJobs = ref([]);
 const activeJobsChecking = ref(isVehicleOwner.value);
 
+/** Onaylanan işler (başlatılmış + başlatılmamış) — «{count} iş ── Tümünü Gör» satırı */
+const approvedJobsCount = ref(0);
+async function loadApprovedJobsCount() {
+    if (!isVehicleOwner.value) {
+        approvedJobsCount.value = 0;
+        return;
+    }
+    try {
+        const res = await api.get('/vehicle/active-jobs', { params: { include_pending: 1 } });
+        const jobs = res.data?.content?.jobs;
+        approvedJobsCount.value = Array.isArray(jobs) ? jobs.length : 0;
+    } catch (_) {
+        /* satır gizli kalır */
+    }
+}
+
 async function loadActiveJobs() {
+    void loadApprovedJobsCount();
     if (!isVehicleOwner.value) {
         activeJobs.value = [];
         activeJobsChecking.value = false;

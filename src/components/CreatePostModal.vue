@@ -70,7 +70,7 @@
             <p v-if="postTypesLoading" class="text-sm text-gray-500">Yükleniyor...</p>
             <p v-else-if="postTypesError" class="text-sm text-red-600">{{ postTypesError }}</p>
             <div v-else class="flex flex-col gap-4">
-              <div class="flex-wrap gap-3 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 grid-flow-row">
+              <div data-tour="cp-post-types" class="flex-wrap gap-3 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 grid-flow-row">
                 <button
                   v-for="pt in postTypes"
                   :key="pt.id"
@@ -95,50 +95,55 @@
                   />
                 </button>
               </div>
-              <!-- KDV toggle -->
-              <div class="flex items-center justify-between gap-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
-                <div>
-                  <p class="text-sm font-medium text-gray-800">KDV</p>
-                  <p class="text-xs text-gray-500">Fiyat KDV dahil ise açın</p>
-                </div>
+              <!-- KDV + Parça yük: kartın tamamı tıklanabilir anahtar; açıkken primary ile dolar -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button
+                  v-for="opt in [
+                    { key: 'kdv', title: 'KDV', desc: 'Fiyat KDV dahil ise açın', icon: 'pi-percentage', on: isKdv },
+                    { key: 'part', title: 'Parça Yük mü?', desc: 'Kısmi / parça yük taşıması ise açın', icon: 'pi-th-large', on: partLoad },
+                  ]"
+                  :key="opt.key"
                   type="button"
                   role="switch"
-                  :aria-checked="isKdv"
-                  aria-label="KDV"
-                  class="relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40"
-                  :class="isKdv ? 'bg-primary' : 'bg-gray-300'"
-                  @click="isKdv = !isKdv"
+                  :aria-checked="opt.on"
+                  :aria-label="opt.title"
+                  class="group flex items-center gap-3 rounded-xl border-2 px-4 py-3.5 text-left transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40"
+                  :class="opt.on
+                    ? 'border-primary bg-primary/10 shadow-md shadow-primary/15'
+                    : 'border-gray-200 bg-white hover:border-primary/50 hover:bg-primary/5'"
+                  @click="opt.key === 'kdv' ? (isKdv = !isKdv) : (partLoad = !partLoad)"
                 >
                   <span
-                    class="inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform"
-                    :class="isKdv ? 'translate-x-6' : 'translate-x-1'"
-                  />
-                </button>
-              </div>
-              <!-- Parça yük toggle -->
-              <div class="flex items-center justify-between gap-3 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
-                <div>
-                  <p class="text-sm font-medium text-gray-800">Parça Yük mü?</p>
-                  <p class="text-xs text-gray-500">Kısmi / parça yük taşıması ise açın</p>
-                </div>
-                <button
-                  type="button"
-                  role="switch"
-                  :aria-checked="partLoad"
-                  aria-label="Parça Yük mü?"
-                  class="relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary/40"
-                  :class="partLoad ? 'bg-primary' : 'bg-gray-300'"
-                  @click="partLoad = !partLoad"
-                >
+                    class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-colors duration-200"
+                    :class="opt.on ? 'bg-primary text-white shadow-sm shadow-primary/30' : 'bg-primary/10 text-primary group-hover:bg-primary/15'"
+                  >
+                    <i class="pi" :class="opt.icon" style="font-size: 18px;"></i>
+                  </span>
+                  <span class="flex-1 min-w-0">
+                    <span class="flex items-center gap-2">
+                      <span class="text-sm font-semibold" :class="opt.on ? 'text-primary' : 'text-gray-800'">{{ opt.title }}</span>
+                      <span
+                        class="text-[10px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-md transition-colors"
+                        :class="opt.on ? 'bg-primary text-white' : 'bg-gray-100 text-gray-500'"
+                      >
+                        {{ opt.on ? 'Evet' : 'Hayır' }}
+                      </span>
+                    </span>
+                    <span class="block text-xs text-gray-500 mt-0.5">{{ opt.desc }}</span>
+                  </span>
                   <span
-                    class="inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform"
-                    :class="partLoad ? 'translate-x-6' : 'translate-x-1'"
-                  />
+                    class="relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors duration-200"
+                    :class="opt.on ? 'bg-primary' : 'bg-gray-300'"
+                  >
+                    <span
+                      class="inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200"
+                      :class="opt.on ? 'translate-x-6' : 'translate-x-1'"
+                    />
+                  </span>
                 </button>
               </div>
               <!-- Ağırlık input + kg/ton toggle -->
-              <div ref="weightSectionRef" class="flex items-stretch w-full">
+              <div ref="weightSectionRef" data-tour="cp-weight" class="flex items-stretch w-full">
                 <input
                   ref="weightInputRef"
                   :value="weightValue"
@@ -182,31 +187,42 @@
             <h3 class="text-lg font-semibold text-gray-800 mb-4">İlan Detayları</h3>
             <div class="flex flex-col gap-4 w-full">
               <!-- Yüklenecek Yer: Şehir + İlçe + Adreslerim -->
-              <div class="w-full rounded-xl border border-gray-200 bg-white p-3 sm:p-4">
+              <div
+                data-tour="cp-yuk"
+                class="w-full rounded-xl border border-gray-200 bg-white p-3 sm:p-4"
+              >
                 <div class="flex items-start gap-3 w-full">
                   <div class="w-8 h-8 rounded-full bg-primary/10 text-primary items-center justify-center shrink-0 mt-0.5 hidden md:flex">
                     <i class="pi pi-arrow-up-right" style="font-size: 13px;"></i>
                   </div>
                   <div class="w-full">
                     <label class="block text-sm font-semibold text-gray-800 mb-0.5">Yüklenecek Yer</label>
-                    <p class="text-xs text-gray-500 mb-2">Yükün alınacağı şehir ve ilçe bilgisini seçin.</p>
+                    <p class="text-xs text-gray-500 mb-2">Yükün alınacağı konumu haritadan seçin.</p>
                     <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_auto] gap-2 items-center">
-                      <select
-                        v-model="yuklenecekYer.city"
-                        class="h-12 px-4 rounded-xl border border-gray-200 bg-gray-50/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
-                        @change="onYuklenecekCityChange"
+                      <button
+                        type="button"
+                        data-field="yuk"
+                        class="h-12 px-4 rounded-xl border bg-gray-50/60 hover:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm flex items-center justify-between gap-2 text-left transition-all"
+                        :class="fieldStateClass('yuk')"
+                        @click="openMapPicker('yuklenecek')"
                       >
-                        <option value="">Şehir seçin</option>
-                        <option v-for="c in cities" :key="c.id" :value="c.name">{{ c.name }}</option>
-                      </select>
-                      <select
-                        v-model="yuklenecekYer.district"
-                        class="h-12 px-4 rounded-xl border border-gray-200 bg-gray-50/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm disabled:opacity-60"
-                        :disabled="!yuklenecekYer.city || yuklenecekDistrictsLoading"
+                        <span class="truncate" :class="yuklenecekYer.city ? 'text-gray-900' : 'text-gray-500'">
+                          {{ yuklenecekYer.city || 'Şehir seçin' }}
+                        </span>
+                        <i class="pi pi-map text-primary shrink-0" style="font-size: 15px;"></i>
+                      </button>
+                      <!-- Haritadan seçilen konumun il/ilçesi (ilçe seçimi yerine) -->
+                      <div
+                        class="h-12 px-4 rounded-xl text-sm items-center gap-2 min-w-0"
+                        :class="yuklenecekYer.district ? 'flex border border-primary/25 bg-primary/5' : 'hidden sm:flex'"
                       >
-                        <option value="">İlçe seçin</option>
-                        <option v-for="d in yuklenecekDistricts" :key="d.id" :value="d.name">{{ d.name }}</option>
-                      </select>
+                        <template v-if="yuklenecekYer.district">
+                          <i class="pi pi-map-marker text-primary shrink-0" style="font-size: 14px;"></i>
+                          <span class="truncate text-gray-800">
+                            <span class="font-semibold">{{ yuklenecekYer.district }}</span>, {{ yuklenecekYer.city }}
+                          </span>
+                        </template>
+                      </div>
                       <button
                         type="button"
                         class="h-12 px-4 rounded-xl border border-primary/30 bg-white text-primary font-medium text-sm whitespace-nowrap hover:bg-primary/5 transition-colors flex items-center justify-center gap-2 shrink-0"
@@ -220,31 +236,42 @@
                 </div>
               </div>
               <!-- Boşaltılacak Yer: Şehir + İlçe + Adreslerim -->
-              <div class="w-full rounded-xl border border-gray-200 bg-white p-3 sm:p-4">
+              <div
+                data-tour="cp-bos"
+                class="w-full rounded-xl border border-gray-200 bg-white p-3 sm:p-4"
+              >
                 <div class="flex items-start gap-3 w-full">
                   <div class="w-8 h-8 rounded-full bg-secondary/10 text-secondary md:flex items-center justify-center shrink-0 mt-0.5 hidden">
                     <i class="pi pi-arrow-down-left" style="font-size: 13px;"></i>
                   </div>
                   <div class="w-full">
                     <label class="block text-sm font-semibold text-gray-800 mb-0.5">Boşaltılacak Yer</label>
-                    <p class="text-xs text-gray-500 mb-2">Yükün bırakılacağı şehir ve ilçe bilgisini seçin.</p>
+                    <p class="text-xs text-gray-500 mb-2">Yükün bırakılacağı konumu haritadan seçin.</p>
                     <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_auto] gap-2 items-center">
-                      <select
-                        v-model="bosaltilanYer.city"
-                        class="h-12 px-4 rounded-xl border border-gray-200 bg-gray-50/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm"
-                        @change="onBosaltilanCityChange"
+                      <button
+                        type="button"
+                        data-field="bos"
+                        class="h-12 px-4 rounded-xl border bg-gray-50/60 hover:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm flex items-center justify-between gap-2 text-left transition-all"
+                        :class="fieldStateClass('bos')"
+                        @click="openMapPicker('bosaltilan')"
                       >
-                        <option value="">Şehir seçin</option>
-                        <option v-for="c in cities" :key="'b-' + c.id" :value="c.name">{{ c.name }}</option>
-                      </select>
-                      <select
-                        v-model="bosaltilanYer.district"
-                        class="h-12 px-4 rounded-xl border border-gray-200 bg-gray-50/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm disabled:opacity-60"
-                        :disabled="!bosaltilanYer.city || bosaltilanDistrictsLoading"
+                        <span class="truncate" :class="bosaltilanYer.city ? 'text-gray-900' : 'text-gray-500'">
+                          {{ bosaltilanYer.city || 'Şehir seçin' }}
+                        </span>
+                        <i class="pi pi-map text-primary shrink-0" style="font-size: 15px;"></i>
+                      </button>
+                      <!-- Haritadan seçilen konumun il/ilçesi (ilçe seçimi yerine) -->
+                      <div
+                        class="h-12 px-4 rounded-xl text-sm items-center gap-2 min-w-0"
+                        :class="bosaltilanYer.district ? 'flex border border-primary/25 bg-primary/5' : 'hidden sm:flex'"
                       >
-                        <option value="">İlçe seçin</option>
-                        <option v-for="d in bosaltilanDistricts" :key="d.id" :value="d.name">{{ d.name }}</option>
-                      </select>
+                        <template v-if="bosaltilanYer.district">
+                          <i class="pi pi-map-marker text-primary shrink-0" style="font-size: 14px;"></i>
+                          <span class="truncate text-gray-800">
+                            <span class="font-semibold">{{ bosaltilanYer.district }}</span>, {{ bosaltilanYer.city }}
+                          </span>
+                        </template>
+                      </div>
                       <button
                         type="button"
                         class="h-12 px-4 rounded-xl border border-primary/30 bg-white text-primary font-medium text-sm whitespace-nowrap hover:bg-primary/5 transition-colors flex items-center justify-center gap-2 shrink-0"
@@ -257,6 +284,54 @@
                   </div>
                 </div>
               </div>
+
+              <!-- Rota Özeti: boşaltılacak yerin hemen altında (iki yer de seçilince) -->
+              <div
+                v-if="routeInfo"
+                ref="routeStatusRef"
+                class="w-full rounded-xl border border-gray-200 bg-white p-4 sm:p-5"
+              >
+                <div class="flex items-center gap-2 mb-4">
+                  <span class="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                    <i class="pi pi-map text-xs"></i>
+                  </span>
+                  <div class="flex flex-col">
+                    <span class="text-sm font-semibold text-gray-800">Rota Özeti</span>
+                    <span class="text-xs text-gray-500">Adreslere göre hesaplanan tahmini bilgiler</span>
+                  </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div class="rounded-xl border border-gray-100 bg-gray-50 px-3 py-2.5">
+                    <div class="text-[11px] text-gray-500">Mesafe</div>
+                    <div class="text-base font-semibold text-gray-800">{{ routeInfo.distance }} km</div>
+                  </div>
+                  <div class="rounded-xl border border-gray-100 bg-gray-50 px-3 py-2.5">
+                    <div class="text-[11px] text-gray-500">Tahmini süre</div>
+                    <div class="text-base font-semibold text-gray-800">{{ routeInfo.duration }}</div>
+                  </div>
+                </div>
+              </div>
+              <div
+                v-else-if="routeLoading"
+                ref="routeStatusRef"
+                class="w-full rounded-xl border border-gray-200 bg-white flex flex-col items-center justify-center gap-3 py-6"
+              >
+                <img
+                  :src="loadingGifUrl"
+                  alt=""
+                  class="w-16 h-16 object-contain"
+                />
+                <p class="text-sm text-gray-600 text-center">Rota Hesaplanıyor</p>
+              </div>
+
+              <!-- Haritadan konum seçimi (yüklenecek / boşaltılacak yer) -->
+              <MapLocationModal
+                v-model="mapPickerOpen"
+                :title="mapPickerFor === 'yuklenecek' ? 'Yüklenecek Yer' : 'Boşaltılacak Yer'"
+                :initial="mapPickerInitial"
+                :resolve-location="resolveMapLocation"
+                @confirm="onMapLocationConfirm"
+              />
 
               <!-- Adreslerim modalı: aktif adreslerden seç -->
               <Teleport to="body">
@@ -319,202 +394,15 @@
                 </Transition>
               </Teleport>
 
-              <!-- Kalkış / Varış saati + Arama ile iletişime geçilebilir (md+ yan yana) -->
-              <div class="flex flex-col md:flex-row gap-4 w-full items-stretch">
-              <div class="w-full flex-1 min-w-0 rounded-xl border border-gray-200 bg-white p-4 sm:p-5">
-                <div class="flex items-start gap-3 w-full">
-                  <div class="w-9 h-9 rounded-full bg-primary/10 text-primary items-center justify-center shrink-0 mt-0.5 hidden md:flex">
-                    <i class="pi pi-clock" style="font-size: 15px;"></i>
-                  </div>
-                  <div class="w-full min-w-0">
-                    <label class="block text-base font-semibold text-gray-800 mb-1">Kalkış ve Varış Saati</label>
-                    <p class="text-sm text-gray-500 mb-3">Saatleri seçin, isterseniz kalkış tarihi de ekleyin.</p>
-                    <div class="flex items-center justify-between w-full mb-3 rounded-xl border border-gray-200 bg-gray-50/60 px-3 py-2.5 gap-3">
-                      <div class="flex flex-col gap-0.5 min-w-0">
-                        <span class="text-base font-medium text-gray-800">Kalkış tarihi belirt</span>
-                        <span class="text-sm text-gray-500">
-                          {{ departureDateEnabled ? 'İlan tarihiniz bitiminde ilandan kaldırılır' : 'İlanınız 3 hafta açık kalır' }}
-                        </span>
-                      </div>
-                    <button
-                      type="button"
-                      class="relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
-                      :class="departureDateEnabled ? 'bg-primary' : 'bg-gray-300'"
-                      @click="onToggleDepartureDate"
-                    >
-                      <span
-                        class="inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200"
-                        :class="departureDateEnabled ? 'translate-x-6' : 'translate-x-1'"
-                      />
-                    </button>
-                  </div>
-                    <div class="flex-1 flex flex-col md:flex-row gap-2">
-                      <DatePicker
-                        class="w-full flex-1 h-12 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-base"
-                        v-model="departure_time"
-                        time-only
-                        hour-format="24"
-                        :manualInput="false"
-                        placeholder="Kalkış saati"
-                        :pt="{
-                          root: { class: 'flex-1 !text-base' },
-                          input: { class: 'h-12 px-4 !rounded-xl !border !border-gray-200 !focus:outline-none !focus:ring-2 !focus:ring-primary/20 focus:border-primary !text-base placeholder:text-base w-full !bg-white' },
-                          panel: { class: '!bg-white !mt-2 !border !text-sm !border-gray-200 shadow-lg !rounded-lg' },
-                          calendarContainer: { class: '!bg-white' },
-                          timePicker: { class: '!bg-white' }
-                        }"
-                        fluid
-                      />
-                      <DatePicker
-                        class="w-full flex-1 h-12 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-base"
-                        v-model="time_arrival"
-                        time-only
-                        hour-format="24"
-                        :manualInput="false"
-                        placeholder="Varış saati"
-                        :pt="{
-                          root: { class: 'flex-1 !text-base' },
-                          input: { class: 'h-12 px-4 !rounded-xl !border !border-gray-200 !focus:outline-none !focus:ring-2 !focus:ring-primary/20 focus:border-primary !text-base placeholder:text-base w-full !bg-white' },
-                          panel: { class: '!bg-white !mt-2 !border !text-sm !border-gray-200 shadow-lg !rounded-lg' },
-                          calendarContainer: { class: '!bg-white' },
-                          timePicker: { class: '!bg-white' }
-                        }"
-                        fluid
-                      />
-                      <DatePicker
-                        v-if="departureDateEnabled"
-                        class="w-full flex-1 h-12 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-base"
-                        v-model="shipment_date"
-                        date-format="dd.mm.yy"
-                        placeholder="Tarih seçin"
-                        :pt="{
-                          root: { class: 'flex-1 !text-base' },
-                          input: {
-                            class: [
-                              'h-12 !p-4 !rounded-xl !border !border-gray-200 !focus:outline-none !focus:ring-2 !focus:ring-primary/20 focus:border-primary !text-base placeholder:text-base w-full',
-                              shipment_date ? '!bg-primary/10 cursor-not-allowed' : '!bg-white'
-                            ]
-                          },
-                          panel: { class: '!bg-white !mt-2 !border !text-sm !border-gray-200 !text-gray-800 shadow-lg !rounded-lg !p-4' },
-                          calendarContainer: { class: '!bg-white !text-gray-800' },
-                          calendar: { class: '!text-gray-800' },
-                          header: { class: '!text-gray-800' },
-                          title: { class: '!text-gray-800' },
-                          selectYear: { class: '!text-gray-800' },
-                          selectMonth: { class: '!text-gray-800' },
-                          weekDay: { class: '!text-gray-800' },
-                          tableHeader: { class: '!text-gray-800' },
-                          tableHeaderCell: { class: '!text-gray-800' },
-                          timePicker: { class: '!bg-white' },
-                          day: (arg) => {
-                            const ctx = arg?.context ?? arg ?? {};
-                            const dateMeta = ctx.date;
-                            const selected = ctx.selected;
-                            const selectable = dateMeta ? (ctx.disabled === false || dateMeta.selectable) : false;
-                            if (!dateMeta) {
-                              return { class: '!bg-white !text-gray-800' };
-                            }
-                            const d = new Date(dateMeta.year, dateMeta.month, dateMeta.day);
-                            const todayStart = new Date();
-                            todayStart.setHours(0, 0, 0, 0);
-                            d.setHours(0, 0, 0, 0);
-                            const isPast = d < todayStart;
-                            if (selected) {
-                              return { class: '!bg-primary !text-white !font-bold !rounded-md' };
-                            }
-                            if (isPast) {
-                              return { class: '!bg-gray-100 !text-gray-400 !opacity-60 cursor-not-allowed' };
-                            }
-                            if (selectable) {
-                              return { class: '!bg-white !text-gray-800 hover:!bg-primary/10 hover:!text-primary' };
-                            }
-                            return { class: '!bg-gray-100 !text-gray-400 !opacity-50 cursor-not-allowed' };
-                          }
-                        }"
-                        :min-date="new Date()"
-                        :max-date="new Date(new Date().setDate(new Date().getDate() + 20))"
-                        :manualInput="false"
-                        fluid
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="w-full flex-1 min-w-0 flex md:max-w-none">
-                <div
-                  class="rounded-xl border border-gray-200 bg-white px-5 py-4 sm:px-6 sm:py-5 w-full flex flex-col justify-center min-h-[132px]"
-                >
-                  <div class="flex items-center justify-between gap-4">
-                    <div class="flex items-start gap-3 min-w-0">
-                      <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
-                        <i class="pi pi-phone text-[1.05rem]"></i>
-                      </span>
-                      <div class="flex flex-col gap-1 min-w-0">
-                        <span class="text-base font-semibold text-gray-800 leading-snug">Arama ile iletişime geçilebilir</span>
-                        <span class="text-sm text-gray-500 leading-snug">
-                          {{ canContactByCall ? 'Taşıyıcıların sizi telefonla aramasına izin verin.' : 'Taşıyıcılar size teklif gönderebilir' }}
-                        </span>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      class="relative inline-flex h-8 w-14 items-center rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 shrink-0"
-                      :class="canContactByCall ? 'bg-primary' : 'bg-gray-300'"
-                      @click="canContactByCall = !canContactByCall"
-                    >
-                      <span
-                        class="inline-block h-6 w-6 transform rounded-full bg-white shadow transition-transform duration-200"
-                        :class="canContactByCall ? 'translate-x-6' : 'translate-x-1'"
-                      />
-                    </button>
-                  </div>
-                </div>
-              </div>
-              </div>
-
-              <!-- İlan açıklaması (isteğe bağlı) -->
-              <div class="w-full rounded-xl border border-gray-200 bg-white p-4 sm:p-5 mt-4">
-                <label class="block text-base font-semibold text-gray-800 mb-0.5">İlan Açıklaması</label>
-                <p class="text-sm text-gray-500 mb-3">Taşıyıcılara iletmek istediğiniz ek notlar (isteğe bağlı)</p>
-                <textarea
-                  v-model="explanation"
-                  rows="4"
-                  maxlength="500"
-                  placeholder="Örn: Yük paletli, forklift ile yüklenecek, teslimat saat 14:00–18:00 arası..."
-                  class="w-full min-h-[110px] px-4 py-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm text-gray-800 resize-y"
-                />
-                <p class="text-xs text-gray-400 mt-1 text-right">{{ explanation.length }}/500</p>
-              </div>
-
-              <!-- Mesafe ve süre (her iki yer seçildiğinde) -->
+              <!-- Fiyat Seçimi: Rota Özeti'nin hemen altında -->
               <div
                 v-if="routeInfo"
-                ref="routeStatusRef"
-                class="mt-4 pt-4 border-t border-gray-100 text-sm gap-4"
+                class="w-full text-sm"
               >
-                <div class="w-full rounded-xl border border-gray-200 bg-white p-4 sm:p-5">
-                  <div class="flex items-center gap-2 mb-4">
-                    <span class="w-8 h-8 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                      <i class="pi pi-map text-xs"></i>
-                    </span>
-                    <div class="flex flex-col">
-                      <span class="text-sm font-semibold text-gray-800">Rota Özeti</span>
-                      <span class="text-xs text-gray-500">Adreslere göre hesaplanan tahmini bilgiler</span>
-                    </div>
-                  </div>
-
-                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-5">
-                    <div class="rounded-xl border border-gray-100 bg-gray-50 px-3 py-2.5">
-                      <div class="text-[11px] text-gray-500">Mesafe</div>
-                      <div class="text-base font-semibold text-gray-800">{{ routeInfo.distance }} km</div>
-                    </div>
-                    <div class="rounded-xl border border-gray-100 bg-gray-50 px-3 py-2.5">
-                      <div class="text-[11px] text-gray-500">Tahmini süre</div>
-                      <div class="text-base font-semibold text-gray-800">{{ routeInfo.duration }}</div>
-                    </div>
-                  </div>
-
+                <div
+                  data-tour="cp-price"
+                  class="w-full rounded-xl border border-gray-200 bg-white p-4 sm:p-5"
+                >
                   <div class="flex items-start gap-2 flex-col w-full">
                     <h2 class="text-base font-semibold text-gray-800 mb-1">Fiyat Seçimi</h2>
                     <p class="text-xs text-gray-500 mb-2">Sabit fiyat seçebilir, teklif toplayabilir veya fiyatı kendiniz belirleyebilirsiniz.</p>
@@ -593,7 +481,9 @@
                                 type="text"
                                 inputmode="decimal"
                                 placeholder="15.000,00"
-                                class="w-44 h-11 rounded-xl border border-gray-200 bg-white pl-3 pr-8 text-right text-base font-semibold text-gray-900 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                                data-field="custom_price"
+                                class="w-44 h-11 rounded-xl border bg-white pl-3 pr-8 text-right text-base font-semibold text-gray-900 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                                :class="fieldStateClass('custom_price')"
                                 @input="onCustomPriceInput"
                               />
                               <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 font-semibold">₺</span>
@@ -612,17 +502,175 @@
 
                 </div>
               </div>
+
+              <!-- Kalkış / Varış saati + Arama ile iletişime geçilebilir (md+ yan yana).
+                   Yüklenecek ve boşaltılacak yer seçilip Rota Özeti çıktığında görünür. -->
+              <div v-if="routeInfo" class="flex flex-col md:flex-row gap-4 w-full items-stretch">
               <div
-                v-else-if="routeLoading"
-                ref="routeStatusRef"
-                class="mt-4 pt-4 border-t border-gray-100 flex flex-col items-center justify-center gap-3 py-6"
+                class="w-full flex-1 min-w-0 rounded-xl border border-gray-200 bg-white p-4 sm:p-5"
               >
-                <img
-                  :src="loadingGifUrl"
-                  alt=""
-                  class="w-16 h-16 object-contain"
+                <div class="flex items-start gap-3 w-full">
+                  <div class="w-9 h-9 rounded-full bg-primary/10 text-primary items-center justify-center shrink-0 mt-0.5 hidden md:flex">
+                    <i class="pi pi-clock" style="font-size: 15px;"></i>
+                  </div>
+                  <div class="w-full min-w-0">
+                    <label class="block text-base font-semibold text-gray-800 mb-1">
+                      Kalkış ve Varış Saati <span class="text-secondary">*</span>
+                    </label>
+                    <p class="text-sm text-gray-500 mb-3">
+                      Kalkış saati, varış saati ve kalkış tarihini seçin. İlanınız kalkış tarihi geçince yayından kaldırılır.
+                    </p>
+                    <div class="flex-1 flex flex-col md:flex-row gap-2">
+                      <div class="flex-1 flex flex-col">
+                      <DatePicker
+                        class="w-full flex-1 h-12 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-base"
+                        v-model="departure_time"
+                        data-field="departure_time"
+                        time-only
+                        hour-format="24"
+                        :manualInput="false"
+                        placeholder="Kalkış saati"
+                        :pt="{
+                          root: { class: 'flex-1 !text-base' },
+                          input: { class: ['h-12 px-4 !rounded-xl !border !focus:outline-none !focus:ring-2 !focus:ring-primary/20 focus:border-primary !text-base placeholder:text-base w-full !bg-white', invalidFields.departure_time ? fieldStateClass('departure_time') : '!border-gray-200'] },
+                          panel: { class: '!bg-white !mt-2 !border !text-sm !border-gray-200 shadow-lg !rounded-lg' },
+                          calendarContainer: { class: '!bg-white' },
+                          timePicker: { class: '!bg-white' }
+                        }"
+                        fluid
+                      />
+                        <p v-if="scheduleCheck.departureError" class="mt-1 text-xs font-semibold text-red-600">{{ scheduleCheck.departureError }}</p>
+                      </div>
+                      <div class="flex-1 flex flex-col">
+                      <DatePicker
+                        class="w-full flex-1 h-12 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-base"
+                        v-model="time_arrival"
+                        data-field="time_arrival"
+                        time-only
+                        hour-format="24"
+                        :manualInput="false"
+                        placeholder="Varış saati"
+                        :pt="{
+                          root: { class: 'flex-1 !text-base' },
+                          input: { class: ['h-12 px-4 !rounded-xl !border !focus:outline-none !focus:ring-2 !focus:ring-primary/20 focus:border-primary !text-base placeholder:text-base w-full !bg-white', invalidFields.time_arrival ? fieldStateClass('time_arrival') : '!border-gray-200'] },
+                          panel: { class: '!bg-white !mt-2 !border !text-sm !border-gray-200 shadow-lg !rounded-lg' },
+                          calendarContainer: { class: '!bg-white' },
+                          timePicker: { class: '!bg-white' }
+                        }"
+                        fluid
+                      />
+                        <!-- Varış ertesi güne (ya da sonrasına) düşüyorsa tarihi küçük yazıyla -->
+                        <p v-if="scheduleCheck.arrivalError" class="mt-1 text-xs font-semibold text-red-600">{{ scheduleCheck.arrivalError }}</p>
+                        <p v-else-if="scheduleCheck.arrivalDateLabel" class="mt-1 text-xs font-semibold text-gray-500 text-center">{{ scheduleCheck.arrivalDateLabel }}</p>
+                      </div>
+                      <DatePicker
+                        class="w-full flex-1 h-12 px-4 py-3 rounded-xl border border-gray-200 bg-gray-50/60 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-base"
+                        v-model="shipment_date"
+                        data-field="shipment_date"
+                        date-format="dd.mm.yy"
+                        placeholder="Kalkış tarihi"
+                        :pt="{
+                          root: { class: 'flex-1 !text-base' },
+                          input: {
+                            class: [
+                              'h-12 !p-4 !rounded-xl !border !focus:outline-none !focus:ring-2 !focus:ring-primary/20 focus:border-primary !text-base placeholder:text-base w-full',
+                              shipment_date ? '!bg-primary/10 cursor-not-allowed' : '!bg-white',
+                              invalidFields.shipment_date ? fieldStateClass('shipment_date') : '!border-gray-200'
+                            ]
+                          },
+                          panel: { class: '!bg-white !mt-2 !border !text-sm !border-gray-200 !text-gray-800 shadow-lg !rounded-lg !p-4' },
+                          calendarContainer: { class: '!bg-white !text-gray-800' },
+                          calendar: { class: '!text-gray-800' },
+                          header: { class: '!text-gray-800' },
+                          title: { class: '!text-gray-800' },
+                          selectYear: { class: '!text-gray-800' },
+                          selectMonth: { class: '!text-gray-800' },
+                          weekDay: { class: '!text-gray-800' },
+                          tableHeader: { class: '!text-gray-800' },
+                          tableHeaderCell: { class: '!text-gray-800' },
+                          timePicker: { class: '!bg-white' },
+                          day: (arg) => {
+                            const ctx = arg?.context ?? arg ?? {};
+                            const dateMeta = ctx.date;
+                            const selected = ctx.selected;
+                            const selectable = dateMeta ? (ctx.disabled === false || dateMeta.selectable) : false;
+                            if (!dateMeta) {
+                              return { class: '!bg-white !text-gray-800' };
+                            }
+                            const d = new Date(dateMeta.year, dateMeta.month, dateMeta.day);
+                            const todayStart = new Date();
+                            todayStart.setHours(0, 0, 0, 0);
+                            d.setHours(0, 0, 0, 0);
+                            const isPast = d < todayStart;
+                            if (selected) {
+                              return { class: '!bg-primary !text-white !font-bold !rounded-md' };
+                            }
+                            if (isPast) {
+                              return { class: '!bg-gray-100 !text-gray-400 !opacity-60 cursor-not-allowed' };
+                            }
+                            if (selectable) {
+                              return { class: '!bg-white !text-gray-800 hover:!bg-primary/10 hover:!text-primary' };
+                            }
+                            return { class: '!bg-gray-100 !text-gray-400 !opacity-50 cursor-not-allowed' };
+                          }
+                        }"
+                        :min-date="todayStart"
+                        :max-date="departureMaxDate"
+                        :manualInput="false"
+                        fluid
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="w-full flex-1 min-w-0 flex md:max-w-none">
+                <div
+                  class="rounded-xl border border-gray-200 bg-white px-5 py-4 sm:px-6 sm:py-5 w-full flex flex-col justify-center min-h-[132px]"
+                >
+                  <div class="flex items-center justify-between gap-4">
+                    <div class="flex items-start gap-3 min-w-0">
+                      <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 mt-0.5">
+                        <i class="pi pi-phone text-[1.05rem]"></i>
+                      </span>
+                      <div class="flex flex-col gap-1 min-w-0">
+                        <span class="text-base font-semibold text-gray-800 leading-snug">Arama ile iletişime geçilebilir</span>
+                        <span class="text-sm text-gray-500 leading-snug">
+                          {{ canContactByCall ? 'Taşıyıcıların sizi telefonla aramasına izin verin.' : 'Taşıyıcılar size teklif gönderebilir' }}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      class="relative inline-flex h-8 w-14 items-center rounded-full transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 shrink-0"
+                      :class="canContactByCall ? 'bg-primary' : 'bg-gray-300'"
+                      @click="canContactByCall = !canContactByCall"
+                    >
+                      <span
+                        class="inline-block h-6 w-6 transform rounded-full bg-white shadow transition-transform duration-200"
+                        :class="canContactByCall ? 'translate-x-6' : 'translate-x-1'"
+                      />
+                    </button>
+                  </div>
+                </div>
+              </div>
+              </div>
+
+              <!-- İlan açıklaması (isteğe bağlı) — Rota Özeti ile birlikte görünür -->
+              <div
+                v-if="routeInfo"
+                class="w-full rounded-xl border border-gray-200 bg-white p-4 sm:p-5 mt-4"
+              >
+                <label class="block text-base font-semibold text-gray-800 mb-0.5">İlan Açıklaması</label>
+                <p class="text-sm text-gray-500 mb-3">Taşıyıcılara iletmek istediğiniz ek notlar (isteğe bağlı)</p>
+                <textarea
+                  v-model="explanation"
+                  rows="4"
+                  maxlength="500"
+                  placeholder="Örn: Yük paletli, forklift ile yüklenecek, teslimat saat 14:00–18:00 arası..."
+                  class="w-full min-h-[110px] px-4 py-3 rounded-xl border border-gray-200 bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary text-sm text-gray-800 resize-y"
                 />
-                <p class="text-sm text-gray-600 text-center">Rota Hesaplanıyor</p>
+                <p class="text-xs text-gray-400 mt-1 text-right">{{ explanation.length }}/500</p>
               </div>
             </div>
           </div>
@@ -653,7 +701,8 @@
             <button
               @click="handlePublishOrNext"
               type="button"
-              :disabled="!canGoNext || publishLoading"
+              data-tour="cp-next"
+              :disabled="publishLoading || (page !== limit && !canGoNext)"
               class="flex-1 sm:flex-none transition-all duration-200 text-sm sm:text-base"
               :class="publishActionButtonClass"
             >
@@ -663,6 +712,20 @@
               <span v-else>{{ page === limit ? 'Yayınla' : 'Sonraki →' }}</span>
             </button>
           </div>
+
+          <!-- İlk ilan rehber turu (paneldeki "İlanınızı oluşturun" kartından başlar) -->
+          <CoachMark
+            v-if="tourStep"
+            :target="`[data-tour=&quot;${tourStep.target}&quot;]`"
+            :step-key="tourStep.key"
+            :step-label="`Adım ${tourStep.index + 1} / ${tourStep.total}`"
+            :title="tourStep.title"
+            :body="tourStep.body"
+            :action-label="tourStep.ackLabel || ''"
+            :action-disabled="!!tourStep.ackDisabled"
+            @action="ackCreatePostTourStep(tourStep.key)"
+            @skip="skipCreatePostTour"
+          />
 
           <!-- Kapatma onayı (tarayıcı confirm yerine) -->
           <Transition name="confirm-close">
@@ -712,15 +775,28 @@
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from "vue";
 import VehicleSelection from "@/components/VehicleSelection.vue";
+import CoachMark from "@/components/CoachMark.vue";
+import {
+  ackCreatePostTourStep,
+  createPostTour,
+  markCreatePostTourDone,
+  stopCreatePostTourWizard,
+} from "@/lib/create-post-tour";
 import VehicleCart from "@/components/VehicleCart.vue";
+import MapLocationModal from "@/components/MapLocationModal.vue";
 import { DatePicker } from "primevue";
 import api from "@/api";
+import { toast } from "vue-sonner";
 import { postTypeImageUrl } from "@/lib/catalog-assets";
 import { usePostStore } from "@/stores/post";
 import { useShipmentsStore } from "@/stores/shipments";
 import { useAuthStore } from "@/stores/auth";
 import { useLocationStore } from "@/stores/location";
-import { resolveCityNameForFilter, pickDistrict } from "@/lib/locations";
+import {
+  resolveCityNameForFilter,
+  parseNominatimTurkey,
+  matchDistrictFromCandidates,
+} from "@/lib/locations";
 import { storeToRefs } from "pinia";
 
 const loadingGifUrl = new URL("../assets/gifs/loading_gif.gif", import.meta.url).href;
@@ -760,10 +836,21 @@ const selectedAddressId = computed(() => {
   );
   return addr?.id ?? null;
 });
-/** Yüklenecek yer: sadece şehir ve ilçe isimleri */
-const yuklenecekYer = ref({ city: '', district: '' });
-/** PrimeVue timeOnly: Date (saat/dakika), formda HH:mm olarak gönderilir */
-const departure_time = ref(null);
+/**
+ * Yüklenecek yer: şehir ve ilçe isimleri (API'ye giden) + haritadan seçildiyse koordinat.
+ * Koordinat sadece rota hesabı ve haritayı aynı noktadan açmak için tutulur.
+ */
+const yuklenecekYer = ref({ city: '', district: '', lat: null, lng: null, exactLocation: null });
+/** Varsayılan kalkış saati: şu andan 1 saat sonrası (saniyesiz). Mobil ile aynı. */
+function defaultDepartureTime() {
+  const t = new Date(Date.now() + 60 * 60 * 1000);
+  t.setSeconds(0, 0);
+  return t;
+}
+/** PrimeVue timeOnly: Date (saat/dakika), formda HH:mm olarak gönderilir. Varsayılan: şimdi + 1 saat */
+const departure_time = ref(defaultDepartureTime());
+/** Otomatik atanan kalkış saati; kullanıcı seçici ile değiştirince yeni bir Date gelir ve artık otomatik güncellenmez */
+let autoDepartureTime = departure_time.value;
 /** PrimeVue timeOnly: Date (saat/dakika), formda HH:mm olarak gönderilir */
 const time_arrival = ref(null);
 /** PrimeVue dateOnly: Date, formda yyyy-MM-dd olarak gönderilir */
@@ -772,22 +859,98 @@ const todayStart = (() => {
   t.setHours(0, 0, 0, 0);
   return t;
 })();
-const departureDateEnabled = ref(true);
-const shipment_date = ref(todayStart);
+/** Kalkış tarihi en fazla bugünden 2 ay sonrası seçilebilir (ay sonu taşmaz: 31 Ara → 28/29 Şub). Mobil ve sunucu ile aynı. */
+const MAX_DEPARTURE_MONTHS = 2;
+const departureMaxDate = (() => {
+  const t = new Date(todayStart);
+  const day = t.getDate();
+  t.setDate(1);
+  t.setMonth(t.getMonth() + MAX_DEPARTURE_MONTHS);
+  const lastDay = new Date(t.getFullYear(), t.getMonth() + 1, 0).getDate();
+  t.setDate(Math.min(day, lastDay));
+  return t;
+})();
+/** Kalkış tarihi zorunlu; kullanıcı seçene kadar boş */
+const shipment_date = ref(null);
 
-function onToggleDepartureDate() {
-  departureDateEnabled.value = !departureDateEnabled.value;
-  if (!departureDateEnabled.value) {
-    // Tarih belirtilmesin: formdan undefined/null gitsin
-    shipment_date.value = null;
-  } else {
-    // Tekrar açınca varsayılanı doldur
-    shipment_date.value = new Date(todayStart);
+/* ---------- Yayınla: geçersiz alan vurgusu ---------- */
+/** Geçersiz alanlar: yuk, bos, departure_time, time_arrival, shipment_date, custom_price */
+const invalidFields = ref({});
+const shakeActive = ref(false);
+let shakeTimer = null;
+
+/** Son adımda eksik/geçersiz alanları bulur (sadece ekranda görünen alanlar) */
+function collectPublishErrors() {
+  const errors = {};
+  if (!yuklenecekYer.value?.city?.trim() || !yuklenecekYer.value?.district?.trim()) errors.yuk = true;
+  if (!bosaltilanYer.value?.city?.trim() || !bosaltilanYer.value?.district?.trim()) errors.bos = true;
+  // Saat/tarih ve fiyat alanları Rota Özeti çıkınca görünür
+  if (routeInfo.value) {
+    if (!(departure_time.value instanceof Date) || scheduleCheck.value.departureError) errors.departure_time = true;
+    if (!(time_arrival.value instanceof Date) || scheduleCheck.value.arrivalError) errors.time_arrival = true;
+    if (!(shipment_date.value instanceof Date)) errors.shipment_date = true;
+    if (selectedPriceType.value === 'ozel' && !customPriceValid.value) errors.custom_price = true;
   }
+  return errors;
 }
 
-/** Boşaltılacak yer: sadece şehir ve ilçe isimleri */
-const bosaltilanYer = ref({ city: '', district: '' });
+/** Eksik alanın uyarıda görünen adı */
+const PUBLISH_FIELD_LABELS = {
+  yuk: 'Yüklenecek yer',
+  bos: 'Boşaltılacak yer',
+  departure_time: 'Kalkış saati',
+  time_arrival: 'Varış saati',
+  shipment_date: 'Kalkış tarihi',
+  custom_price: 'Fiyat',
+};
+
+/** Geçersizse kırmızı kenarlık + gölge (+ sallanma), değilse normal kenarlık */
+function fieldStateClass(key, normalBorder = 'border-gray-200') {
+  if (!invalidFields.value[key]) return normalBorder;
+  return [
+    '!border-red-500 ring-2 ring-red-500/20 shadow-lg shadow-red-500/20',
+    shakeActive.value ? 'cp-shake' : '',
+  ].join(' ');
+}
+
+function triggerShake() {
+  clearTimeout(shakeTimer);
+  shakeActive.value = false;
+  // Sınıfı kaldırıp bir sonraki karede geri ekle: animasyon her tıklamada baştan oynar
+  nextTick(() => {
+    requestAnimationFrame(() => {
+      shakeActive.value = true;
+      shakeTimer = setTimeout(() => { shakeActive.value = false; }, 550);
+    });
+  });
+}
+
+/** Geçersiz alanları işaretler; hata yoksa true döner */
+function validateBeforePublish() {
+  const errors = collectPublishErrors();
+  const keys = Object.keys(errors);
+  if (!keys.length) {
+    invalidFields.value = {};
+    return true;
+  }
+  invalidFields.value = errors;
+  triggerShake();
+  const missing = keys.map((k) => PUBLISH_FIELD_LABELS[k]).filter(Boolean);
+  toast.error('Lütfen eksik bilgileri doldurun', {
+    id: 'create-post-missing-fields', // art arda tıklamada üst üste binmesin, güncellensin
+    description: missing.length ? `Eksik: ${missing.join(', ')}` : undefined,
+    duration: 4000,
+  });
+  nextTick(() => {
+    document
+      .querySelector(`[data-field="${keys[0]}"]`)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+  return false;
+}
+
+/** Boşaltılacak yer: yüklenecek yer ile aynı yapı */
+const bosaltilanYer = ref({ city: '', district: '', lat: null, lng: null, exactLocation: null });
 const cities = ref([]);
 const publishLoading = ref(false);
 const citiesLoading = ref(false);
@@ -989,17 +1152,87 @@ async function onBosaltilanCityChange() {
   }
 }
 
+/* ---------- Haritadan konum seçimi ---------- */
+const mapPickerOpen = ref(false);
+const mapPickerFor = ref('yuklenecek'); // 'yuklenecek' | 'bosaltilan'
+const mapPickerInitial = computed(() => {
+  const target = mapPickerFor.value === 'yuklenecek' ? yuklenecekYer.value : bosaltilanYer.value;
+  return target?.lat != null && target?.lng != null ? { lat: target.lat, lng: target.lng } : null;
+});
+
+/** İlçe listeleri şehir başına bir kez çekilir (harita her tıklamada tekrar istemesin) */
+const districtsCache = new Map();
+async function getDistrictsForCity(cityId) {
+  if (districtsCache.has(cityId)) return districtsCache.get(cityId);
+  const res = await api.get(`/locations/cities/${cityId}/districts`);
+  const content = res.data?.content;
+  const list = Array.isArray(content) ? content : [];
+  districtsCache.set(cityId, list);
+  return list;
+}
+
+function openMapPicker(forSection) {
+  mapPickerFor.value = forSection;
+  mapPickerOpen.value = true;
+  fetchCities();
+}
+
+/**
+ * Haritadaki noktayı sistemdeki il/ilçe adlarına çevirir (ilanlar filtrelerde bu adlarla eşleşir).
+ * İl: plaka kodu = şehir id'si. İlçe: harita adı listede yoksa ilin Merkez ilçesine düşülür.
+ */
+async function resolveMapLocation(geo) {
+  if (!cities.value.length) await fetchCities();
+  const city =
+    cities.value.find((c) => c.id === geo.plate) ||
+    cities.value.find((c) => c.name === resolveCityNameForFilter(geo.province, cities.value));
+  if (!city) return { error: 'Bu nokta için il belirlenemedi. Lütfen başka bir nokta seçin.' };
+
+  if (!geo.districtCandidates?.length) {
+    return { error: 'Bu nokta için ilçe belirlenemedi. Lütfen bir yerleşim yerine daha yakın bir nokta seçin.' };
+  }
+
+  let districts;
+  try {
+    districts = await getDistrictsForCity(city.id);
+  } catch (_) {
+    return { error: 'İlçe listesi alınamadı. Lütfen tekrar deneyin.' };
+  }
+  const match = matchDistrictFromCandidates(districts, geo.districtCandidates, city.name);
+  if (!match) return { error: 'Bu nokta için ilçe belirlenemedi. Lütfen başka bir nokta seçin.' };
+
+  return {
+    city: city.name,
+    district: match.district.name,
+    note: match.approximate ? `Haritadaki ilçe: ${geo.districtCandidates[0]}` : null,
+  };
+}
+
+function onMapLocationConfirm(loc) {
+  const target = mapPickerFor.value === 'yuklenecek' ? yuklenecekYer : bosaltilanYer;
+  target.value = {
+    city: loc.city,
+    district: loc.district,
+    lat: loc.lat,
+    lng: loc.lng,
+    exactLocation: loc.exactLocation ?? null,
+  };
+}
+
 async function applyYuklenecekFromGeo(geoCity, geoDistrict) {
   if (yuklenecekYer.value.city?.trim()) return true;
   const cityName = resolveCityNameForFilter(geoCity, cities.value);
   if (!cityName) return false;
 
   yuklenecekYer.value.city = cityName;
+  yuklenecekYer.value.lat = null;
+  yuklenecekYer.value.lng = null;
+  yuklenecekYer.value.exactLocation = null;
   await onYuklenecekCityChange();
 
   if (geoDistrict && yuklenecekDistricts.value.length) {
-    const picked = pickDistrict(yuklenecekDistricts.value, geoDistrict);
-    if (picked?.name) yuklenecekYer.value.district = picked.name;
+    const picked = matchDistrictFromCandidates(yuklenecekDistricts.value, [geoDistrict], cityName);
+    if (picked?.district?.name) yuklenecekYer.value.district = picked.district.name;
   }
   return Boolean(yuklenecekYer.value.city?.trim());
 }
@@ -1011,19 +1244,11 @@ async function reverseGeocodeCityDistrict(lat, lng) {
       { headers: { 'Accept-Language': 'tr' } }
     );
     const data = await res.json();
-    const addr = data?.address;
-    if (!addr) return { city: null, district: null };
-    const isTurkey = (addr.country_code || data.country_code || '').toLowerCase() === 'tr';
-    if (isTurkey) {
-      return {
-        city: addr.state || null,
-        district: addr.state_district || addr.county || null,
-      };
-    }
-    return {
-      city: addr.state || addr.city || addr.town || addr.village || addr.municipality || null,
-      district: addr.state_district || addr.county || null,
-    };
+    if (!data?.address) return { city: null, district: null };
+    // Türkiye'de il `province`, ilçe `town` (merkez ilçelerde `city`) alanında gelir
+    const geo = parseNominatimTurkey(data);
+    if (!geo.inTurkey) return { city: null, district: null };
+    return { city: geo.province, district: geo.districtCandidates[0] ?? null };
   } catch (_) {
     return { city: null, district: null };
   }
@@ -1094,8 +1319,8 @@ async function selectAddressFromModal(addr) {
   const districtName = addr.district ?? '';
   if (!cityName) return;
   if (addressesModalFor.value === 'yuklenecek') {
-    yuklenecekYer.value.city = cityName;
-    yuklenecekYer.value.district = districtName;
+    // Kayıtlı adreste koordinat yok: rota il/ilçe merkezinden hesaplanır
+    yuklenecekYer.value = { city: cityName, district: districtName, lat: null, lng: null, exactLocation: null };
     const city = cities.value.find((c) => c.name === cityName);
     if (city?.id) {
       yuklenecekDistricts.value = [];
@@ -1111,8 +1336,7 @@ async function selectAddressFromModal(addr) {
       }
     }
   } else {
-    bosaltilanYer.value.city = cityName;
-    bosaltilanYer.value.district = districtName;
+    bosaltilanYer.value = { city: cityName, district: districtName, lat: null, lng: null, exactLocation: null };
     const city = cities.value.find((c) => c.name === cityName);
     if (city?.id) {
       bosaltilanDistricts.value = [];
@@ -1160,8 +1384,13 @@ async function fetchRouteInfo() {
   }
   routeLoading.value = true;
   try {
-    const fromCoords = await geocodePlace(from.city, from.district);
-    const toCoords = await geocodePlace(to.city, to.district);
+    // Haritadan seçildiyse tam nokta, değilse il/ilçe merkezi kullanılır
+    const fromCoords = from.lat != null && from.lng != null
+      ? { lat: from.lat, lng: from.lng }
+      : await geocodePlace(from.city, from.district);
+    const toCoords = to.lat != null && to.lng != null
+      ? { lat: to.lat, lng: to.lng }
+      : await geocodePlace(to.city, to.district);
     if (!fromCoords || !toCoords) {
       routeLoading.value = false;
       return;
@@ -1178,7 +1407,7 @@ async function fetchRouteInfo() {
       const durationStr = hours > 0
         ? `${hours} saat ${mins > 0 ? mins + ' dk' : ''}`.trim()
         : `${mins} dk`;
-      routeInfo.value = { distance: `${distKm}`, duration: durationStr };
+      routeInfo.value = { distance: `${distKm}`, duration: durationStr, durationSec: durSec };
     }
   } catch (_) {
     routeInfo.value = null;
@@ -1187,9 +1416,77 @@ async function fetchRouteInfo() {
   }
 }
 
+/* ---------- Kalkış / varış saati ---------- */
+/** Tarih → "14.11.2026" */
+function formatDmy(d) {
+  return `${String(d.getDate()).padStart(2, '0')}.${String(d.getMonth() + 1).padStart(2, '0')}.${d.getFullYear()}`;
+}
+/**
+ * Kalkış / varış saati kuralları (mobil `checkSchedule` ile aynı):
+ * - Kalkış bugünse saati şu andan önce olamaz.
+ * - Varış en erken kalkış + rota özetindeki tahmini süredir; varış saati o anın gününe göre yorumlanır,
+ *   ondan önceyse hata. Varış kalkıştan sonraki bir güne düşüyorsa tarihi (gg.aa.yyyy) gösterilir.
+ */
+const scheduleCheck = computed(() => {
+  const out = { departureError: null, arrivalError: null, arrivalDateLabel: null };
+  const dep = departure_time.value;
+  if (!(dep instanceof Date)) return out;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  // Tarih seçilmediyse bugün varsayılır
+  const day = shipment_date.value instanceof Date ? new Date(shipment_date.value) : new Date(today);
+  day.setHours(0, 0, 0, 0);
+  const departure = new Date(day);
+  departure.setHours(dep.getHours(), dep.getMinutes(), 0, 0);
+  if (day.getTime() === today.getTime() && departure.getTime() < Date.now() - 60_000) {
+    out.departureError = 'Kalkış saati şu anki saatten önce olamaz.';
+  }
+  const arr = time_arrival.value;
+  if (!(arr instanceof Date)) return out;
+  const durationSec = routeInfo.value?.durationSec ?? 0;
+  const minArrival = new Date(departure.getTime() + Math.round(durationSec / 60) * 60_000);
+  const arrival = new Date(minArrival);
+  arrival.setHours(arr.getHours(), arr.getMinutes(), 0, 0);
+  if (durationSec > 0) {
+    if (arrival.getTime() < minArrival.getTime()) {
+      const hhmm = `${String(minArrival.getHours()).padStart(2, '0')}:${String(minArrival.getMinutes()).padStart(2, '0')}`;
+      const dateSuffix = minArrival.toDateString() !== day.toDateString() ? `, ${formatDmy(minArrival)}` : '';
+      out.arrivalError = `Varış saati tahmini sürenin altında olamaz (en erken ${hhmm}${dateSuffix}).`;
+      return out;
+    }
+  } else if (arrival.getTime() <= departure.getTime()) {
+    // Süre bilinmiyorsa kalkıştan önceki saat ertesi gün sayılır
+    arrival.setDate(arrival.getDate() + 1);
+  }
+  if (arrival.toDateString() !== day.toDateString()) out.arrivalDateLabel = formatDmy(arrival);
+  return out;
+});
+
+// Rota adımına gelince kalkış saati elle seçilmediyse güncel "şimdi + 1 saat" olsun (form uzun süre açık kalmış olabilir)
+watch(page, (p) => {
+  if (p === limit.value && departure_time.value === autoDepartureTime) {
+    autoDepartureTime = defaultDepartureTime();
+    departure_time.value = autoDepartureTime;
+  }
+});
+
+// Varış saati = kalkış saati + rota özetindeki tahmini süre (kalkış ya da rota değişince yeniden hesaplanır; elle de değiştirilebilir)
+watch(
+  () => [departure_time.value, routeInfo.value?.durationSec],
+  ([dep, sec]) => {
+    if (!(dep instanceof Date) || !sec || sec <= 0) return;
+    const arrival = new Date(dep.getTime() + Math.round(sec / 60) * 60 * 1000);
+    arrival.setSeconds(0, 0);
+    time_arrival.value = arrival;
+  }
+);
+
 let routeFetchDebounceTimer = null;
 watch(
-  () => [yuklenecekYer.value?.city, yuklenecekYer.value?.district, bosaltilanYer.value?.city, bosaltilanYer.value?.district],
+  () => [
+    yuklenecekYer.value?.city, yuklenecekYer.value?.district, yuklenecekYer.value?.lat, yuklenecekYer.value?.lng,
+    bosaltilanYer.value?.city, bosaltilanYer.value?.district, bosaltilanYer.value?.lat, bosaltilanYer.value?.lng,
+  ],
   () => {
     const from = yuklenecekYer.value;
     const to = bosaltilanYer.value;
@@ -1315,6 +1612,12 @@ const canGoNext = computed(() => {
       yuklenecekYer.value?.district?.trim() &&
       bosaltilanYer.value?.city?.trim() &&
       bosaltilanYer.value?.district?.trim() &&
+      // Kalkış/varış saati ve kalkış tarihi zorunlu
+      departure_time.value instanceof Date &&
+      time_arrival.value instanceof Date &&
+      !scheduleCheck.value.departureError &&
+      !scheduleCheck.value.arrivalError &&
+      shipment_date.value instanceof Date &&
       !routeLoading.value &&
       !!routeInfo.value &&
       (selectedPriceType.value !== 'ozel' || customPriceValid.value)
@@ -1333,9 +1636,7 @@ const publishActionButtonClass = computed(() => {
     if (publishLoading.value) {
       return `${base} bg-primary text-white cursor-wait shadow-lg shadow-primary/30`;
     }
-    if (!canGoNext.value) {
-      return `${base} bg-gray-100 text-gray-400 cursor-not-allowed shadow-none ring-1 ring-inset ring-gray-200`;
-    }
+    // Eksik alan olsa da tıklanabilir: tıklanınca geçersiz alanlar vurgulanır
     return `${base} cursor-pointer bg-primary text-white shadow-[0_10px_32px_-8px] shadow-primary/45 hover:shadow-[0_14px_36px_-10px] hover:shadow-primary/55 hover:brightness-[1.03] active:scale-[0.985] ring-1 ring-white/20`;
   }
 
@@ -1371,14 +1672,22 @@ function getShipmentFormData() {
     weight_unit: weightUnit.value,
     is_kdv: isKdv.value,
     part_load: partLoad.value,
-    /** Yüklenecek yer: sadece şehir ve ilçe isimleri */
-    yuklenecekYer: { city: yuklenecekYer.value?.city ?? '', district: yuklenecekYer.value?.district ?? '' },
-    /** Boşaltılacak yer: sadece şehir ve ilçe isimleri */
-    bosaltilanYer: { city: bosaltilanYer.value?.city ?? '', district: bosaltilanYer.value?.district ?? '' },
+    /** Yüklenecek yer: şehir/ilçe (filtre için) + haritadan seçildiyse detaylı konum */
+    yuklenecekYer: {
+      city: yuklenecekYer.value?.city ?? '',
+      district: yuklenecekYer.value?.district ?? '',
+      exact_location: yuklenecekYer.value?.exactLocation ?? undefined,
+    },
+    /** Boşaltılacak yer: yüklenecek yer ile aynı yapı */
+    bosaltilanYer: {
+      city: bosaltilanYer.value?.city ?? '',
+      district: bosaltilanYer.value?.district ?? '',
+      exact_location: bosaltilanYer.value?.exactLocation ?? undefined,
+    },
     departure_time: formatTimeToHHMM(departure_time.value) ?? undefined,
     time_arrival: formatTimeToHHMM(time_arrival.value) ?? undefined,
-    departure_date_enabled: departureDateEnabled.value,
-    shipment_date: departureDateEnabled.value ? formatDateToYYYYMMDD(shipment_date.value) ?? undefined : undefined,
+    departure_date_enabled: true,
+    shipment_date: formatDateToYYYYMMDD(shipment_date.value) ?? undefined,
     routeInfo: routeInfo.value,
     selectedPriceType: selectedPriceType.value,
     calculatedPrice: selectedPriceType.value === 'ozel' ? (customPrice.value ?? 0) : fixedPrice.value,
@@ -1387,17 +1696,49 @@ function getShipmentFormData() {
   };
 }
 
+/** Kullanıcı bir alanı düzelttikçe o alanın hata vurgusu kalkar (yeni hata eklenmez) */
+watch(
+  () => [
+    yuklenecekYer.value?.city, yuklenecekYer.value?.district,
+    bosaltilanYer.value?.city, bosaltilanYer.value?.district,
+    departure_time.value, time_arrival.value, shipment_date.value,
+    selectedPriceType.value, customPriceValue.value, routeInfo.value,
+  ],
+  () => {
+    const current = Object.keys(invalidFields.value);
+    if (!current.length) return;
+    const errors = collectPublishErrors();
+    const next = {};
+    for (const key of current) if (errors[key]) next[key] = true;
+    invalidFields.value = next;
+  }
+);
+
 async function handlePublishOrNext() {
   if (page.value === limit.value) {
+    if (!validateBeforePublish()) return;
+    // Yerler seçili ama rota henüz yok: hesaplanıyorsa bekle, hata aldıysa tekrar dene
+    if (routeLoading.value) return;
+    if (!routeInfo.value) {
+      fetchRouteInfo();
+      return;
+    }
+    if (!canGoNext.value) return;
     if (!canPublishListing.value) {
       authStore.showPremiumModal = true;
       return;
     }
     publishLoading.value = true;
+    const fromTour = createPostTour.stage === 'wizard';
     const formData = getShipmentFormData();
     const ok = await shipmentsStore.logShipmentFormData(formData);
     publishLoading.value = false;
-    if (ok) postStore.closeCreateModal();
+    if (ok) {
+      // İlk ilan yayınlandı: rehber tur bir daha gösterilmez; turla geldiyse tebrik penceresi açılır
+      markCreatePostTourDone(authStore.user?.id);
+      if (fromTour) createPostTour.successOpen = true;
+      postStore.closeCreateModal();
+    }
   } else {
     postStore.nextPage();
   }
@@ -1405,6 +1746,114 @@ async function handlePublishOrNext() {
 
 const confirmCloseOpen = ref(false);
 const confirmStayRef = ref(null);
+
+/* ---------- İlk ilan rehber turu ---------- */
+const TOUR_STEPS = [
+  {
+    key: 'p1-cars',
+    page: 1,
+    target: 'cp-cars',
+    title: 'Araç tipini seçin',
+    body: 'Yükünüzü taşıyabilecek araç tipine tıklayın. Birden fazla araç tipi seçebilirsiniz.',
+    done: () => selectedCars.value.length > 0,
+  },
+  {
+    key: 'p1-next',
+    page: 1,
+    target: 'cp-next',
+    title: 'Sonraki adıma geçin',
+    body: 'Araç seçimi tamam. Devam etmek için "Sonraki"ye tıklayın.',
+    done: () => page.value > 1,
+  },
+  {
+    key: 'p2-type',
+    page: 2,
+    target: 'cp-post-types',
+    title: 'Yük tipini seçin',
+    body: 'Taşıtacağınız yükün tipine tıklayın.',
+    done: () => !!postStore.selectedPostType,
+  },
+  {
+    key: 'p2-weight',
+    page: 2,
+    target: 'cp-weight',
+    title: 'Ağırlığı girin',
+    body: 'Yükün yaklaşık ağırlığını yazın; kg veya ton seçebilirsiniz. Yazdıktan sonra "Tamam"a tıklayın.',
+    done: () => !!createPostTour.acked['p2-weight'],
+    ackLabel: 'Tamam',
+    ackDisabled: () => !canGoNext.value,
+  },
+  {
+    key: 'p2-next',
+    page: 2,
+    target: 'cp-next',
+    title: 'Sonraki adıma geçin',
+    body: 'KDV ve parça yük seçenekleri isteğe bağlıdır. Devam etmek için "Sonraki"ye tıklayın.',
+    done: () => page.value > 2,
+  },
+  {
+    key: 'p3-yuk',
+    page: 3,
+    target: 'cp-yuk',
+    title: 'Yükleneceği yer',
+    body: '"Şehir seçin"e tıklayıp yükün alınacağı konumu haritadan seçin. Kayıtlı adresiniz varsa "Adreslerim"den de seçebilirsiniz.',
+    done: () => !!(yuklenecekYer.value?.city && yuklenecekYer.value?.district),
+  },
+  {
+    key: 'p3-bos',
+    page: 3,
+    target: 'cp-bos',
+    title: 'Boşaltılacağı yer',
+    body: '"Şehir seçin"e tıklayıp yükün bırakılacağı konumu haritadan seçin. Rota ve fiyat buna göre hesaplanır.',
+    done: () => !!(bosaltilanYer.value?.city && bosaltilanYer.value?.district),
+  },
+  {
+    key: 'p3-price',
+    page: 3,
+    target: 'cp-price',
+    title: 'Fiyatı belirleyin',
+    body: 'Sabit fiyatı seçebilir, taşıyıcılardan teklif bekleyebilir ya da kendi fiyatınızı girebilirsiniz. Seçince "Tamam"a tıklayın.',
+    done: () => !!createPostTour.acked['p3-price'],
+    ackLabel: 'Tamam',
+    ackDisabled: () => !canGoNext.value,
+  },
+  {
+    key: 'p3-publish',
+    page: 3,
+    target: 'cp-next',
+    title: 'İlanınızı yayınlayın',
+    body: 'Her şey hazır. İlanınızı taşıyıcılara göstermek için "Yayınla"ya tıklayın.',
+    done: () => false,
+  },
+];
+
+const tourStep = computed(() => {
+  if (createPostTour.stage !== 'wizard') return null;
+  // Üstte açılan pencereler varken tur bekler (karartma onların üstüne binmesin)
+  if (addressesModalOpen.value || confirmCloseOpen.value || authStore.showPremiumModal || publishLoading.value) return null;
+  const index = TOUR_STEPS.findIndex((s) => s.page === page.value && !s.done());
+  if (index < 0) return null;
+  const s = TOUR_STEPS[index];
+  return {
+    key: s.key,
+    target: s.target,
+    title: s.title,
+    body: s.body,
+    ackLabel: s.ackLabel,
+    ackDisabled: s.ackDisabled ? s.ackDisabled() : false,
+    index,
+    total: TOUR_STEPS.length,
+  };
+});
+
+function skipCreatePostTour() {
+  markCreatePostTourDone(authStore.user?.id);
+}
+
+// Modal yayınlamadan kapatılırsa tur panelde karttan yeniden başlar
+onBeforeUnmount(() => {
+  if (createPostTour.stage === 'wizard') stopCreatePostTourWizard();
+});
 
 /** Seçim yapıldıysa yanlışlıkla kapatmaya karşı onay iste */
 async function requestClose() {

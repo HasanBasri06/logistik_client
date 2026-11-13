@@ -6,13 +6,16 @@
     <!-- Kalkış tarihi / parça yük — mobil ilan kartı ile aynı üst şerit -->
     <div
       class="w-full h-[25px] px-4 flex shrink-0 relative items-center"
-      :class="isPartLoad
-        ? 'bg-secondary grid grid-cols-3'
-        : 'bg-primary flex-row justify-between'"
+      :class="[
+        isFast ? 'bg-blue-600' : isPartLoad ? 'bg-secondary' : 'bg-primary',
+        stripLabel ? 'grid grid-cols-[1fr_1.4fr_1fr]' : 'flex-row justify-between',
+      ]"
     >
-      <template v-if="isPartLoad">
+      <template v-if="stripLabel">
         <span class="text-white text-xs font-semibold text-left">Kalkış Tarihi</span>
-        <span class="text-white text-xs font-semibold text-center">Parça Yük</span>
+        <span class="text-white text-xs font-semibold text-center truncate">
+          <i v-if="isFast" class="pi pi-bolt text-[10px] mr-0.5"></i>{{ stripLabel }}
+        </span>
         <span class="text-white text-xs font-semibold text-right">{{ shipment.departure_date_text }}</span>
       </template>
       <template v-else>
@@ -324,6 +327,12 @@ const showOwnerCancelButton = computed(
 );
 const showKdvLabel = computed(() => shouldShowKdvLabel(props.shipment));
 const isPartLoad = computed(() => isShipmentPartLoad(props.shipment));
+/** Fast İlan: bugün ve 5 saat içinde kalkacak şekilde açılan ilan (sunucuda hesaplanır) */
+const isFast = computed(() => props.shipment?.is_fast === true || Number(props.shipment?.is_fast) === 1);
+/** Şeridin ortasındaki etiket: Fast İlan ve/veya Parça Yük */
+const stripLabel = computed(() =>
+  [isFast.value ? 'Fast İlan' : null, isPartLoad.value ? 'Parça Yük' : null].filter(Boolean).join(' · ')
+);
 
 const attachmentItems = computed(() => {
     const list = props.shipment?.attachments;

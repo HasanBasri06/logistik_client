@@ -1,6 +1,15 @@
 <template>
     <div class="flex flex-col h-full min-h-0 flex-1">
         <h2 class="text-xl font-semibold text-gray-900 mb-4">Tüm İşlerim</h2>
+
+        <!-- «{count} iş ── Tümünü Gör»: İşlerin Durumu (araçların konumu, teslim belgeleri); mobil ile aynı -->
+        <div v-if="statusCounts.accepted > 0" class="flex items-center gap-3 mb-4">
+            <span class="text-sm font-bold text-gray-900 shrink-0">{{ statusCounts.accepted }} iş</span>
+            <span class="flex-1 h-px bg-gray-200"></span>
+            <RouterLink to="/vehicle-owner/fleet" class="text-sm font-semibold text-primary hover:underline shrink-0">
+                Tümünü Gör
+            </RouterLink>
+        </div>
         
         <!-- Filtre Sekmeleri -->
         <div class="inline-flex p-1 rounded-xl bg-gray-100 border border-gray-200/80 mb-4 ">

@@ -30,7 +30,7 @@
         <i class="pi pi-car text-4xl mb-3 text-gray-400"></i>
         <p class="text-base font-medium">Araç bulunamadı</p>
       </div>
-      <div v-else class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+      <div v-else data-tour="cp-cars" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         <button
           v-for="car in cars"
           :key="car.id"

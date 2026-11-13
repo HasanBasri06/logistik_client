@@ -75,6 +75,8 @@
   <PremiumModal />
   <!-- İlan oluşturma sihirbazı (her açılışta sıfırdan başlar) -->
   <CreatePostModal v-if="postStore.createModalOpen" />
+  <!-- Rehber turla oluşturulan ilk ilandan sonra tebrik penceresi -->
+  <FirstPostSuccessModal />
 </template>
 
 <script setup>
@@ -85,6 +87,7 @@ import { GitCompare, Info, MapPin, Navigation, Settings, ShieldCheck } from 'luc
 import Layout from './Layout.vue';
 import PremiumModal from './components/PremiumModal.vue';
 import CreatePostModal from './components/CreatePostModal.vue';
+import FirstPostSuccessModal from './components/FirstPostSuccessModal.vue';
 import {
   applyStayOnWebFromQuery,
   appleItunesAppMetaContent,
