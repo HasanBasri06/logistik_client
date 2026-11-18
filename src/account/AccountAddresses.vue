@@ -24,29 +24,34 @@
                 <p>Kayıtlı adresiniz bulunmuyor.</p>
                 <p class="text-sm mt-1">Yeni adres ekleyerek teslimat adreslerinizi yönetebilirsiniz.</p>
             </div>
-            <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Liste görünümü: her adres tek satır -->
+            <div v-else class="flex flex-col gap-2">
                 <div
                     v-for="address in addresses"
                     :key="address.id"
-                    class="border border-gray-200 rounded-lg p-4 flex flex-col bg-white hover:shadow-md transition-shadow justify-between"
+                    class="flex items-center gap-4 rounded-xl border border-gray-200 bg-white px-4 py-3 hover:border-gray-300 transition-colors"
                 >
-                <div>
-                    <h3 class="text-base font-semibold text-gray-900 mb-2">{{ address.name }}</h3>
-                    <p class="text-xs text-gray-500 mb-1">{{ address.city }} / {{ address.district }}</p>
-                    <p v-if="address.description" class="text-sm text-gray-600 flex-1 line-clamp-3">{{ address.description }}</p>
+                    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                        <i class="pi pi-map-marker" style="font-size: 16px;"></i>
+                    </span>
+                    <div class="min-w-0 flex-1">
+                        <h3 class="text-sm font-semibold text-gray-900 truncate">{{ address.name }}</h3>
+                        <p class="text-xs text-gray-500 truncate">
+                            {{ address.city }} / {{ address.district }}<template v-if="address.description"> · {{ address.description }}</template>
+                        </p>
+                    </div>
                     <span
-                        class="inline-flex items-center self-start mt-2 px-2 py-0.5 rounded text-xs font-medium"
+                        class="hidden sm:inline-flex items-center px-2 py-0.5 rounded text-xs font-medium shrink-0"
                         :class="statusClass(address.status)"
                     >
                         {{ statusLabel(address.status) }}
                     </span>
-                </div>
                     <button
                         type="button"
-                        class="mt-4 w-full py-2 border border-primary text-primary font-medium rounded-lg hover:bg-primary/5 transition-colors flex items-center justify-center gap-2"
+                        class="shrink-0 px-3 py-1.5 border border-primary text-primary text-xs font-semibold rounded-lg hover:bg-primary/5 transition-colors flex items-center gap-1.5"
                         @click="openEditModal(address)"
                     >
-                        <i class="pi pi-pencil" style="font-size: 14px;" />
+                        <i class="pi pi-pencil" style="font-size: 12px;" />
                         Düzenle
                     </button>
                 </div>

@@ -14,7 +14,7 @@
         v-if="selectedCars.length"
         class="shrink-0 px-3 py-1 rounded-full bg-secondary text-white text-xs font-semibold"
       >
-        {{ selectedCars.length }} araç seçildi
+        {{ selectedCarRows.length }} araç seçildi
       </span>
     </div>
     <div class="p-4 sm:p-6">
@@ -61,7 +61,16 @@
           >
             {{ car.name }}
           </span>
-          <span v-if="car.price" class="mt-0.5 text-xs text-gray-500">{{ car.price }} TL'den başlar</span>
+          <span v-if="selectedDetailLabel(car)" class="mt-0.5 text-xs text-primary font-medium line-clamp-2">
+            {{ selectedDetailLabel(car) }}
+          </span>
+          <span v-else-if="car.price" class="mt-0.5 text-xs text-gray-500">{{ car.price }} TL'den başlar</span>
+          <span
+            v-if="(car.details?.length ?? 0) > 1 && !postStore.isCarSelected(car.id)"
+            class="mt-1 text-[11px] text-gray-400"
+          >
+            {{ car.details.length }} farklı detay
+          </span>
           <span v-if="car.width || car.height" class="mt-1 text-[11px] text-gray-400">
             {{ car.width ? `${car.width} m` : '-' }} × {{ car.height ? `${car.height} m` : '-' }}
           </span>
@@ -83,7 +92,6 @@ import { storeToRefs } from "pinia";
 import api from "@/api";
 import { usePostStore } from "@/stores/post";
 import { carVariantImage } from "@/lib/shipment-vehicles";
-import { autoSelectFirstDetails } from "@/lib/car-details";
 import VehicleCart from "@/components/VehicleCart.vue";
 
 const cars = ref([]);
@@ -91,12 +99,28 @@ const carsLoading = ref(false);
 const carsError = ref(null);
 
 const postStore = usePostStore();
-const { selectedCars } = storeToRefs(postStore);
+const { selectedCars, selectedCarRows } = storeToRefs(postStore);
 
 const hasSelectedDetails = computed(() => selectedCars.value.some((s) => s.car.details?.length));
 
+/** Birden fazla detayı olan araçta çoklu seçim modalı açılır; diğerleri doğrudan eklenir / çıkarılır */
 function toggleCar(car) {
-  postStore.toggleCar(car, autoSelectFirstDetails(car));
+  const details = car.details ?? [];
+  if (details.length > 1) {
+    postStore.openDetailModal(car);
+    return;
+  }
+  postStore.toggleCar(
+    car,
+    details.map((d) => ({ id: d.id, name: d.value != null && String(d.value).trim() !== '' ? String(d.value) : String(d.name ?? '') }))
+  );
+}
+
+/** Kartta seçilen detayları göster: "Orta, Uzun" */
+function selectedDetailLabel(car) {
+  if ((car.details?.length ?? 0) < 2) return '';
+  const sel = selectedCars.value.find((s) => s.car.id === car.id);
+  return (sel?.details ?? []).map((d) => d.name).filter(Boolean).join(', ');
 }
 
 const getCars = async () => {

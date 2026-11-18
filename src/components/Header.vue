@@ -2,7 +2,8 @@
     <div>
         <header class="w-full h-16 fixed top-0 z-40 transition-colors duration-300"
             :class="scrolled ? 'bg-white shadow-sm' : 'bg-transparent'">
-            <Content class="flex items-center justify-between h-full">
+            <!-- Panel sayfalarında içerik tam genişlik ve sola yaslı (dashboard); diğer sayfalarda ortalanmış -->
+            <Content class="flex items-center justify-between h-full" :class="isPanelRoute ? '!max-w-none !px-5' : ''">
                 <!-- Logo (Sol) -->
                 <RouterLink to="/" class="flex items-center gap-2">
                     <img src="@/assets/images/logo.png" alt="TaşıBul Logo" class="h-7 w-auto object-contain" />
@@ -36,16 +37,26 @@
                         v-if="authStore.isAuthenticated"
                         class="hidden md:flex items-center gap-4"
                     >
-                        <router-link
-                            to="/panel"
-                            :class="[
-                                'inline-flex items-center gap-1.5 transition-colors',
-                                route.path === '/panel' ? 'text-primary font-semibold' : 'hover:text-primary'
-                            ]"
+                        <!-- Paneldeyken ilanlara, panel dışındayken panele geçiş -->
+                        <button
+                            v-if="isPanelRoute"
+                            type="button"
+                            class="inline-flex items-center gap-1.5 transition-colors hover:text-primary cursor-pointer"
+                            @click="handleGotoListingsClick"
                         >
-                            <i class="pi pi-search text-sm opacity-90" aria-hidden="true"></i>
-                            İlanlar
-                        </router-link>
+                            <i class="pi pi-list text-sm opacity-90" aria-hidden="true"></i>
+                            İlanlara Git
+                        </button>
+                        <button
+                            v-else
+                            type="button"
+                            class="inline-flex items-center gap-1.5 transition-colors hover:text-primary cursor-pointer"
+                            @click="handleGotoAccountClick"
+                        >
+                            <i class="pi pi-th-large text-sm opacity-90" aria-hidden="true"></i>
+                            Panele Git
+                            <span v-if="hasUnreadMessages" class="w-2 h-2 rounded-full bg-red-400 shrink-0" aria-hidden="true" />
+                        </button>
                         <router-link
                             v-if="user?.type === 'cargo_owner'"
                             to="/cargo-owner/posts/create"
@@ -89,70 +100,7 @@
                         <div v-if="accountDropdownOpen"
                             class="absolute top-full right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50 overflow-hidden">
                             <div class="px-4 py-3 text-sm font-medium bg-primary text-white">{{ userType }}</div>
-                            <button @click="handleGotoAccountClick"
-                                class="block px-4 py-3 cursor-pointer text-sm font-medium text-gray-700 hover:bg-gray-100 w-full transition-colors text-left">
-                                <div class="flex items-center gap-2"><i class="pi pi-user"
-                                        style="font-size: 14px;"></i><span>Hesaba Git</span></div>
-                            </button>
-                            <div v-if="user.type == 'cargo_owner'" class="flex flex-col border-b border-gray-100">
-                                <RouterLink
-                                    to="/cargo-owner/posts"
-                                    class="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 w-full transition-colors"
-                                >
-                                    <div class="flex items-center gap-2">
-                                        <i class="pi pi-car" style="font-size: 14px;"></i>
-                                        <span>İlanlarım</span>
-                                    </div>
-                                </RouterLink>
-                                <RouterLink
-                                    to="/cargo-owner/posts/create"
-                                    class="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 w-full transition-colors"
-                                >
-                                    <div class="flex items-center gap-2">
-                                        <i class="pi pi-plus-circle" style="font-size: 14px;"></i>
-                                        <span>İlan Oluştur</span>
-                                    </div>
-                                </RouterLink>
-                                <RouterLink
-                                    to="/cargo-owner/messages"
-                                    class="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-100 w-full transition-colors"
-                                >
-                                    <div class="flex items-center gap-2">
-                                        <i class="pi pi-envelope" style="font-size: 14px;"></i>
-                                        <span>Mesajlarım</span>
-                                        <span
-                                            v-if="hasUnreadMessages"
-                                            class="w-2 h-2 rounded-full bg-red-400 shrink-0"
-                                            aria-hidden="true"
-                                        />
-                                    </div>
-                                </RouterLink>
-                            </div>
-                            <div v-else class="flex flex-col gap-2">
-                                <RouterLink to="/vehicle-owner/orders"
-                                    class="block px-4 py-1 text-sm font-medium text-gray-700 hover:bg-gray-100 w-full transition-colors">
-                                    <div class="flex items-center gap-2"><i class="pi pi-shopping-bag"
-                                            style="font-size: 14px;"></i><span>İlanlarım</span></div>
-                                </RouterLink>
-                                <RouterLink to="/vehicle-owner/vehicles"
-                                    class="block px-4 py-1 text-sm font-medium text-gray-700 hover:bg-gray-100 w-full transition-colors">
-                                    <div class="flex items-center gap-2"><i class="pi pi-car"
-                                            style="font-size: 14px;"></i><span>Araçlarım</span></div>
-                                </RouterLink>
-                                <RouterLink to="/vehicle-owner/load-alarms"
-                                    class="block px-4 py-1 text-sm font-medium text-gray-700 hover:bg-gray-100 w-full transition-colors">
-                                    <div class="flex items-center gap-2"><i class="pi pi-bell"
-                                            style="font-size: 14px;"></i><span>Yük Alarmı</span></div>
-                                </RouterLink>
-                                <RouterLink to="/vehicle-owner/messages"
-                                    class="block px-4 py-1 pb-3 text-sm font-medium text-gray-700 hover:bg-gray-100 w-full transition-colors">
-                                    <div class="flex items-center gap-2"><i class="pi pi-envelope"
-                                            style="font-size: 14px;"></i><span>Mesajlarım</span><span
-                                            v-if="hasUnreadMessages" class="w-2 h-2 rounded-full bg-red-400 shrink-0"
-                                            aria-hidden="true" /></div>
-                                </RouterLink>
-                            </div>
-                            <div class="border-t border-gray-200"></div>
+                            <!-- Şimdilik yalnızca çıkış (panel / ilanlar geçişi navbar'da) -->
                             <button type="button" @click="handleLogout"
                                 class="w-full text-left px-4 py-4 text-sm font-medium text-red-600 cursor-pointer hover:bg-red-50 transition-colors">
                                 <div class="flex items-center gap-2"><svg class="w-4 h-4" fill="none"
@@ -167,8 +115,9 @@
             </Content>
         </header>
         <div class="h-16"></div>
-        <div v-if="showAccountBreadcrumb" class="w-full">
-            <Content class="py-2">
+        <!-- Panel sayfalarında sayfa yolu içerik alanında (ekran yüksekliği tam otursun, alt kaydırma olmasın) -->
+        <div v-if="showAccountBreadcrumb && !isPanelRoute" class="w-full">
+            <Content class="py-2" :class="isPanelRoute ? '!max-w-none !px-5' : ''">
                 <AccountBreadcrumb />
             </Content>
         </div>
@@ -358,6 +307,13 @@ const authStore = useAuthStore();
 const router = useRouter();
 const route = useRoute();
 const { user, requestShowLoginModal } = storeToRefs(authStore);
+/** Hesap paneli sayfaları (araç / yük sahibi): header tam genişlik */
+/** Sayfa panel düzenindeyse (ör. yük sahibinin kendi ilan detayı) header'ı panel moduna alır */
+const props = defineProps({ panel: { type: Boolean, default: false } });
+const isPanelRoute = computed(
+    () => props.panel || route.path.startsWith('/vehicle-owner') || route.path.startsWith('/cargo-owner')
+);
+
 const showAccountBreadcrumb = computed(() =>
     route.path.startsWith('/vehicle-owner') || route.path.startsWith('/cargo-owner')
 );
@@ -447,6 +403,12 @@ onBeforeUnmount(() => {
     window.removeEventListener('open-login', handleOpenLoginEvent);
     document.body.style.overflow = 'auto';
 });
+
+/** İlanlara Git: araç sahibi → ilan listesi; yük sahibi → kendi ilanları (İlanlarım) */
+const handleGotoListingsClick = () => {
+    accountDropdownOpen.value = false
+    router.push(authStore.user?.type === 'cargo_owner' ? '/cargo-owner/posts' : '/panel');
+};
 
 const handleGotoAccountClick = () => {
     accountDropdownOpen.value = false

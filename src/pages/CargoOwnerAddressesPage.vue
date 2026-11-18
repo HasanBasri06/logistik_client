@@ -1,20 +1,24 @@
 <template>
     <Header />
     <div class="h-[calc(100vh-64px)]">
-        <Content>
-            <div class="flex flex-row gap-3 w-full h-[calc(100vh-64px)]">
+        
+            <div class="flex flex-row w-full h-[calc(100vh-64px)] bg-gray-50">
                 <CargoOwner />
-                <div class="bg-white flex-1 mt-3 border border-gray-200 p-3 rounded-md flex flex-col overflow-hidden">
-                    <AccountAddresses />
+                <div class="flex-1 min-w-0 min-h-0 flex flex-col p-4 sm:p-6">
+                    <!-- Sayfa yolu: içerik alanının en üstünde -->
+                    <AccountBreadcrumb class="mb-4 shrink-0" />
+                    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm flex-1 flex flex-col overflow-hidden p-4 sm:p-5">
+                        <AccountAddresses />
+                    </div>
                 </div>
             </div>
-        </Content>
+        
     </div>
 </template>
 
 <script setup>
 import Header from '@/components/Header.vue';
-import Content from '@/components/Content.vue';
 import CargoOwner from '@/components/CargoOwner.vue';
+import AccountBreadcrumb from '@/components/AccountBreadcrumb.vue';
 import AccountAddresses from '@/account/AccountAddresses.vue';
 </script>

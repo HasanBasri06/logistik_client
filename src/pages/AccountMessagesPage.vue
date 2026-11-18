@@ -1,10 +1,12 @@
 <template>
     <Header class="hidden md:block" />
     <div class="h-[100dvh] md:h-[calc(100vh-4rem)] min-h-0 flex flex-col overflow-hidden">
-        <Content class="flex-1 min-h-0 flex flex-col !px-0 overflow-hidden">
-            <div class="flex flex-row md:gap-3 w-full flex-1 min-h-0 overflow-hidden">
+        <div class="flex-1 min-h-0 flex flex-col overflow-hidden w-full">
+            <div class="flex flex-row w-full flex-1 min-h-0 overflow-hidden bg-gray-50">
                 <AccountSidebar />
-                <div class="flex h-[calc(100vh-150px)] min-h-0 min-w-0 flex-1 flex-col overflow-hidden border border-gray-200 bg-white w-full md:mt-3 md:rounded-md md:p-3">
+                <div class="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white w-full">
+                    <!-- Sayfa yolu: içerik alanının en üstünde -->
+                    <AccountBreadcrumb class="mb-4 shrink-0 px-4 pt-4 sm:px-6" />
                     <p v-if="messagesLoading" class="text-sm text-gray-500 p-4">Mesajlar yükleniyor...</p>
                     <AccountMessages
                         v-else
@@ -14,15 +16,15 @@
                     />
                 </div>
             </div>
-        </Content>
+        </div>
     </div>
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import Header from '@/components/Header.vue';
-import Content from '@/components/Content.vue';
 import AccountSidebar from '@/components/AccountSidebar.vue';
+import AccountBreadcrumb from '@/components/AccountBreadcrumb.vue';
 import AccountMessages from '@/account/AccountMessages.vue';
 import { useMessageStore } from '@/stores/message';
 import { useAuthStore } from '@/stores/auth';

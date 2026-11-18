@@ -19,10 +19,12 @@ export function shipmentVehicles(shipment) {
 
     return items
         .filter((i) => i.car?.name || i.detail?.value)
-        .map(({ car, detail }) => {
+        .map(({ car, detail }, idx) => {
             const name = car?.name ?? ''
             const detailText = capitalize(detail?.value)
             return {
+                /** Aynı araç farklı detaylarla birden çok kez olabilir: liste anahtarı için bunu kullan */
+                key: `${car?.id ?? 'c'}-${detail?.id ?? 'd'}-${idx}`,
                 id: car?.id ?? detail?.id,
                 name,
                 detail: detailText,

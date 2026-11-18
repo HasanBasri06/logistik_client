@@ -1,17 +1,18 @@
 <template>
     <Header />
     <div class="min-h-[calc(100dvh-64px)] md:h-[calc(100vh-64px)]">
-        <Content>
             <div
-                class="flex flex-col md:flex-row gap-0 md:gap-3 w-full min-h-[calc(100dvh-64px)] md:h-[calc(100vh-64px)]"
+                class="flex flex-col md:flex-row w-full min-h-[calc(100dvh-64px)] md:h-[calc(100vh-64px)] bg-gray-50"
             >
                 <AccountSidebar v-if="isVehicleOwner" />
                 <CargoOwner v-else-if="isCargoOwner" />
                 <AccountSidebar v-else />
 
                 <div
-                    class="bg-white flex-1 min-w-0 min-h-0 md:mt-3 mt-0 border-y md:border border-gray-200 md:rounded-md rounded-none flex flex-col overflow-y-auto overscroll-y-contain pb-[max(1rem,env(safe-area-inset-bottom))]"
+                    class="bg-white flex-1 min-w-0 min-h-0 flex flex-col overflow-y-auto overscroll-y-contain pb-[max(1rem,env(safe-area-inset-bottom))]"
                 >
+                    <!-- Sayfa yolu: içerik alanının en üstünde -->
+                    <AccountBreadcrumb class="mb-4 shrink-0 px-4 pt-4 sm:px-6" />
                     <!-- Mobilde sidebar yok — hesap özeti -->
                     <div class="md:hidden px-4 pt-4 pb-2 border-b border-gray-100 shrink-0">
                         <UserSection />
@@ -166,7 +167,6 @@
                     </div>
                 </div>
             </div>
-        </Content>
     </div>
 </template>
 
@@ -175,8 +175,8 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { storeToRefs } from 'pinia';
 import Header from '@/components/Header.vue';
-import Content from '@/components/Content.vue';
 import AccountSidebar from '@/components/AccountSidebar.vue';
+import AccountBreadcrumb from '@/components/AccountBreadcrumb.vue';
 import CargoOwner from '@/components/CargoOwner.vue';
 import UserSection from '@/components/UserSection.vue';
 import api from '@/api';

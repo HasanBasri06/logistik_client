@@ -7,65 +7,46 @@
         </span>
         <div>
           <h3 class="text-base font-semibold text-gray-900">Seçilen Araçlar</h3>
-          <p class="text-xs text-gray-500">Varyantları buradan belirleyin</p>
+          <p class="text-xs text-gray-500">Her araç ve detayı ilanda ayrı gösterilir</p>
         </div>
       </div>
       <span class="shrink-0 min-w-7 h-7 px-2 rounded-full bg-secondary text-white text-xs font-bold flex items-center justify-center">
-        {{ selectedCars.length }}
+        {{ selectedCarRows.length }}
       </span>
     </div>
 
     <TransitionGroup tag="ul" name="cart-item" class="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 flex flex-col gap-3">
       <li
-        v-for="sel in selectedCars"
-        :key="sel.car.id"
+        v-for="row in selectedCarRows"
+        :key="`${row.car.id}-${row.detail?.id ?? 0}`"
         class="rounded-xl border border-gray-200 bg-white p-3 shadow-xs"
       >
         <div class="flex items-center gap-3">
           <span class="w-16 h-12 shrink-0 rounded-lg bg-gray-50 flex items-center justify-center overflow-hidden">
-            <img :src="carVariantImage(sel.car, sel.details)" :alt="sel.car.name" class="w-full h-full object-contain" />
+            <img :src="carVariantImage(row.car, row.detail ? [row.detail] : [])" :alt="row.car.name" class="w-full h-full object-contain" />
           </span>
           <div class="min-w-0 flex-1">
-            <p class="text-sm font-semibold text-gray-900 truncate">{{ sel.car.name }}</p>
-            <p v-if="sel.details.length" class="text-xs text-primary font-medium truncate">
-              {{ sel.details.map((d) => d.name).join(' · ') }}
-            </p>
-            <p v-else-if="sel.car.price" class="text-xs text-gray-500">{{ sel.car.price }} TL'den başlar</p>
+            <p class="text-sm font-semibold text-gray-900 truncate">{{ row.car.name }}</p>
+            <p v-if="row.detail?.name" class="text-xs text-primary font-medium truncate">{{ row.detail.name }}</p>
+            <p v-else-if="row.car.price" class="text-xs text-gray-500">{{ row.car.price }} TL'den başlar</p>
           </div>
           <button
+            v-if="(row.car.details?.length ?? 0) > 1"
             type="button"
-            class="shrink-0 w-8 h-8 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 transition-colors flex items-center justify-center"
-            :aria-label="`${sel.car.name} aracını çıkar`"
-            @click="postStore.toggleCar(sel.car)"
+            class="shrink-0 w-8 h-8 rounded-lg text-gray-400 hover:bg-primary/10 hover:text-primary transition-colors flex items-center justify-center cursor-pointer"
+            :aria-label="`${row.car.name} detaylarını düzenle`"
+            @click="postStore.openDetailModal(row.car)"
+          >
+            <i class="pi pi-pencil" style="font-size: 13px;"></i>
+          </button>
+          <button
+            type="button"
+            class="shrink-0 w-8 h-8 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 transition-colors flex items-center justify-center cursor-pointer"
+            :aria-label="`${row.car.name} ${row.detail?.name ?? ''} çıkar`"
+            @click="postStore.removeCarDetail(row.car.id, row.detail?.id ?? null)"
           >
             <i class="pi pi-trash" style="font-size: 13px;"></i>
           </button>
-        </div>
-
-        <!-- Varyant seçimi -->
-        <div v-if="sel.car.details?.length" class="mt-3 pt-3 border-t border-gray-100 flex flex-col gap-3">
-          <div v-for="(group, groupName) in detailsByType(sel.car)" :key="groupName">
-            <p v-if="shouldShowDetailGroupTitle(sel.car, groupName)" class="text-xs font-semibold text-gray-600 mb-1.5">
-              {{ groupName }}
-            </p>
-            <div class="flex flex-wrap gap-1.5">
-              <button
-                v-for="item in group"
-                :key="item.id ?? item.value"
-                type="button"
-                class="px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors"
-                :class="
-                  getDetailSelection(sel, group)?.id === item.id
-                    ? 'border-primary bg-primary text-white'
-                    : 'border-gray-200 text-gray-700 hover:border-primary/50 hover:text-primary hover:bg-primary/5'
-                "
-                :aria-pressed="getDetailSelection(sel, group)?.id === item.id"
-                @click="setDetailValue(sel, group, item)"
-              >
-                {{ item.value }}
-              </button>
-            </div>
-          </div>
         </div>
       </li>
     </TransitionGroup>
@@ -76,22 +57,9 @@
 import { storeToRefs } from 'pinia';
 import { usePostStore } from '@/stores/post';
 import { carVariantImage } from '@/lib/shipment-vehicles';
-import { detailsByType, shouldShowDetailGroupTitle } from '@/lib/car-details';
 
 const postStore = usePostStore();
-const { selectedCars } = storeToRefs(postStore);
-
-/** Bu gruptaki seçili öğe: dizide bu gruba ait id varsa { id, name } döner */
-function getDetailSelection(sel, group) {
-  const groupIds = group.map((g) => g.id);
-  return sel.details.find((s) => groupIds.includes(s.id));
-}
-
-function setDetailValue(sel, group, item) {
-  const groupIds = group.map((g) => g.id);
-  const rest = sel.details.filter((s) => !groupIds.includes(s.id));
-  postStore.setCarDetails(sel.car.id, [...rest, { id: item.id, name: item.value }]);
-}
+const { selectedCarRows } = storeToRefs(postStore);
 </script>
 
 <style scoped>

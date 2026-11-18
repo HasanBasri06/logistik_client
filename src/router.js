@@ -666,6 +666,12 @@ router.beforeEach(async (to, from, next) => {
         }
     }
 
+    // Yük sahibi doğrudan hesap panelinden başlar (ilan listesi araç sahipleri içindir)
+    if (userToken && to.path === '/panel' && authStore.user?.type === 'cargo_owner') {
+        next('/cargo-owner')
+        return
+    }
+
     if (userToken && to.meta.authorization && to.meta.authorization !== authStore.user?.type) {
         next('/')
         return

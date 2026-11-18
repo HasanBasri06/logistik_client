@@ -33,62 +33,82 @@
               {{ section.items.length }}
             </span>
           </h3>
-          <div class="grid gap-4 md:grid-cols-2">
-            <article
+          <!-- Liste görünümü: her iş tek satır -->
+          <ul class="rounded-2xl border border-gray-200 bg-white divide-y divide-gray-100 overflow-hidden">
+            <li
               v-for="job in section.items"
               :key="job.shipment_id"
-              class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden flex flex-col"
-              :class="job.status !== 'delivered' ? 'cursor-pointer hover:border-primary transition-colors' : ''"
+              class="flex flex-col md:flex-row md:items-center gap-3 md:gap-5 px-4 py-3.5 transition-colors"
+              :class="job.status !== 'delivered' ? 'cursor-pointer hover:bg-gray-50' : ''"
               :role="job.status !== 'delivered' ? 'button' : undefined"
               @click="onCardClick(job)"
             >
-              <div class="px-4 pt-4 pb-3">
-                <p class="text-base font-bold text-gray-900 truncate">
-                  {{ cityOf(job.from) }} <span class="text-primary">→</span> {{ cityOf(job.to) }}
-                </p>
-                <p class="text-xs text-gray-500 truncate">
-                  {{ job.driver ? `Sürücü: ${job.driver.name}` : 'Sürücü: Siz' }}
-                  <template v-if="job.car"> · {{ job.car.plate }}</template>
-                </p>
+              <!-- Güzergah -->
+              <div class="flex items-center gap-3 md:w-[34%] min-w-0">
+                <span
+                  class="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
+                  :class="job.status === 'in_progress' ? 'bg-secondary/10 text-secondary' : job.status === 'delivered' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'"
+                >
+                  <i :class="['pi text-sm', job.status === 'in_progress' ? 'pi-truck' : job.status === 'delivered' ? 'pi-check' : 'pi-hourglass']"></i>
+                </span>
+                <div class="min-w-0">
+                  <p class="text-sm font-bold text-gray-900 truncate">
+                    {{ cityOf(job.from) }} <span class="text-primary">→</span> {{ cityOf(job.to) }}
+                  </p>
+                  <p class="text-xs text-gray-500 truncate">
+                    {{ districtOf(job.from) || '—' }} → {{ districtOf(job.to) || '—' }}
+                  </p>
+                </div>
               </div>
 
-              <!-- Harita resim gibi: kaydırılmaz, tıklama karta geçer -->
-              <LiveVehicleMap
-                :from="job.from"
-                :to="job.to"
-                :vehicle="job.location ? { lat: job.location.lat, lng: job.location.lng } : null"
-                :caption="captionOf(job)"
-                :interactive="false"
-                :vehicle-at-origin-when-unknown="false"
-                vehicle-label="Aracım"
-                :height="190"
-                class="!rounded-none !border-x-0"
-              />
+              <!-- Sürücü / plaka -->
+              <div class="md:w-[20%] min-w-0 text-xs text-gray-600">
+                <p class="truncate"><i class="pi pi-user text-[11px] mr-1 text-gray-400"></i>{{ job.driver ? job.driver.name : 'Siz' }}</p>
+                <p v-if="job.car" class="truncate mt-0.5"><i class="pi pi-car text-[11px] mr-1 text-gray-400"></i>{{ job.car.plate }}</p>
+              </div>
 
-              <div class="px-4 py-3 flex items-center justify-between gap-3">
-                <span
-                  class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold"
-                  :class="statusMeta(job).class"
-                >
-                  <i :class="['pi text-[11px]', statusMeta(job).icon]"></i>
-                  {{ statusMeta(job).label }}
-                </span>
-                <div v-if="job.documents.length" class="flex flex-wrap justify-end gap-1.5" @click.stop>
+              <!-- Konum / ilerleme -->
+              <div class="md:flex-1 min-w-0">
+                <p class="text-xs font-semibold truncate" :class="job.status === 'in_progress' ? 'text-gray-800' : 'text-gray-400'">
+                  {{ captionOf(job) || 'Yolda' }}
+                </p>
+                <div v-if="job.status === 'in_progress' && job.progress != null" class="mt-1.5 flex items-center gap-2">
+                  <div class="h-1.5 flex-1 rounded-full bg-gray-100 overflow-hidden">
+                    <div class="h-full rounded-full bg-secondary" :style="{ width: `${Math.min(100, Math.round(job.progress))}%` }"></div>
+                  </div>
+                  <span class="text-[11px] font-bold text-gray-600">%{{ Math.round(job.progress) }}</span>
+                </div>
+              </div>
+
+              <!-- Durum -->
+              <span
+                class="self-start md:self-center inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold shrink-0"
+                :class="statusMeta(job).class"
+              >
+                <i :class="['pi text-[11px]', statusMeta(job).icon]"></i>
+                {{ statusMeta(job).label }}
+              </span>
+
+              <!-- Belgeler -->
+              <div class="md:w-28 shrink-0 text-xs" @click.stop>
+                <div v-if="job.documents.length" class="flex flex-col gap-0.5">
                   <a
                     v-for="doc in job.documents"
                     :key="doc.id"
                     :href="doc.url"
                     target="_blank"
                     rel="noopener"
-                    class="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+                    class="inline-flex items-center gap-1 font-semibold text-primary hover:underline truncate"
                   >
                     <i class="pi pi-paperclip text-[11px]"></i>{{ doc.title || 'Belge' }}
                   </a>
                 </div>
-                <span v-else class="text-xs text-gray-400">Belge yok</span>
+                <span v-else class="text-gray-400">Belge yok</span>
               </div>
-            </article>
-          </div>
+
+              <i v-if="job.status !== 'delivered'" class="hidden md:block pi pi-chevron-right text-xs text-gray-300"></i>
+            </li>
+          </ul>
         </template>
       </section>
     </div>
@@ -104,7 +124,6 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '@/api';
-import LiveVehicleMap from '@/components/LiveVehicleMap.vue';
 
 const router = useRouter();
 const jobs = ref([]);
@@ -119,6 +138,7 @@ const SECTIONS = [
 const sections = computed(() => SECTIONS.map((s) => ({ ...s, items: jobs.value.filter((j) => j.status === s.status) })));
 
 const cityOf = (place) => String(place ?? '').split(' / ')[0] || '—';
+const districtOf = (place) => String(place ?? '').split(' / ')[1] ?? '';
 
 function timeAgo(iso) {
   if (!iso) return '';

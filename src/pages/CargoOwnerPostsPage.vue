@@ -1,70 +1,75 @@
 <template>
     <Header />
     <div class="h-[calc(100vh-64px)]">
-        <Content>
-            <div class="flex flex-row gap-3 w-full h-[calc(100vh-64px)]">
+        
+            <div class="flex flex-row w-full h-[calc(100vh-64px)] bg-gray-50">
                 <CargoOwner />
-                <div class="bg-white flex-1 mt-3 border border-gray-200 p-4 sm:p-5 rounded-md flex flex-col overflow-hidden">
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-                        <h2 class="text-2xl font-semibold text-gray-900">İlanlarım</h2>
-                        <router-link
-                            to="/cargo-owner/posts/create"
-                            class="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition-colors shrink-0"
-                        >
-                            <i class="pi pi-plus" style="font-size: 14px;"></i>
-                            İlan Oluştur
-                        </router-link>
-                    </div>
+                <div class="flex-1 min-w-0 min-h-0 flex flex-col p-4 sm:p-6">
+                    <!-- Sayfa yolu: içerik alanının en üstünde -->
+                    <AccountBreadcrumb class="mb-4 shrink-0" />
+                    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm flex-1 sm:p-5 flex flex-col overflow-hidden">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+                            <h2 class="text-2xl font-semibold text-gray-900">İlanlarım</h2>
+                            <router-link
+                                to="/cargo-owner/posts/create"
+                                class="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 transition-colors shrink-0"
+                            >
+                                <i class="pi pi-plus" style="font-size: 14px;"></i>
+                                İlan Oluştur
+                            </router-link>
+                        </div>
 
-                    <!-- Sekmeler: Devam eden, Tamamlanan, İptal edilen -->
-                    <div class="inline-flex p-1 rounded-xl bg-gray-100 border border-gray-200/80 mb-4">
-                        <button
-                            v-for="tab in postTabs"
-                            :key="tab.value"
-                            type="button"
-                            @click="selectedStatus = tab.value"
-                            :class="[
-                                'inline-flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm transition-all duration-200',
-                                selectedStatus === tab.value
-                                    ? 'bg-white text-primary shadow-sm border border-gray-200/60'
-                                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50/80'
-                            ]"
-                        >
-                            <i :class="['pi text-[13px]', tab.icon]"></i>
-                            <span>{{ tab.label }} ({{ statusCounts[tab.value] ?? 0 }})</span>
-                        </button>
-                    </div>
+                        <!-- Sekmeler: Devam eden, Tamamlanan, İptal edilen -->
+                        <div class="inline-flex p-1 rounded-xl bg-gray-100 border border-gray-200/80 mb-4">
+                            <button
+                                v-for="tab in postTabs"
+                                :key="tab.value"
+                                type="button"
+                                @click="selectedStatus = tab.value"
+                                :class="[
+                                    'inline-flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm transition-all duration-200',
+                                    selectedStatus === tab.value
+                                        ? 'bg-white text-primary shadow-sm border border-gray-200/60'
+                                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50/80'
+                                ]"
+                            >
+                                <i :class="['pi text-[13px]', tab.icon]"></i>
+                                <span>{{ tab.label }} ({{ statusCounts[tab.value] ?? 0 }})</span>
+                            </button>
+                        </div>
 
-                    <div v-if="loading" class="flex items-center justify-center flex-1 text-gray-500">
-                        <i class="pi pi-spin pi-spinner text-2xl"></i>
-                        <span class="ml-2">İlanlar yükleniyor...</span>
-                    </div>
-                    <div v-else-if="error" class="flex flex-col items-center justify-center flex-1 text-red-600">
-                        <i class="pi pi-exclamation-triangle text-2xl mb-2"></i>
-                        <p>{{ error }}</p>
-                    </div>
-                    <div v-else-if="!shipments.length" class="flex flex-col items-center justify-center flex-1 text-gray-500 py-12">
-                        <i class="pi pi-inbox text-4xl mb-2 text-gray-300"></i>
-                        <p>{{ emptyMessage }}</p>
-                    </div>
-                    <div
-                        v-else
-                        class="flex flex-col gap-5 overflow-y-auto h-[calc(100vh-200px)] pb-10"
-                    >
-                        <Product
-                            v-for="shipment in shipments"
-                            :key="shipment.id"
-                            :shipment="shipment"
-                            :slug="String(shipment.slug)"
-                            :prevent-navigation="selectedStatus === 'done'"
-                            :show-attachments-list="selectedStatus === 'done'"
-                            @canceled="onShipmentCanceled"
-                            @card-click="openAttachmentsModal"
-                        />
+                        <div v-if="loading" class="flex items-center justify-center flex-1 text-gray-500">
+                            <i class="pi pi-spin pi-spinner text-2xl"></i>
+                            <span class="ml-2">İlanlar yükleniyor...</span>
+                        </div>
+                        <div v-else-if="error" class="flex flex-col items-center justify-center flex-1 text-red-600">
+                            <i class="pi pi-exclamation-triangle text-2xl mb-2"></i>
+                            <p>{{ error }}</p>
+                        </div>
+                        <div v-else-if="!shipments.length" class="flex flex-col items-center justify-center flex-1 text-gray-500 py-12">
+                            <i class="pi pi-inbox text-4xl mb-2 text-gray-300"></i>
+                            <p>{{ emptyMessage }}</p>
+                        </div>
+                        <div
+                            v-else
+                            class="flex flex-col gap-2 overflow-y-auto h-[calc(100vh-200px)] pb-10"
+                        >
+                            <Product
+                                variant="list"
+                                v-for="shipment in shipments"
+                                :key="shipment.id"
+                                :shipment="shipment"
+                                :slug="String(shipment.slug)"
+                                :prevent-navigation="selectedStatus === 'done'"
+                                :show-attachments-list="selectedStatus === 'done'"
+                                @canceled="onShipmentCanceled"
+                                @card-click="openAttachmentsModal"
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
-        </Content>
+        
     </div>
 
     <ShipmentAttachmentsModal
@@ -79,8 +84,8 @@
 import { ref, onMounted, watch, computed } from 'vue';
 import { storeToRefs } from 'pinia';
 import Header from '@/components/Header.vue';
-import Content from '@/components/Content.vue';
 import CargoOwner from '@/components/CargoOwner.vue';
+import AccountBreadcrumb from '@/components/AccountBreadcrumb.vue';
 import Product from '@/components/Product.vue';
 import ShipmentAttachmentsModal from '@/components/ShipmentAttachmentsModal.vue';
 import api from '@/api';

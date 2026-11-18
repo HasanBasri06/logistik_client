@@ -769,6 +769,7 @@
         </div>
       </div>
     </Transition>
+    <VehicleDetailModal />
   </Teleport>
 </template>
 
@@ -783,6 +784,7 @@ import {
   stopCreatePostTourWizard,
 } from "@/lib/create-post-tour";
 import VehicleCart from "@/components/VehicleCart.vue";
+import VehicleDetailModal from "@/components/VehicleDetailModal.vue";
 import MapLocationModal from "@/components/MapLocationModal.vue";
 import { DatePicker } from "primevue";
 import api from "@/api";

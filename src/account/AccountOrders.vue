@@ -11,17 +11,18 @@
             </RouterLink>
         </div>
         
-        <!-- Filtre Sekmeleri -->
-        <div class="inline-flex p-1 rounded-xl bg-gray-100 border border-gray-200/80 mb-4 ">
+        <!-- Filtre Sekmeleri: köşesiz, soldan sağa tam genişlik; seçili sekmenin altı çizili -->
+        <div class="flex w-full border-b border-gray-200 mb-4">
             <button
                 v-for="tab in orderTabs"
                 :key="tab.value"
+                type="button"
                 @click="selectedOrderStatus = tab.value"
                 :class="[
-                    'inline-flex items-center gap-2 px-4 py-2.5 rounded-lg font-medium text-sm transition-all duration-200',
+                    'flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 -mb-px border-b-2 font-medium text-sm transition-colors cursor-pointer',
                     selectedOrderStatus === tab.value
-                        ? 'bg-white text-primary shadow-sm border border-gray-200/60'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50/80'
+                        ? 'border-primary text-primary bg-primary/5'
+                        : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                 ]"
             >
                 <i :class="['pi text-[13px]', tab.icon]"></i>
@@ -39,12 +40,13 @@
                 />
                 <p class="text-sm text-gray-600">İlanlar yükleniyor…</p>
             </div>
-            <div v-else class="flex flex-col gap-5 pt-4">
+            <div v-else class="flex flex-col gap-2 pt-4">
                 <template v-if="!orders.length">
                     <p class="text-gray-500">Henüz İlan bulunmuyor.</p>
                 </template>
                 <template v-else>
                     <Product
+                        variant="list"
                         v-for="(item, idx) in orders"
                         :key="item.id ?? idx"
                         :shipment="item.shipment ?? item.shipment_order ?? {}"

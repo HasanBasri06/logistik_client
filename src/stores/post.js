@@ -43,6 +43,45 @@ export const usePostStore = defineStore('post', () => {
         }
     }
 
+    /** Detay seçim modalı (çoklu seçim) açık olan araç */
+    const detailModalCar = ref(null);
+
+    function openDetailModal(car) {
+        detailModalCar.value = car;
+    }
+
+    function closeDetailModal() {
+        detailModalCar.value = null;
+    }
+
+    /** Aracı seçilen detaylarla yazar; detay listesi boşsa aracı seçimden çıkarır */
+    function saveCarDetails(car, details) {
+        if (!details.length) {
+            selectedCars.value = selectedCars.value.filter((s) => s.car.id !== car.id);
+        } else if (isCarSelected(car.id)) {
+            setCarDetails(car.id, details);
+        } else {
+            selectedCars.value = [...selectedCars.value, { car, details }];
+        }
+    }
+
+    /** Sepetten tek bir (araç, detay) satırını çıkarır; son detaysa araç da çıkar */
+    function removeCarDetail(carId, detailId) {
+        selectedCars.value = selectedCars.value.flatMap((s) => {
+            if (s.car.id !== carId) return [s];
+            if (detailId == null) return [];
+            const details = s.details.filter((d) => d.id !== detailId);
+            return details.length ? [{ ...s, details }] : [];
+        });
+    }
+
+    /** Her (araç, detay) çifti ayrı satır — ilanda da ayrı araç olarak kaydedilir */
+    const selectedCarRows = computed(() =>
+        selectedCars.value.flatMap((s) =>
+            s.details.length ? s.details.map((d) => ({ car: s.car, detail: d })) : [{ car: s.car, detail: null }]
+        )
+    );
+
     function setCarDetails(carId, details) {
         selectedCars.value = selectedCars.value.map((s) =>
             s.car.id === carId ? { ...s, details } : s
@@ -52,6 +91,7 @@ export const usePostStore = defineStore('post', () => {
     const selectResetStates = () => {
         selectedCars.value = [];
         selectedPostType.value = null;
+        detailModalCar.value = null;
     }
 
     function openCreateModal() {
@@ -77,6 +117,12 @@ export const usePostStore = defineStore('post', () => {
         isCarSelected,
         toggleCar,
         setCarDetails,
+        selectedCarRows,
+        detailModalCar,
+        openDetailModal,
+        closeDetailModal,
+        saveCarDetails,
+        removeCarDetail,
         setSelectedPostType,
         selectResetStates,
         openCreateModal,

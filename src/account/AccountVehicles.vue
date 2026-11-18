@@ -11,54 +11,54 @@
                 <span class="text-gray-500">Araçlarınız yükleniyor...</span>
             </div>
         </template>
-        <div v-else class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-            <!-- Yeni araç ekle kartı -->
+        <!-- Liste görünümü: araç görseli solda, bilgiler ve işlem sağda -->
+        <div v-else class="flex flex-col gap-2">
+            <!-- Yeni araç ekle satırı -->
             <button
                 type="button"
                 @click="onAddVehicleClick"
-                class="vehicle-card add-card group flex flex-col items-center justify-center min-h-[320px] rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/60 hover:bg-primary/5 hover:border-primary/40 transition-all duration-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-2"
+                class="group flex items-center gap-4 px-4 py-3 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50/60 hover:bg-primary/5 hover:border-primary/40 transition-colors cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-primary/30"
             >
-                <div class="w-16 h-16 rounded-full bg-primary/10 group-hover:bg-primary/20 flex items-center justify-center mb-4 transition-colors">
-                    <i class="pi pi-plus text-3xl text-primary"></i>
-                </div>
-                <span class="text-base font-semibold text-gray-600 group-hover:text-primary transition-colors">Yeni araç ekle</span>
-                <span class="text-sm text-gray-400 mt-1">Tıklayarak araç ekleyin</span>
+                <span class="w-12 h-12 rounded-full bg-primary/10 group-hover:bg-primary/20 flex items-center justify-center shrink-0 transition-colors">
+                    <i class="pi pi-plus text-xl text-primary"></i>
+                </span>
+                <span>
+                    <span class="block text-sm font-semibold text-gray-700 group-hover:text-primary transition-colors">Yeni araç ekle</span>
+                    <span class="block text-xs text-gray-400">Tıklayarak araç ekleyin</span>
+                </span>
             </button>
 
-            <!-- Araç kartları -->
+            <!-- Araç satırları -->
             <div
                 v-for="userCar in myCars"
                 :key="userCar.id"
-                class="vehicle-card group relative flex flex-col min-h-[320px] rounded-2xl bg-white border border-gray-200 overflow-hidden shadow-sm hover:shadow-md hover:border-gray-300 transition-all duration-300"
+                class="group flex items-stretch rounded-xl bg-white border border-gray-200 overflow-hidden hover:border-gray-300 transition-colors"
             >
-                <!-- Üst: araç adı + detay -->
-                <div class="px-5 pt-5 pb-2">
-                    <h3 class="text-lg font-semibold text-gray-900 truncate">{{ userCar.car?.name || 'Araç' }}</h3>
-                    <p v-if="userCar.carDetail" class="text-sm text-gray-500 mt-0.5 truncate">{{ userCar.carDetail.value || userCar.carDetail.name }}</p>
-                </div>
-
-                <!-- Orta: resim -->
-                <div class="flex-1 flex items-center justify-center px-4 py-4 min-h-[140px] bg-gray-50/50">
+                <div class="w-28 sm:w-36 shrink-0 flex items-center justify-center bg-gray-50 border-r border-gray-100 p-2">
                     <img
                         :src="getUserCarCardImageUrl(userCar)"
                         :alt="userCar.car?.name"
-                        class="max-h-[140px] w-full object-contain"
+                        class="w-full h-16 object-contain"
+                        loading="lazy"
                     />
                 </div>
-
-                <!-- Alt: plaka (TR plakası stili) + düzenle (API: plate veya plaka) -->
-                <div class="px-5 py-4 flex items-center justify-between gap-2 bg-gray-50/30 border-t border-gray-100 min-w-0">
-                    <div v-if="userCar.plate" class="inline-flex items-stretch max-w-full h-[30px] min-w-0 border-2 border-slate-900 rounded overflow-hidden bg-white shadow shrink">
-                        <span class="flex items-center justify-center w-6 min-w-[24px] bg-[#003399] text-white text-[10px] font-extrabold tracking-tight">TR</span>
-                        <span class="flex items-center px-1.5 text-[11px] font-black text-slate-900 tracking-wider whitespace-nowrap overflow-hidden text-ellipsis min-w-0">{{ userCar.plate || userCar.plaka }}</span>
+                <div class="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-5 px-4 py-3">
+                    <div class="min-w-0 sm:flex-1">
+                        <h3 class="text-sm font-bold text-gray-900 truncate">{{ userCar.car?.name || 'Araç' }}</h3>
+                        <p v-if="userCar.carDetail" class="text-xs text-gray-500 truncate">{{ userCar.carDetail.value || userCar.carDetail.name }}</p>
+                    </div>
+                    <!-- Plaka (TR plakası stili) -->
+                    <div v-if="userCar.plate || userCar.plaka" class="inline-flex items-stretch self-start sm:self-center h-[28px] min-w-0 border-2 border-slate-900 rounded overflow-hidden bg-white shrink-0">
+                        <span class="flex items-center justify-center w-6 bg-[#003399] text-white text-[10px] font-extrabold">TR</span>
+                        <span class="flex items-center px-1.5 text-[11px] font-black text-slate-900 tracking-wider whitespace-nowrap">{{ userCar.plate || userCar.plaka }}</span>
                     </div>
                     <span v-else class="text-sm text-gray-400">—</span>
                     <button
                         type="button"
                         @click.stop="editVehicle(userCar)"
-                        class="edit-vehicle-btn ml-auto shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white bg-primary hover:bg-primary/90 border border-primary shadow-sm hover:shadow transition-all"
+                        class="edit-vehicle-btn self-start sm:self-center shrink-0 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-primary hover:bg-primary/90 transition-colors"
                     >
-                        <i class="pi pi-pencil text-sm"></i>
+                        <i class="pi pi-pencil text-xs"></i>
                         Düzenle
                     </button>
                 </div>

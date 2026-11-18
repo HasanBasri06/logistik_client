@@ -1,10 +1,91 @@
 <template>
-    <Header />
-    <div class="min-h-[calc(100vh-64px)] bg-gray-50/60">
-        <Content class="py-6 md:py-8">
-            <div class="flex flex-col gap-6 lg:flex-row lg:gap-8">
-                <!-- Sol: Ana içerik -->
-                <div class="flex-1 min-w-0 flex flex-col gap-6 order-2 lg:order-1">
+    <Header :panel="ownerDashboard" />
+    <div :class="ownerDashboard ? 'flex w-full h-[calc(100vh-64px)] bg-gray-50' : 'min-h-[calc(100vh-64px)] bg-gray-50/60'">
+        <!-- İlan sahibi kendi ilanını panel içinde görür -->
+        <CargoOwner v-if="ownerDashboard" />
+        <component
+            :is="ownerDashboard ? 'div' : Content"
+            :class="ownerDashboard ? 'flex-1 min-w-0 overflow-y-auto p-4 sm:p-6' : 'py-6 md:py-8'"
+        >
+            <nav v-if="ownerDashboard" aria-label="Breadcrumb" class="mb-4 text-sm">
+                <ol class="flex flex-wrap items-center gap-2 text-gray-500">
+                    <li><RouterLink to="/cargo-owner" class="hover:text-primary">Hesabım</RouterLink></li>
+                    <li aria-hidden="true"><i class="pi pi-angle-right text-xs"></i></li>
+                    <li><RouterLink to="/cargo-owner/posts" class="hover:text-primary">İlanlarım</RouterLink></li>
+                    <li aria-hidden="true"><i class="pi pi-angle-right text-xs"></i></li>
+                    <li class="text-gray-900 font-medium truncate max-w-[60vw]" aria-current="page">{{ routeTitle || 'İlan' }}</li>
+                </ol>
+            </nav>
+            <div :class="ownerDashboard ? 'flex flex-col gap-6 lg:flex-row' : 'flex flex-col gap-6 lg:flex-row lg:gap-8'">
+                <!-- Sol: Ana içerik (%75) -->
+                <div
+                    class="min-w-0 flex flex-col gap-6 order-2 lg:order-1"
+                    :class="ownerDashboard ? 'flex-1 lg:flex-[3]' : 'flex-1'"
+                >
+                    <!-- Anlaşma yapıldı: üstte harita + anlaşılan taşıyıcı ve aracı -->
+                    <section
+                        v-if="ownerDashboard && liveLocation"
+                        class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden"
+                    >
+                        <div class="px-5 py-4 border-b border-gray-100 bg-gray-50/80 flex items-center justify-between gap-3">
+                            <div class="min-w-0">
+                                <h2 class="text-base font-semibold text-gray-900">Yükünüz Nerede?</h2>
+                                <p class="text-xs text-gray-500 mt-0.5">{{ liveCaption }}</p>
+                            </div>
+                            <span
+                                v-if="liveLocation.progress != null && liveLocation.started_at"
+                                class="shrink-0 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold"
+                            >%{{ Math.round(liveLocation.progress) }}</span>
+                        </div>
+                        <div class="p-5 flex flex-col gap-4">
+                            <LiveVehicleMap
+                                :from="[shipment.f_where_city, shipment.f_where_district].filter(Boolean).join(' / ')"
+                                :to="[shipment.t_where_city, shipment.t_where_district].filter(Boolean).join(' / ')"
+                                :vehicle="liveVehicle"
+                                :caption="liveCaption"
+                                :height="380"
+                            />
+                            <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                                <!-- Anlaşılan taşıyıcı -->
+                                <div v-if="acceptedRequest" class="rounded-xl border border-gray-200 p-4 flex items-center gap-4">
+                                    <img
+                                        v-if="acceptedRequest.user?.profile_image"
+                                        :src="acceptedRequest.user.profile_image"
+                                        :alt="acceptedRequest.user?.full_name || 'Taşıyıcı'"
+                                        class="w-14 h-14 rounded-full object-cover shrink-0"
+                                    />
+                                    <span
+                                        v-else
+                                        class="w-14 h-14 rounded-full bg-primary/15 text-primary text-lg font-bold flex items-center justify-center shrink-0"
+                                    >{{ (acceptedRequest.user?.full_name || '?')[0] }}</span>
+                                    <div class="min-w-0 flex-1">
+                                        <p class="text-xs text-gray-500">Anlaştığınız taşıyıcı</p>
+                                        <p class="text-base font-semibold text-gray-900 truncate flex items-center gap-1.5">
+                                            {{ acceptedRequest.user?.full_name || 'Taşıyıcı' }}
+                                            <i v-if="acceptedRequest.user?.verified == 1" class="pi pi-verified text-primary text-sm"></i>
+                                        </p>
+                                        <p class="text-xs text-gray-500 mt-0.5">
+                                            <i class="pi pi-star-fill text-amber-400 text-[10px]"></i>
+                                            {{ acceptedRequest.user?.comments_avg_score ?? 0 }} puan
+                                            <template v-if="acceptedPriceDisplay"> · Anlaşma: <b class="text-gray-800">{{ acceptedPriceDisplay }}</b></template>
+                                        </p>
+                                    </div>
+                                    <RouterLink
+                                        to="/cargo-owner/messages"
+                                        class="shrink-0 w-10 h-10 rounded-lg border border-gray-200 text-gray-500 hover:border-primary hover:text-primary hover:bg-primary/10 flex items-center justify-center"
+                                        title="Mesajlar"
+                                    ><i class="pi pi-comments"></i></RouterLink>
+                                </div>
+                                <!-- Taşıyıcının aracı -->
+                                <JobVehicleCard
+                                    v-if="liveLocation.vehicle"
+                                    :vehicle="liveLocation.vehicle"
+                                    :weight="shipment.weight"
+                                />
+                            </div>
+                        </div>
+                    </section>
+
                     <!-- Yakındaki sürücüler (sadece giriş yapmış kullanıcıya gösterilir) -->
                     <!-- İlan kabul edildiyse (taşıyıcı belli) yakındaki sürücüler gösterilmez -->
                     <section
@@ -114,7 +195,7 @@
 
                     <!-- İlan açıklaması -->
                     <section
-                        v-if="explanationText"
+                        v-if="explanationText && !ownerDashboard"
                         class="relative overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
                     >
                         <div class="relative px-5 py-4 border-b border-gray-100 bg-gradient-to-r from-primary/[0.08] via-white to-white">
@@ -187,7 +268,7 @@
                                 </h2>
                             </div>
                             <!-- Onaylanmış iş: aracın nerede olduğu (canlı) — yalnızca ilan sahibine -->
-                            <div v-if="liveLocation" class="px-5 pt-5">
+                            <div v-if="liveLocation && !ownerDashboard" class="px-5 pt-5">
                                 <LiveVehicleMap
                                     :from="[shipment.f_where_city, shipment.f_where_district].filter(Boolean).join(' / ')"
                                     :to="[shipment.t_where_city, shipment.t_where_district].filter(Boolean).join(' / ')"
@@ -233,9 +314,32 @@
                 <!-- Sağ: Sticky özet (masaüstü) -->
                 <aside
                     v-if="!loading && !error && shipment"
-                    class="w-full lg:w-80 shrink-0 order-1 lg:order-2 lg:self-start lg:sticky lg:top-24"
+                    class="w-full order-1 lg:order-2 lg:self-start lg:sticky"
+                    :class="ownerDashboard ? 'lg:flex-1 lg:min-w-0 lg:top-0' : 'lg:w-80 shrink-0 lg:top-24'"
                 >
                     <div class="flex flex-col gap-4">
+                        <!-- Güzergah (panel görünümü) -->
+                        <div v-if="ownerDashboard" class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden p-5">
+                            <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Güzergah</p>
+                            <ol class="relative flex flex-col gap-4 pl-6">
+                                <span class="absolute left-[7px] top-2 bottom-2 w-0.5 bg-gray-200" aria-hidden="true"></span>
+                                <li class="relative">
+                                    <span class="absolute -left-6 top-1 w-4 h-4 rounded-full bg-primary border-[3px] border-white shadow"></span>
+                                    <p class="text-[11px] text-gray-500">Yükleme</p>
+                                    <p class="text-sm font-semibold text-gray-900">{{ [shipment.f_where_city, shipment.f_where_district].filter(Boolean).join(' / ') || '—' }}</p>
+                                    <p v-if="shipment.departure_time" class="text-xs text-gray-500 mt-0.5"><i class="pi pi-clock text-[10px]"></i> {{ shipment.departure_time }}</p>
+                                </li>
+                                <li class="relative">
+                                    <span class="absolute -left-6 top-1 w-4 h-4 rounded-full bg-gray-800 border-[3px] border-white shadow"></span>
+                                    <p class="text-[11px] text-gray-500">Teslim</p>
+                                    <p class="text-sm font-semibold text-gray-900">{{ [shipment.t_where_city, shipment.t_where_district].filter(Boolean).join(' / ') || '—' }}</p>
+                                    <p v-if="shipment.time_arrival" class="text-xs text-gray-500 mt-0.5"><i class="pi pi-clock text-[10px]"></i> {{ shipment.time_arrival }}</p>
+                                </li>
+                            </ol>
+                            <p v-if="shipment.distance_km" class="mt-3 pt-3 border-t border-gray-100 text-xs text-gray-600">
+                                <i class="pi pi-map text-primary"></i> Yaklaşık {{ Math.round(Number(shipment.distance_km)) }} km
+                            </p>
+                        </div>
                         <div class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden p-5">
                             <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">
                                 {{ vehicles.length > 1 ? `Araçlar (${vehicles.length})` : 'Araç' }}
@@ -243,7 +347,7 @@
                             <div v-if="vehicles.length > 1" class="grid grid-cols-2 gap-2">
                                 <div
                                     v-for="v in vehicles"
-                                    :key="v.id"
+                                    :key="v.key"
                                     class="flex flex-col items-center gap-1.5 rounded-xl border border-gray-100 bg-gray-50/60 p-2.5"
                                 >
                                     <img
@@ -308,10 +412,15 @@
                                 </button>
                             </div>
                         </div>
+
+                        <div v-if="ownerDashboard && explanationText" class="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden p-5">
+                            <p class="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">İlan Açıklaması</p>
+                            <p class="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{{ explanationText }}</p>
+                        </div>
                     </div>
                 </aside>
             </div>
-        </Content>
+        </component>
     </div>
 
     <!-- Mesaj paneli -->
@@ -519,6 +628,7 @@
 <script setup>
 import Header from '@/components/Header.vue';
 import Content from '@/components/Content.vue';
+import CargoOwner from '@/components/CargoOwner.vue';
 import RequestCard from '@/components/RequestCard.vue';
 import { onMounted, onBeforeUnmount, ref, computed, watch, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -537,6 +647,7 @@ import { useLocationStore } from '@/stores/location';
 import { storeToRefs } from 'pinia';
 import { MESSAGE_MAX_LENGTH } from '@/lib/message-limits';
 import { shipmentVehicles } from '@/lib/shipment-vehicles';
+import { shouldShowKdvLabel } from '@/lib/shipment-kdv';
 
 const route = useRoute();
 const router = useRouter();
@@ -547,6 +658,30 @@ const isCreator = computed(() => {
     const s = shipment.value;
     if (!u || !s) return false;
     return Number(s.creater_id) === Number(u) || Number(s.creator?.id) === Number(u);
+});
+
+/**
+ * Yük sahibi kendi ilanını panel (dashboard) düzeninde görür: sol menü, içerik %75 / %25.
+ * Yüklenirken de yük sahibi için panel düzeni seçilir (yüklenince düzen zıplamasın).
+ */
+const ownerDashboard = computed(() => {
+    if (authStore.user?.type !== 'cargo_owner') return false;
+    return isCreator.value || (loading.value && !shipment.value);
+});
+
+const routeTitle = computed(() => {
+    const s = shipment.value;
+    if (!s) return '';
+    return [s.f_where_city, s.t_where_city].filter(Boolean).join(' → ');
+});
+
+/** Anlaşılan (kabul edilmiş) teklif */
+const acceptedRequest = computed(
+    () => (shipment.value?.requests ?? []).find((r) => String(r?.status ?? '').toLowerCase() === 'accepted') ?? null
+);
+const acceptedPriceDisplay = computed(() => {
+    const p = Number(acceptedRequest.value?.price);
+    return p > 0 ? `${p.toLocaleString('tr-TR', { minimumFractionDigits: 2 })} ₺` : '';
 });
 
 /** İlan hâlâ teklif kabul edilebilir durumda mı (shipment.status) */

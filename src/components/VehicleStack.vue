@@ -49,7 +49,7 @@
         <ul class="flex flex-col gap-1">
           <li
             v-for="v in vehicles"
-            :key="v.id"
+            :key="v.key"
             class="flex items-center gap-3 rounded-lg px-2 py-1.5 hover:bg-primary/5"
           >
             <span class="w-12 h-9 shrink-0 rounded-md bg-gray-50 flex items-center justify-center overflow-hidden">

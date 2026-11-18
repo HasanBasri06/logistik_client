@@ -1,5 +1,90 @@
 <template>
+  <!-- LİSTE GÖRÜNÜMÜ: tek satır; araç görseli solda, bilgiler yan yana (variant="list") -->
   <div
+    v-if="variant === 'list'"
+    class="w-full flex items-stretch bg-white border border-gray-200 rounded-xl overflow-hidden cursor-pointer transition-colors hover:border-primary hover:bg-primary/[0.02]"
+    @click="handleClick($event, shipment)"
+  >
+    <!-- Sol şerit: Fast / Parça Yük / normal rengi -->
+    <span
+      class="w-1 shrink-0"
+      :class="isFast ? 'bg-blue-600' : isPartLoad ? 'bg-secondary' : 'bg-primary'"
+      aria-hidden="true"
+    />
+    <!-- Araç görseli -->
+    <div class="hidden sm:flex w-28 md:w-32 shrink-0 items-center justify-center bg-gray-50 border-r border-gray-100 p-2">
+      <img
+        v-if="vehicles[0]?.image"
+        :src="vehicles[0].image"
+        :alt="vehicles[0].label"
+        class="w-full h-16 object-contain"
+        loading="lazy"
+      />
+      <i v-else class="pi pi-truck text-2xl text-gray-300" />
+    </div>
+
+    <div class="flex-1 min-w-0 flex flex-col md:flex-row md:items-center gap-3 md:gap-5 px-4 py-3">
+      <!-- Güzergah + tarih/saat -->
+      <div class="md:w-[34%] min-w-0">
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="text-sm font-bold text-gray-900 truncate">{{ fromPlaceText }}</span>
+          <ArrowRight class="w-3.5 h-3.5 text-primary shrink-0" />
+          <span class="text-sm font-bold text-gray-900 truncate">{{ toPlaceText }}</span>
+        </div>
+        <div class="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-gray-500">
+          <span><i class="pi pi-calendar text-[10px] mr-1" />{{ departureDateText }}</span>
+          <span v-if="shipment?.departure_time">· {{ shipment.departure_time }}<template v-if="shipment?.time_arrival"> → {{ shipment.time_arrival }}</template></span>
+          <span
+            v-if="stripLabel"
+            class="inline-flex items-center gap-1 px-1.5 rounded text-[10px] font-bold text-white"
+            :class="isFast ? 'bg-blue-600' : 'bg-secondary'"
+          ><i v-if="isFast" class="pi pi-bolt text-[9px]" />{{ stripLabel }}</span>
+        </div>
+      </div>
+
+      <!-- Yük ve araç bilgisi -->
+      <div class="md:w-[24%] min-w-0 text-xs text-gray-600">
+        <p class="truncate"><span class="font-semibold text-gray-800">{{ formatWeight(shipment.weight) }}</span> · {{ shipment.post_type?.value || '—' }}</p>
+        <p class="truncate mt-0.5 text-gray-500">{{ vehicles.map((v) => v.label).join(', ') || '—' }}</p>
+      </div>
+
+      <!-- Yayınlayan + teklif -->
+      <div class="md:flex-1 min-w-0 flex items-center gap-2">
+        <img :src="creatorAvatarUrl" :alt="shipment.creator?.full_name" class="w-7 h-7 rounded-full object-cover border border-gray-200 shrink-0" />
+        <div class="min-w-0">
+          <p class="text-xs font-semibold text-gray-800 truncate">
+            {{ creatorDisplayName }}
+            <i v-if="shipment.creator?.verified == 1" class="pi pi-verified text-blue-500 text-[11px]" />
+          </p>
+          <p class="text-[11px] text-gray-500 truncate">
+            <Star size="10" class="inline w-3 h-3 text-primary fill-primary -mt-0.5" /> {{ creatorScoreText }} · {{ requestText }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Fiyat + aksiyonlar -->
+      <div class="flex items-center gap-2 shrink-0 md:justify-end">
+        <span
+          v-if="showOwnerNotLiveBadge"
+          class="inline-flex items-center rounded-full bg-slate-100 text-slate-700 border border-slate-200 px-2.5 py-1 text-[11px] font-semibold"
+        >Yayında değil</span>
+        <button
+          v-else-if="showOwnerCancelButton"
+          type="button"
+          class="bg-red-100 hover:bg-red-200 text-red-700 text-xs font-semibold px-3 py-1.5 rounded-lg cursor-pointer"
+          @click.stop="handleCanceledBtn($event, shipment)"
+        >İptal Et</button>
+        <span class="inline-flex items-center py-1.5 px-3 rounded-full bg-primary/10 text-xs font-bold text-primary whitespace-nowrap">
+          {{ shipment?.price }}<template v-if="showKdvLabel"> +KDV</template>
+        </span>
+        <i class="hidden md:block pi pi-chevron-right text-xs text-gray-300" />
+      </div>
+    </div>
+  </div>
+
+  <!-- KART GÖRÜNÜMÜ (varsayılan) -->
+  <div
+    v-else
     class="w-full min-h-fit rounded-2xl bg-white border border-gray-200 overflow-hidden cursor-pointer transition-all duration-300 shadow-sm hover:border-primary hover:shadow-[0_4px_12px_rgba(0,160,174,0.15)] hover:-translate-y-0.5"
     @click="handleClick($event, shipment)"
   >
@@ -304,7 +389,12 @@ const props = defineProps({
     showAttachmentsList: {
         type: Boolean,
         default: false,
-    }
+    },
+    /** 'card' (varsayılan) ya da 'list': tek satır liste görünümü (araç görseli solda) */
+    variant: {
+        type: String,
+        default: 'card',
+    },
 });
 
 const router = useRouter();
